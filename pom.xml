@@ -105,13 +105,6 @@
           <descriptors>
             <descriptor>src/main/assembly.xml</descriptor>
           </descriptors>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-              <mainClass>com.sumologic.sumobot.Main</mainClass>
-            </manifest>
-          </archive>
         </configuration>
       </plugin>
 
@@ -131,6 +124,7 @@
           <excludes>
             <exclude>target/**</exclude>
             <exclude>.clover/**</exclude>
+            <exclude>src/main/assembly.xml</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
           <useDefaultMapping>true</useDefaultMapping>

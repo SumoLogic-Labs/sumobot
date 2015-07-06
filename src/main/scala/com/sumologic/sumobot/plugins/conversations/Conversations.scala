@@ -1,10 +1,10 @@
 /**
- *    _____ _____ _____ _____    __    _____ _____ _____ _____
- *   |   __|  |  |     |     |  |  |  |     |   __|     |     |
- *   |__   |  |  | | | |  |  |  |  |__|  |  |  |  |-   -|   --|
- *   |_____|_____|_|_|_|_____|  |_____|_____|_____|_____|_____|
+ * _____ _____ _____ _____    __    _____ _____ _____ _____
+ * |   __|  |  |     |     |  |  |  |     |   __|     |     |
+ * |__   |  |  | | | |  |  |  |  |__|  |  |  |  |-   -|   --|
+ * |_____|_____|_|_|_|_____|  |_____|_____|_____|_____|_____|
  *
- *                UNICORNS AT WARP SPEED SINCE 2010
+ * UNICORNS AT WARP SPEED SINCE 2010
  *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -14,7 +14,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -43,7 +43,7 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
        |A few pointless, but fun interactions with bender, for example:
        |
        |count to <n> - Causes ${state.self.name} to count to the given number.
-                                                  |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
+       |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
     """.stripMargin
 
   private val CountToN = matchText("count to (\\d+).*")
@@ -69,7 +69,6 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
         (1 to number.toInt).map(i => i -> NumberStrings(i)).foreach {
           tuple =>
             context.system.scheduler.scheduleOnce(tuple._1.seconds, sender(), botMessage.message(s"${tuple._2}!"))
-
         }
       }
 
@@ -81,15 +80,14 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
         (1 to start).map(i => i -> NumberStrings(start - i)).foreach {
           tuple =>
             context.system.scheduler.scheduleOnce(tuple._1.seconds, sender(), botMessage.message(s"${tuple._2}!"))
-
         }
       }
 
     case TellColon(recipientUserId, what) if botMessage.addressedToUs =>
-      tell(botMessage, recipientUserId, what)
+      tell(recipientUserId, what)
 
     case TellTo(recipientUserId, what) if botMessage.addressedToUs =>
-      tell(botMessage, recipientUserId, what)
+      tell(recipientUserId, what)
 
     case Sup(name) if name == state.self.name =>
       botMessage.respond("What is up!!")
@@ -104,7 +102,7 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
       botMessage.respond("This is the worst kind of discrimination there is: the kind against me!")
   }
 
-  private def tell(botMessage: BotMessage, recipientUserId: String, what: String): Unit = {
+  private def tell(recipientUserId: String, what: String): Unit = {
     state.getUserById(recipientUserId) match {
       case Some(user) =>
         state.ims.find(_.user == user.id) match {
