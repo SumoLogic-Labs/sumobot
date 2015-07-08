@@ -34,6 +34,14 @@ import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.Bender.SendSlackMessage
 import com.sumologic.sumobot.plugins.BotPlugin
+import org.apache.http.HttpResponse
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.HttpPost
+import org.apache.http.client.params.{ClientPNames, CookiePolicy}
+import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.message.BasicNameValuePair
+import org.apache.http.util.EntityUtils
+import slack.rtm.RtmState
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -41,16 +49,21 @@ import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 object Jenkins {
-  def propsOption(name: String): Option[Props] = {
+  def propsOption(state: RtmState, name: String): Option[Props] = {
     val nameUpper = name.toUpperCase
     for (url <- sys.env.get(s"${nameUpper}_URL");
          user <- sys.env.get(s"${nameUpper}_USER");
          password <- sys.env.get(s"${nameUpper}_PASSWORD"))
-      yield Props(classOf[Jenkins], name, url, user, password)
+      yield Props(classOf[Jenkins], state, name, url, user, password, sys.env.get(s"${nameUpper}_BUILD_TOKEN"))
   }
 }
 
-class Jenkins(val name: String, url: String, user: String, password: String)
+class Jenkins(state: RtmState,
+              val name: String,
+              url: String,
+              user: String,
+              password: String,
+              buildToken: Option[String])
   extends BotPlugin with ActorLogging {
 
   override protected def help: String =
@@ -67,8 +80,12 @@ class Jenkins(val name: String, url: String, user: String, password: String)
 
   import context.dispatcher
 
-  private val httpClient = new JenkinsHttpClient(new URI(url), user, password)
-  private val server = new JenkinsServer(httpClient)
+  private val uri = new URI(url)
+  private val rawHttpClient = new DefaultHttpClient()
+  rawHttpClient.getParams().setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY);
+  private val cookieClient = new JenkinsHttpClient(uri, rawHttpClient)
+  private val basicAuthClient = new JenkinsHttpClient(uri, user, password)
+  private val server = new JenkinsServer(basicAuthClient)
 
   log.info(s"$name plugin has connected to $url")
 
@@ -80,6 +97,7 @@ class Jenkins(val name: String, url: String, user: String, password: String)
   override protected def receiveText: ReceiveText = {
 
     case JobStatus(jobName) =>
+      val msg = botMessage
       jobs.map {
         jobMap =>
           jobMap.find(_._2.getName.trim.toLowerCase == jobName.trim.toLowerCase) match {
@@ -92,49 +110,62 @@ class Jenkins(val name: String, url: String, user: String, password: String)
               } else {
                 s"${buildDetails.getResult.name().toLowerCase} (#$buildNo, took: ${buildDetails.getDuration})"
               }
-              botMessage.response(s"$name job ${job.getName} status: $status")
+              msg.response(s"$name job ${job.getName} status: $status")
             case None =>
-              botMessage.response(unknownJobMessage(jobName))
+              msg.response(unknownJobMessage(jobName))
           }
       } pipeTo sender()
 
     case TriggerJob(givenName) =>
+
+      val msg = botMessage
       Future[SendSlackMessage] {
         Try(server.getJob(givenName)) match {
           case Success(jobWithDetails) if jobWithDetails != null =>
             val jobName = jobWithDetails.getName
             val isBuildable = jobWithDetails.isBuildable
             if (!isBuildable) {
-              botMessage.response(s"$jobName is not buildable.")
+              msg.response(s"$jobName is not buildable.")
             } else {
-              val encodedJobName = URLEncoder.
-                encode(jobWithDetails.getName, "UTF-8").
-                replaceAll("\\+", "%20")
-
-              log.info(s"Triggering $name job $jobName on $url")
               try {
-                val response = httpClient.post(s"/job/$jobName/build?delay=0sec")
-                log.info(s"Response: $response")
-                botMessage.response(s"$name job $jobName build TODO - cannot schedule stuff! ")
+                val encodedJobName = URLEncoder.
+                  encode(jobWithDetails.getName, "UTF-8").
+                  replaceAll("\\+", "%20")
+
+                log.info(s"Triggering $name job $encodedJobName on $url")
+                val triggeredBy = state.users.find(_.id == msg.slackMessage.user).map(_.name).getOrElse("unknown user")
+                val channelName = state.channels.find(_.id == msg.slackMessage.channel).map(_.name)
+                  .orElse(state.ims.find(_.id == msg.slackMessage.channel).map(_.user)).getOrElse(s"unknown: ${msg.slackMessage.channel}")
+                val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $channelName", "UTF-8")
+                buildToken match {
+                  case None =>
+                    loginWithCookie()
+                    triggerBuildWithCookie(encodedJobName)
+                  case Some(tkn) =>
+                    basicAuthClient.get(s"/job/$encodedJobName/build?delay=0sec&token=$tkn&cause=$cause")
+                }
+                cachedJobs = None
+                msg.response(s"$name job $jobName has been triggered!")
               } catch {
                 case NonFatal(e) =>
                   log.error(e, s"Could not trigger job $jobName")
-                  botMessage.response("Unable to trigger job. Got an exception")
+                  msg.response("Unable to trigger job. Got an exception")
               }
             }
           case Failure(e) =>
             log.error(e, s"Error triggering $name job $givenName on $url")
-            botMessage.response(unknownJobMessage(givenName))
+            msg.response(unknownJobMessage(givenName))
           case _ =>
-            botMessage.response(unknownJobMessage(givenName))
+            msg.response(unknownJobMessage(givenName))
         }
       } pipeTo sender()
 
     case Info() =>
       botMessage.say(s"$name URL: $url - connected as $user")
+      val msg = botMessage
       jobs.map {
         jobsMap =>
-          botMessage.response(s"${jobsMap.size} jobs known on $name")
+          msg.response(s"${jobsMap.size} jobs known on $name")
       } pipeTo sender()
   }
 
@@ -153,8 +184,43 @@ class Jenkins(val name: String, url: String, user: String, password: String)
     }
   }
 
+  private def loginWithCookie(): Unit = {
+    val request = new HttpPost(url + "j_acegi_security_check")
+    val pairs = List(
+      new BasicNameValuePair("j_username", user),
+      new BasicNameValuePair("j_password", password),
+      new BasicNameValuePair("remember_me", "on"),
+      new BasicNameValuePair("from", "/"),
+      new BasicNameValuePair("submit", "log+in")
+    )
+    request.setEntity(new UrlEncodedFormEntity(pairs.asJava, "UTF-8"))
+    val response = rawHttpClient.execute(request)
+    try {
+      val status = response.getStatusLine.getStatusCode
+      val responseText = EntityUtils.toString(response.getEntity)
+      require(status > 200 && status < 400, s"Returned error $status ($responseText)")
+    } finally {
+      EntityUtils.consume(response.getEntity)
+      request.releaseConnection()
+    }
+  }
+
+  private def triggerBuildWithCookie(jobName: String): Unit = {
+    val post = new HttpPost(url + s"/job/$jobName/build?delay=0sec")
+    val response = rawHttpClient.execute(post)
+    try {
+      val status = response.getStatusLine.getStatusCode
+      val responseText = EntityUtils.toString(response.getEntity)
+      require(status > 200 && status < 400, s"Returned error $status ($responseText)")
+    } finally {
+      EntityUtils.consume(response.getEntity)
+      post.releaseConnection()
+    }
+  }
+
   private def unknownJobMessage(jobName: String) = chooseRandom(
     s"I don't know any job named $jobName!! $upset",
     s"Bite my shiny metal ass. There's no job named $jobName!"
   )
 }
+

@@ -83,7 +83,7 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   rtmClient.addEventListener(self)
 
   private val jenkinsPlugins: Seq[ActorRef] = List("hudson", "jenkins").
-    flatMap(name => Jenkins.propsOption(name).map(_ -> name)).
+    flatMap(name => Jenkins.propsOption(rtmClient.state, name).map(_ -> name)).
     map(tpl => context.actorOf(props = tpl._1, name = tpl._2))
 
   // TODO: Make this list dynamic/discovered instead of static.
