@@ -20,7 +20,7 @@ package com.sumologic.sumobot
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import com.sumologic.sumobot.plugins.conversations.Conversations
-import com.sumologic.sumobot.plugins.jenkins.Jenkins
+import com.sumologic.sumobot.plugins.jenkins.{JenkinsJobClient, Jenkins}
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
 import slack.rtm.{RtmState, SlackRtmClient, SlackRtmConnectionActor}
@@ -75,9 +75,11 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val selfName = rtmClient.state.self.name
   rtmClient.addEventListener(self)
 
-  private val jenkinsPlugins: Seq[ActorRef] = List("hudson", "jenkins").
-    flatMap(name => Jenkins.propsOption(rtmClient.state, name).map(_ -> name)).
-    map(tpl => context.actorOf(props = tpl._1, name = tpl._2))
+  private val jenkinsJobClient: Option[JenkinsJobClient] = JenkinsJobClient.createClient("jenkins")
+  private val hudsonJobClient: Option[JenkinsJobClient] = JenkinsJobClient.createClient("hudson")
+
+  private val jenkinsPlugins: Seq[ActorRef] = List(jenkinsJobClient, hudsonJobClient).flatten.
+    map(client => context.actorOf(props = Jenkins.props(rtmClient.state, client.name, client), name = client.name))
 
   // TODO: Make this list dynamic/discovered instead of static.
   private val plugins: Seq[ActorRef] = jenkinsPlugins ++ (
