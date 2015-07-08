@@ -1,11 +1,4 @@
 /**
- *    _____ _____ _____ _____    __    _____ _____ _____ _____
- *   |   __|  |  |     |     |  |  |  |     |   __|     |     |
- *   |__   |  |  | | | |  |  |  |  |__|  |  |  |  |-   -|   --|
- *   |_____|_____|_|_|_|_____|  |_____|_____|_____|_____|_____|
- *
- *                UNICORNS AT WARP SPEED SINCE 2010
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -14,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -34,7 +27,6 @@ import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.Bender.SendSlackMessage
 import com.sumologic.sumobot.plugins.BotPlugin
-import org.apache.http.HttpResponse
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.client.params.{ClientPNames, CookiePolicy}

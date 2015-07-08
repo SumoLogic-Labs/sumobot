@@ -1,11 +1,4 @@
 /**
- * _____ _____ _____ _____    __    _____ _____ _____ _____
- * |   __|  |  |     |     |  |  |  |     |   __|     |     |
- * |__   |  |  | | | |  |  |  |  |__|  |  |  |  |-   -|   --|
- * |_____|_____|_|_|_|_____|  |_____|_____|_____|_____|_____|
- *
- * UNICORNS AT WARP SPEED SINCE 2010
- *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
