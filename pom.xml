@@ -5,7 +5,7 @@
 
   <groupId>com.sumologic.sumobot</groupId>
   <artifactId>sumobot</artifactId>
-  <name>bot</name>
+  <name>sumobot</name>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
 
@@ -20,7 +20,7 @@
     <dependency>
       <groupId>com.bryangilbert</groupId>
       <artifactId>slack-scala-client</artifactId>
-      <version>0.1.0-sumo1</version>
+      <version>0.1.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
