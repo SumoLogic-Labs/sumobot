@@ -21,6 +21,11 @@ class PagerDutyTest extends SumoBotSpec with MatchTextUtil {
       shouldMatch(sut.WhosOnCall, "who's oncall")
       shouldMatch(sut.WhosOnCall, "whos oncall")
 
+      "who's oncall for prod?" match {
+        case sut.WhosOnCall(filter) => filter should be ("prod")
+        case _ => fail("Did not match filter case")
+      }
+
       shouldNotMatch(sut.WhosOnCall, "test")
       actorSystem.shutdown()
     }

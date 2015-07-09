@@ -16,29 +16,42 @@ class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with Actor
   val maximumLevel = 2
   val ignoreTest = true // Ignore policies containing the word test
 
-  @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call\\??")
+  @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 
   override protected def receiveText: ReceiveText = {
-    case WhosOnCall() => respondInFuture {
-      msg => whoIsOnCall(msg, maximumLevel)
-    }
+    case WhosOnCall(filter) => respondInFuture (whoIsOnCall(_, maximumLevel, Option(filter)))
   }
 
-  private[this] def whoIsOnCall(msg: BotMessage, maximumLevel: Int): SendSlackMessage = {
+  private[this] def whoIsOnCall(msg: BotMessage, maximumLevel: Int, filterOpt: Option[String]): SendSlackMessage = {
     manager.getEscalationPolicies match {
       case Some(policies) =>
-        val string = policies.escalation_policies.filter {
+        val escalationPolicies = policies.escalation_policies
+        val nonTestPolicies = escalationPolicies.filter {
           policy => !(ignoreTest && policy.name.toLowerCase.contains("test"))
-        }.map {
-          policy =>
-            val onCalls = policy.on_call.filter(_.level <= maximumLevel).map {
-              onCall => s"- level ${onCall.level}: ${onCall.user.name} (${onCall.user.email})"
-            }.mkString("\n", "\n", "\n")
+        }
 
-            policy.name + onCalls
-        }.mkString("\n")
-        msg.response(string)
-      case None => msg.response("Unable to login or something.")
+        // TODO: Teach the filter to be smarter about how it handles stuff since this text matching is stupidly simple
+        val nonFilteredPolicies = nonTestPolicies.filter {
+          policy => filterOpt.isEmpty || filterOpt.exists (filter => policy.name.toLowerCase.contains(filter.toLowerCase))
+        }
+
+        if (nonFilteredPolicies.isEmpty) {
+          msg.response("No escalation policies matched your filter.")
+        } else {
+          val outputString = nonFilteredPolicies.map {
+            policy =>
+              val onCalls = policy.on_call.filter(_.level <= maximumLevel).map {
+                onCall => s"- level ${onCall.level}: ${onCall.user.name} (${onCall.user.email})"
+              }.mkString("\n", "\n", "\n")
+
+              policy.name + onCalls
+          }.mkString("\n")
+
+          msg.response(outputString)
+        }
+
+      case None =>
+        msg.response("Unable to login or something.")
     }
   }
 
