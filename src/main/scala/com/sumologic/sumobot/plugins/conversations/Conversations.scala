@@ -20,7 +20,6 @@ package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.Bender
-import com.sumologic.sumobot.Bender.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import slack.rtm.RtmState
 
@@ -36,7 +35,7 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
        |A few pointless, but fun interactions with bender, for example:
        |
        |count to <n> - Causes ${state.self.name} to count to the given number.
-       |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
+                                                  |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
     """.stripMargin
 
   private val CountToN = matchText("count to (\\d+).*")
@@ -96,19 +95,24 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
   }
 
   private def tell(recipientUserId: String, what: String): Unit = {
-    state.getUserById(recipientUserId) match {
-      case Some(user) =>
-        state.ims.find(_.user == user.id) match {
-          case Some(im) =>
-            sender() ! Bender.SendSlackMessage(im.id, what)
-            botMessage.respond(s"Message sent.")
-          case None =>
-            sender() ! Bender.OpenIM(recipientUserId)
-            log.info(s"Opening IM channel to ${user.name}")
-            self ! botMessage
-        }
-      case None =>
-        botMessage.respond(s"I don't know who that is. $puzzled")
+    if (recipientUserId == state.self.id) {
+      botMessage.respond(s"Dude. I can't talk to myself. $puzzled")
+    } else {
+      state.getUserById(recipientUserId) match {
+        case Some(user) =>
+          state.ims.find(_.user == user.id) match {
+            case Some(im) =>
+              sender() ! Bender.SendSlackMessage(im.id, what)
+              botMessage.respond(s"Message sent.")
+            case None =>
+              sender() ! Bender.OpenIM(recipientUserId)
+              log.info(s"Opening IM channel to ${user.name}")
+              val newMessage = botMessage.copy()
+              context.system.scheduler.scheduleOnce(1.seconds, self, newMessage)
+          }
+        case None =>
+          botMessage.respond(s"I don't know who that is. $puzzled")
+      }
     }
   }
 }
