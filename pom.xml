@@ -66,6 +66,25 @@
       <version>${aws.sdk.version}</version>
     </dependency>
 
+    <!-- TODO: These JIRA dependencies can probably be collapsed; I was struggling with it and didn't to spend the time right now -->
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client-parent</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client-core</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client-plugin</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+
     <dependency>
       <groupId>net.liftweb</groupId>
       <artifactId>lift-json_2.11</artifactId>

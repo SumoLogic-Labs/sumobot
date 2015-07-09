@@ -24,6 +24,7 @@ import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
+import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDutySchedulesManager, PagerDuty}
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
@@ -100,6 +101,11 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   PagerDutySchedulesManager.createClient().foreach {
     pagerDutySchedulesManager =>
       self ! AddPlugin(context.actorOf(Props(classOf[PagerDuty], pagerDutySchedulesManager), "pagerduty"))
+  }
+
+  JiraClient.createClient.foreach {
+    jiraClient =>
+      self ! AddPlugin(context.actorOf(Props(classOf[Jira], jiraClient), "jira"))
   }
 
   self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
