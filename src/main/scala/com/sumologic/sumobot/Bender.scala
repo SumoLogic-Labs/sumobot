@@ -23,12 +23,15 @@ import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
+import com.sumologic.sumobot.plugins.help.Help
+import com.sumologic.sumobot.plugins.help.Help.PluginAdded
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
-import com.sumologic.sumobot.plugins.pagerduty.{PagerDutySchedulesManager, PagerDuty}
+import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
-import slack.rtm.{RtmState, SlackRtmClient, SlackRtmConnectionActor}
+import slack.rtm.SlackRtmConnectionActor.SendMessage
+import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -71,13 +74,11 @@ object Bender {
   }
 
   case class AddPlugin(plugin: ActorRef)
-
 }
 
 class Bender(rtmClient: SlackRtmClient) extends Actor {
 
-  import Bender._
-  import SlackRtmConnectionActor._
+  import com.sumologic.sumobot.Bender._
 
   private val slack = rtmClient.actor
   private val blockingClient = rtmClient.apiClient
@@ -85,7 +86,11 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val selfName = rtmClient.state.self.name
   rtmClient.addEventListener(self)
 
+  private val helpPlugin = context.actorOf(Props(classOf[Help]), "help")
+
   private var plugins: Seq[ActorRef] = Nil
+
+  self ! AddPlugin(helpPlugin)
 
   JenkinsJobClient.createClient("jenkins").foreach {
     jenkinsClient =>
@@ -129,6 +134,7 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
 
     case AddPlugin(plugin) =>
       plugins = plugins :+ plugin
+      helpPlugin ! PluginAdded(plugin)
 
     case message: Message =>
       val msgToBot = translateMessage(message)

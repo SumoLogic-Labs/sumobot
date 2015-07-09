@@ -76,7 +76,7 @@ class UpgradeTestRunner(state: RtmState,
                   val (succeeded, failed) = jobsToTrigger.partition {
                     job =>
                       Try {
-                        jenkinsJobClient.triggerJob(job.getName, s"Triggered by ${msg.senderName(state)}")
+                        jenkinsJobClient.buildJob(job.getName, s"Triggered by ${msg.senderName(state)}")
                       } match {
                         case Success(_) =>
                           true

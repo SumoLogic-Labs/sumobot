@@ -33,10 +33,12 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
 
   override protected def help: String =
     s"""
-       |A few pointless, but fun interactions with bender, for example:
+       |You can tell me to some random stuff for you:
        |
-       |count to <n> - Causes ${state.self.name} to count to the given number.
-       |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
+       |count to <n> - I'll count to n.
+       |count down from <n> - I'll count down from n.
+       |say in <channel>: <message> - I'll say what you asked me in <channel>.
+       |tell @user to <message> - I'll tell <user> what you asked me to tell them via IM.
     """.stripMargin
 
   private val CountToN = matchText("count to (\\d+).*")
@@ -45,7 +47,7 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
   private val TellTo = matchText("tell <@(\\w+)> to (.*)")
   private val TellHe = matchText("tell <@(\\w+)> he (.*)")
   private val TellShe = matchText("tell <@(\\w+)> she (.*)")
-  private val SayInChannel = matchText("say in <#(C\\w+)>:(.*)")
+  private val SayInChannel = matchText("say in <#(C\\w+)>[:]?(.*)")
   private val FuckOff = matchText("fuck off.*")
   private val Sup = matchText("sup (\\S+).*")
   private val SupAtMention = matchText("sup <@(\\w+)>.*")

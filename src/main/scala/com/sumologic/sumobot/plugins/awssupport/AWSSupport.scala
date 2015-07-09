@@ -22,7 +22,10 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   override protected def help: String =
     s"""
-       |Allows accessing AWS support tickets.
+       |I can tell you about AWS support tickets.
+       |
+       |list aws cases - List all AWS support tickets.
+       |show aws case <case> - I'll show you more details about that case.
      """.stripMargin
 
   private val CaseDetails = matchText("show aws case (\\d+).*")

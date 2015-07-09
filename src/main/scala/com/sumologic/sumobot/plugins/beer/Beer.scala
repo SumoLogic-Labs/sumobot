@@ -8,7 +8,7 @@ class Beer extends BotPlugin {
 
   override protected def name: String = "beer"
 
-  override protected def help: String = "Chimes in on conversations about beer."
+  override protected def help: String = "I'll voice my opinion about certain beverages when appropriate."
 
   private val BeerMention = matchText(".*(beer[s]?).*")
 

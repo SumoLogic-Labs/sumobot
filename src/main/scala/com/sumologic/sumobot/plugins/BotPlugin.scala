@@ -18,18 +18,18 @@
  */
 package com.sumologic.sumobot.plugins
 
-import akka.actor.{ActorLogging, Actor}
-import com.sumologic.sumobot.Bender.{SendSlackMessage, BotMessage}
-import com.sumologic.sumobot.plugins.BotPlugin.{SendHelp, RequestHelp}
+import akka.actor.{Actor, ActorLogging}
+import akka.pattern.pipe
+import com.sumologic.sumobot.Bender.{BotMessage, SendSlackMessage}
+import com.sumologic.sumobot.plugins.BotPlugin.RequestHelp
+import com.sumologic.sumobot.plugins.help.Help.AddHelp
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
-import akka.pattern.pipe
 
 object BotPlugin {
   case object RequestHelp
-  case class SendHelp(name: String, helpText: String)
 
   def matchText(regex: String): Regex = ("(?i)" + regex).r
 
@@ -76,7 +76,7 @@ trait BotPlugin
 
   private def receiveHelpRequest: Receive = {
     case RequestHelp =>
-      sender() ! SendHelp(name, help)
+      sender() ! AddHelp(name, help)
   }
 
   private final def receiveTextInternal: ReceiveText = receiveText orElse {

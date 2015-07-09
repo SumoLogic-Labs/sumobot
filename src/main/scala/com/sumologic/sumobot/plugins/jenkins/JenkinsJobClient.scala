@@ -50,7 +50,7 @@ class JenkinsJobClient(val name: String,
   private var cachedJobs: Option[Map[String, Job]] = None
   private var lastCacheTime = 0l
 
-  def triggerJob(givenName: String, cause: String): String = {
+  def buildJob(givenName: String, cause: String): String = {
     Try(server.getJob(givenName)) match {
       case Success(jobWithDetails) if jobWithDetails != null =>
         val jobName = jobWithDetails.getName

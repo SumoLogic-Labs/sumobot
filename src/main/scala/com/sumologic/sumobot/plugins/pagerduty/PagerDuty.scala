@@ -12,6 +12,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with ActorLogging {
 
+  override protected def name: String = "pagerduty"
+
+  override protected def help: String =
+    """
+      |Communicate with PagerDuty to learn about on-call processes. And stuff.
+      |
+      |who's on call? - I'll tell you!
+    """.stripMargin
+
   // TODO: Turn these into actual settings
   val maximumLevel = 2
   val ignoreTest = true // Ignore policies containing the word test
@@ -19,7 +28,7 @@ class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with Actor
   @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 
   override protected def receiveText: ReceiveText = {
-    case WhosOnCall(filter) => respondInFuture (whoIsOnCall(_, maximumLevel, Option(filter)))
+    case WhosOnCall(filter) => respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
   }
 
   private[this] def whoIsOnCall(msg: BotMessage, maximumLevel: Int, filterOpt: Option[String]): SendSlackMessage = {
@@ -32,7 +41,7 @@ class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with Actor
 
         // TODO: Teach the filter to be smarter about how it handles stuff since this text matching is stupidly simple
         val nonFilteredPolicies = nonTestPolicies.filter {
-          policy => filterOpt.isEmpty || filterOpt.exists (filter => policy.name.toLowerCase.contains(filter.toLowerCase))
+          policy => filterOpt.isEmpty || filterOpt.exists(filter => policy.name.toLowerCase.contains(filter.toLowerCase))
         }
 
         if (nonFilteredPolicies.isEmpty) {
@@ -54,11 +63,4 @@ class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with Actor
         msg.response("Unable to login or something.")
     }
   }
-
-  override protected def name: String = "pagerduty"
-
-  override protected def help: String =
-    """
-      | Communicate with PagerDuty to learn about on-call processes. And stuff.
-    """.stripMargin
 }

@@ -36,14 +36,14 @@ class Jenkins(state: RtmState,
 
   override protected def help: String =
     s"""
-      |Allows triggering and checking on $name jobs:
+      |I can build and check on $name jobs:
       |
-      |$name status <jobname> - Checks the status of the given job.
-      |$name trigger <jobname> - Triggers the given job.
+      |$name status <jobname> - Check the status of the given job.
+      |$name build <jobname> - Build the given job.
     """.stripMargin
 
   private val JobStatus = matchText(s"$name status (\\S+)")
-  private val TriggerJob = matchText(s"$name trigger (\\S+)")
+  private val BuildJob = matchText(s"$name build (\\S+)")
   private val Info = matchText(s"$name info")
 
   import context.dispatcher
@@ -69,14 +69,14 @@ class Jenkins(state: RtmState,
           }
       }
 
-    case TriggerJob(givenName) =>
+    case BuildJob(givenName) =>
       val triggeredBy = state.users.find(_.id == botMessage.slackMessage.user).map(_.name).getOrElse("unknown user")
       val channelName = state.channels.find(_.id == botMessage.slackMessage.channel).map(_.name)
         .orElse(state.ims.find(_.id == botMessage.slackMessage.channel).map(_.user)).getOrElse(s"unknown: ${botMessage.slackMessage.channel}")
       val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $channelName", "UTF-8")
       respondInFuture {
         msg =>
-          msg.response(client.triggerJob(givenName, cause))
+          msg.response(client.buildJob(givenName, cause))
       }
   }
 }

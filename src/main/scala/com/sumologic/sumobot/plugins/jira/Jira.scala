@@ -15,6 +15,15 @@ import scala.util.{Try, Failure, Success}
  */
 class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
 
+  override protected def name: String = "jira"
+
+  override protected def help: String =
+    """Communicate with JIRA about stuff
+      |
+      |jira <issue> - I'll tell you more about that issue.
+      |in progress jiras for <user> - I'll tell you what they're working on.
+    """.stripMargin
+
   private val MaxDescLength = 5000 // Maximum description length for now
 
   private val JiraInfo = matchText("jira (.+?)")
@@ -61,7 +70,4 @@ class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
     }
   }
 
-  override protected def name: String = "jira"
-
-  override protected def help: String = "Communicate with JIRA about stuff"
 }
