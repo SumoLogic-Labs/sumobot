@@ -19,6 +19,8 @@
 package com.sumologic.sumobot
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
+import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
@@ -96,6 +98,11 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
 
   self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
   self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
+
+  AWSCredentialSource.credentials.foreach {
+    creds =>
+      self ! AddPlugin(context.actorOf(Props(classOf[AWSSupport], creds), "aws-support"))
+  }
 
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
