@@ -88,12 +88,12 @@ class UpgradeTestRunner(state: RtmState,
 
                   if (failed.nonEmpty) {
                     if (succeeded.isEmpty) {
-                      botMessage.message(s"Could not trigger any jobs!")
+                      msg.message(s"Could not trigger any jobs!")
                     } else {
-                      botMessage.message(s"Triggered jobs: ${succeeded.map(_.getName).mkString(",")}, but coult not trigger: ${failed.map(_.getName).mkString(",")}")
+                      msg.message(s"Triggered jobs: ${succeeded.map(_.getName).mkString(",")}, but could not trigger: ${failed.map(_.getName).mkString(",")}")
                     }
                   } else {
-                    botMessage.message(s"Triggered jobs: ${succeeded.map(_.getName).mkString(",")}")
+                    msg.message(s"Triggered jobs: ${succeeded.map(_.getName).mkString(",")}")
                   }
               }
             case None =>
@@ -102,7 +102,7 @@ class UpgradeTestRunner(state: RtmState,
           }
 
         case None =>
-          botMessage.respond(s"You can't do this in ${channelName.get}. " +
+          botMessage.respond(s"You can't do this in this channel. " +
             s"The only channels I know of are: ${channels.map(_.name).sorted.mkString(",")}")
       }
   }

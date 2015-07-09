@@ -81,25 +81,21 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val selfName = rtmClient.state.self.name
   rtmClient.addEventListener(self)
 
-  private val jenkinsJobClient: Option[JenkinsJobClient] = JenkinsJobClient.createClient("jenkins")
-  private val hudsonJobClient: Option[JenkinsJobClient] = JenkinsJobClient.createClient("hudson")
-
-  private val jenkinsPlugins: Seq[ActorRef] = List(jenkinsJobClient, hudsonJobClient).flatten.
-    map(client => context.actorOf(props = Jenkins.props(rtmClient.state, client.name, client), name = client.name))
-
   private var plugins: Seq[ActorRef] = Nil
-  jenkinsPlugins.foreach {
-    plugin =>
-      self ! AddPlugin(plugin)
+
+  JenkinsJobClient.createClient("jenkins").foreach {
+    jenkinsClient =>
+      self ! AddPlugin(context.actorOf(props = Jenkins.props(rtmClient.state, "jenkins", jenkinsClient)))
+  }
+
+  JenkinsJobClient.createClient("hudson").foreach {
+    hudsonClient =>
+      self ! AddPlugin(context.actorOf(props = Jenkins.props(rtmClient.state, "hudson", hudsonClient)))
+      self ! AddPlugin(context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state, hudsonClient), "upgrade-test-runner"))
   }
 
   self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
   self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
-
-  hudsonJobClient.foreach {
-    hudson =>
-      context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state, hudson), "upgrade-test-runner")
-  }
 
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
