@@ -24,6 +24,7 @@ import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
+import com.sumologic.sumobot.plugins.pagerduty.PagerDuty
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
 import slack.rtm.{RtmState, SlackRtmClient, SlackRtmConnectionActor}
@@ -98,6 +99,7 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
 
   self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
   self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
+  self ! AddPlugin(context.actorOf(Props(classOf[PagerDuty]), "pagerduty"))
 
   AWSCredentialSource.credentials.foreach {
     creds =>
