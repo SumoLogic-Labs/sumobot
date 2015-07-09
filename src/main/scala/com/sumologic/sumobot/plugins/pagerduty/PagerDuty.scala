@@ -9,19 +9,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
  * @author Chris (chris@sumologic.com)
  */
-class PagerDuty extends BotPlugin with ActorLogging {
+class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with ActorLogging {
 
   // TODO: Turn these into actual settings
   val maximumLevel = 2
   val ignoreTest = true // Ignore policies containing the word test
-
-  private lazy val token: String = sys.env.getOrElse("PAGERDUTY_TOKEN", {
-    throw new Exception("Please provide a PagerDuty token.")
-  })
-  private lazy val pagerdutyUrl: String = sys.env.getOrElse("PAGERDUTY_URL", {
-    throw new Exception("Please provide a PagerDuty URL.")
-  })
-  private lazy val manager = new PagerDutySchedulesManager(token, pagerdutyUrl)
 
   private val WhosOnCall = matchText("who's oncall\\??")
 
