@@ -1,6 +1,7 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
+import com.google.common.annotations.VisibleForTesting
 import com.sumologic.sumobot.Bender.{SendSlackMessage, BotMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
@@ -15,7 +16,7 @@ class PagerDuty(manager: PagerDutySchedulesManager) extends BotPlugin with Actor
   val maximumLevel = 2
   val ignoreTest = true // Ignore policies containing the word test
 
-  private val WhosOnCall = matchText("who's oncall\\??")
+  @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call\\??")
 
   override protected def receiveText: ReceiveText = {
     case WhosOnCall() => respondInFuture {

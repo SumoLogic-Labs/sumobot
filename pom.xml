@@ -37,6 +37,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-testkit_${scala.version}</artifactId>
+      <version>2.3.9</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.offbytwo.jenkins</groupId>
       <artifactId>jenkins-client</artifactId>
       <version>0.3.0</version>
