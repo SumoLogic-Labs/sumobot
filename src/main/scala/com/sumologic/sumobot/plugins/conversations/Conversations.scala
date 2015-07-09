@@ -36,12 +36,12 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
        |A few pointless, but fun interactions with bender, for example:
        |
        |count to <n> - Causes ${state.self.name} to count to the given number.
-                                                  |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
+       |tell @user to <something> - Causes ${state.self.name} to send an instant message with the given text to the given user.
     """.stripMargin
 
   private val CountToN = matchText("count to (\\d+).*")
   private val CountDownFromN = matchText("count down from (\\d+).*")
-  private val TellColon = matchText("tell <@(\\w+)>:(.*)")
+  private val TellColon = matchText("tell <@(\\w+)>[:]?\\s(.*)")
   private val TellTo = matchText("tell <@(\\w+)> to (.*)")
   private val TellHe = matchText("tell <@(\\w+)> he (.*)")
   private val TellShe = matchText("tell <@(\\w+)> she (.*)")

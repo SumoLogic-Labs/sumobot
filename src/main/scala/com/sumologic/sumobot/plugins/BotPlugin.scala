@@ -30,6 +30,9 @@ import akka.pattern.pipe
 object BotPlugin {
   case object RequestHelp
   case class SendHelp(name: String, helpText: String)
+
+  def matchText(regex: String): Regex = ("(?i)" + regex).r
+
 }
 
 trait BotPlugin
@@ -51,7 +54,7 @@ trait BotPlugin
 
   protected var botMessage: BotMessage = _
 
-  protected def matchText(regex: String): Regex = ("(?i)" + regex).r
+  protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def respondInFuture(body: BotMessage => SendSlackMessage)(implicit executor : scala.concurrent.ExecutionContext): Unit = {
     val msg = botMessage

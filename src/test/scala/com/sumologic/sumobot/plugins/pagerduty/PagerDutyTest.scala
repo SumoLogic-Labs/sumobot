@@ -22,7 +22,7 @@ class PagerDutyTest extends SumoBotSpec with MatchTextUtil {
       shouldMatch(sut.WhosOnCall, "whos oncall")
 
       shouldNotMatch(sut.WhosOnCall, "test")
+      actorSystem.shutdown()
     }
   }
-
 }
