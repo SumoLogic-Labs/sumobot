@@ -19,10 +19,12 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorLogging, Actor}
-import com.sumologic.sumobot.Bender.BotMessage
+import com.sumologic.sumobot.Bender.{SendSlackMessage, BotMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{SendHelp, RequestHelp}
 
+import scala.concurrent.Future
 import scala.util.matching.Regex
+import akka.pattern.pipe
 
 object BotPlugin {
   case object RequestHelp
@@ -48,6 +50,14 @@ trait BotPlugin
   protected var botMessage: BotMessage = _
 
   protected def matchText(regex: String): Regex = ("(?i)" + regex).r
+
+  protected def respondInFuture(body: BotMessage => SendSlackMessage)(implicit executor : scala.concurrent.ExecutionContext): Unit = {
+    val msg = botMessage
+    Future {
+      body(msg)
+    } pipeTo sender()
+  }
+
 
   // Implementation. Most plugins should not override.
 

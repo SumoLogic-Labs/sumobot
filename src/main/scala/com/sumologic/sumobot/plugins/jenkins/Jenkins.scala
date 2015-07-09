@@ -21,13 +21,8 @@ package com.sumologic.sumobot.plugins.jenkins
 import java.net.URLEncoder
 
 import akka.actor.{ActorLogging, Props}
-import akka.pattern.pipe
-import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.Bender.SendSlackMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import slack.rtm.RtmState
-
-import scala.concurrent.Future
 
 object Jenkins {
   def props(state: RtmState, name: String, client: JenkinsJobClient): Props =
@@ -56,10 +51,9 @@ class Jenkins(state: RtmState,
   override protected def receiveText: ReceiveText = {
 
     case JobStatus(jobName) =>
-      val msg = botMessage
-      jobs.map {
-        jobMap =>
-          jobMap.find(_._2.getName.trim.toLowerCase == jobName.trim.toLowerCase) match {
+      respondInFuture {
+        msg =>
+          client.jobs.find(_._2.getName.trim.toLowerCase == jobName.trim.toLowerCase) match {
             case Some(tuple) =>
               val job = tuple._2
               val buildDetails = job.details().getLastBuild.details()
@@ -73,22 +67,17 @@ class Jenkins(state: RtmState,
             case None =>
               msg.response(client.unknownJobMessage(jobName))
           }
-      } pipeTo sender()
+      }
 
     case TriggerJob(givenName) =>
       val triggeredBy = state.users.find(_.id == botMessage.slackMessage.user).map(_.name).getOrElse("unknown user")
       val channelName = state.channels.find(_.id == botMessage.slackMessage.channel).map(_.name)
         .orElse(state.ims.find(_.id == botMessage.slackMessage.channel).map(_.user)).getOrElse(s"unknown: ${botMessage.slackMessage.channel}")
       val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $channelName", "UTF-8")
-      val msg = botMessage
-      Future[SendSlackMessage] {
-        msg.response(client.triggerJob(givenName, cause))
-      } pipeTo sender()
-  }
-
-  private def jobs: Future[Map[String, Job]] = {
-    log.info("jobs called")
-    Future(client.jobs)
+      respondInFuture {
+        msg =>
+          msg.response(client.triggerJob(givenName, cause))
+      }
   }
 }
 
