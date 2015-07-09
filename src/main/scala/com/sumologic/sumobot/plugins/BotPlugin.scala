@@ -23,6 +23,7 @@ import com.sumologic.sumobot.Bender.{SendSlackMessage, BotMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{SendHelp, RequestHelp}
 
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import akka.pattern.pipe
 
@@ -33,6 +34,7 @@ object BotPlugin {
 
 trait BotPlugin
   extends Actor
+  with ActorLogging
   with Emotions {
 
   type ReceiveText = PartialFunction[String, Unit]
@@ -54,7 +56,13 @@ trait BotPlugin
   protected def respondInFuture(body: BotMessage => SendSlackMessage)(implicit executor : scala.concurrent.ExecutionContext): Unit = {
     val msg = botMessage
     Future {
-      body(msg)
+      try {
+        body(msg)
+      } catch {
+        case NonFatal(e) =>
+          log.error(e, "Execution failed.")
+          msg.response("Execution failed.")
+      }
     } pipeTo sender()
   }
 

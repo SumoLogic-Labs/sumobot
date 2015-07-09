@@ -19,8 +19,9 @@
 package com.sumologic.sumobot
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
-import com.sumologic.sumobot.plugins.jenkins.{JenkinsJobClient, Jenkins}
+import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
 import slack.rtm.{RtmState, SlackRtmClient, SlackRtmConnectionActor}
@@ -60,9 +61,13 @@ object Bender {
 
     def channelName(implicit state: RtmState): Option[String] =
       state.channels.find(_.id == slackMessage.channel).map(_.name)
+
+    def senderName(implicit state: RtmState): Option[String] =
+      state.users.find(_.id == slackMessage.user).map(_.name)
   }
 
   case class AddPlugin(plugin: ActorRef)
+
 }
 
 class Bender(rtmClient: SlackRtmClient) extends Actor {
@@ -82,10 +87,19 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val jenkinsPlugins: Seq[ActorRef] = List(jenkinsJobClient, hudsonJobClient).flatten.
     map(client => context.actorOf(props = Jenkins.props(rtmClient.state, client.name, client), name = client.name))
 
-  private var plugins: Seq[ActorRef] = jenkinsPlugins ++ (
-    context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations") ::
-      context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state), "upgrade-test-runner") ::
-      Nil)
+  private var plugins: Seq[ActorRef] = Nil
+  jenkinsPlugins.foreach {
+    plugin =>
+      self ! AddPlugin(plugin)
+  }
+
+  self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
+  self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
+
+  hudsonJobClient.foreach {
+    hudson =>
+      context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state, hudson), "upgrade-test-runner")
+  }
 
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
@@ -103,9 +117,11 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
 
     case message: Message =>
       val msgToBot = translateMessage(message)
-      plugins.foreach {
-        plugin =>
-          plugin ! msgToBot
+      if (message.user != selfId) {
+        plugins.foreach {
+          plugin =>
+            plugin ! msgToBot
+        }
       }
   }
 
