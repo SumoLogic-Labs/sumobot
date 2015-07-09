@@ -62,6 +62,7 @@ object Bender {
       state.channels.find(_.id == slackMessage.channel).map(_.name)
   }
 
+  case class AddPlugin(plugin: ActorRef)
 }
 
 class Bender(rtmClient: SlackRtmClient) extends Actor {
@@ -81,8 +82,7 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val jenkinsPlugins: Seq[ActorRef] = List(jenkinsJobClient, hudsonJobClient).flatten.
     map(client => context.actorOf(props = Jenkins.props(rtmClient.state, client.name, client), name = client.name))
 
-  // TODO: Make this list dynamic/discovered instead of static.
-  private val plugins: Seq[ActorRef] = jenkinsPlugins ++ (
+  private var plugins: Seq[ActorRef] = jenkinsPlugins ++ (
     context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations") ::
       context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state), "upgrade-test-runner") ::
       Nil)
@@ -97,6 +97,9 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
 
     case OpenIM(userId) =>
       blockingClient.openIm(userId)
+
+    case AddPlugin(plugin) =>
+      plugins = plugins :+ plugin
 
     case message: Message =>
       val msgToBot = translateMessage(message)
