@@ -7,6 +7,7 @@ import com.atlassian.jira.rest.client.api.{AuthenticationHandler, JiraRestClient
 import com.atlassian.jira.rest.client.auth.BasicHttpAuthenticationHandler
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
 
+import scala.collection.JavaConversions._
 import scala.concurrent.Future
 
 /**
@@ -35,6 +36,16 @@ class JiraClient(restClient: JiraRestClient) {
   def getIssue(id: String)(implicit context: scala.concurrent.ExecutionContext): Future[Issue] = {
     val promise = restClient.getIssueClient.getIssue(id)
     Future(promise.get())
+  }
+
+  def getInProgressIssuesForUser(username: String)(implicit context: scala.concurrent.ExecutionContext): Future[Seq[Issue]] = {
+    issuesForJql(s"assignee = '$username' and status = 'in progress'")
+  }
+
+  private def issuesForJql(jql: String)(implicit context: scala.concurrent.ExecutionContext): Future[Seq[Issue]] = {
+    Future(restClient.getSearchClient.searchJql(jql).get()).map {
+      searchResult => searchResult.getIssues.toSeq
+    }
   }
 
 }

@@ -18,8 +18,10 @@ class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
   private val MaxDescLength = 5000 // Maximum description length for now
 
   private val JiraInfo = matchText("jira (.+?)")
+  private val InProgressJirasFor = matchText("in\\s?progress jiras for (.+?)")
   override protected def receiveText: ReceiveText = {
     case JiraInfo(id) => respondInFuture(loadJiraInfo(_, id))
+    case InProgressJirasFor(username) => respondInFuture(loadInProgressJirasFor(_, username))
   }
 
   private def loadJiraInfo(msg: BotMessage, id: String): SendSlackMessage = {
@@ -35,6 +37,24 @@ class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
             |*Description:* ${Option(issue.getDescription).map(_.take(MaxDescLength)).getOrElse("no description")}
           """.stripMargin
         msg.response(string)
+      case Failure(e) =>
+        log.error(e, "Unable to load JIRA issue")
+        msg.response(s"Failed: ${e.getMessage}")
+    }
+  }
+
+  private def loadInProgressJirasFor(msg: BotMessage, username: String): SendSlackMessage = {
+    val jiraInfoFuture = client.getInProgressIssuesForUser(username)
+    val issuesTry = Try(Await.result(jiraInfoFuture, Duration.apply(10, "seconds")))
+
+    issuesTry match {
+      case Success(issues) if issues.nonEmpty =>
+        val outputString = issues.map {
+          issue => s"- ${issue.getKey} - P${issue.getPriority.getId} - ${issue.getSummary}"
+        }.mkString("\n")
+        msg.response(s"Here are the in progress JIRAs for $username:\n $outputString")
+      case Success(issues) =>
+        msg.response(s"The user $username isn't working on any JIRAs")
       case Failure(e) =>
         log.error(e, "Unable to load JIRA issue")
         msg.response(s"Failed: ${e.getMessage}")
