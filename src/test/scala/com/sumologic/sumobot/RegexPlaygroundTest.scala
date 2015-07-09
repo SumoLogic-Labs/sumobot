@@ -3,7 +3,7 @@ package com.sumologic.sumobot
 import com.sumologic.sumobot.plugins.BotPlugin
 import org.scalatest.{Matchers, WordSpec}
 
-class RegexPlaygroundSpec extends SumoBotSpec {
+class RegexPlaygroundTest extends SumoBotSpec {
   "BotPlugin.matchText()" should {
     "be case insensitive" in {
       val testRegex = BotPlugin.matchText("hello")
