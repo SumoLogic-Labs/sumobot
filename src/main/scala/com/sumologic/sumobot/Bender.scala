@@ -101,9 +101,9 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
   self ! AddPlugin(context.actorOf(Props(classOf[PagerDuty]), "pagerduty"))
 
-  AWSCredentialSource.credentials.foreach {
-    creds =>
-      self ! AddPlugin(context.actorOf(Props(classOf[AWSSupport], creds), "aws-support"))
+  val awsCreds = AWSCredentialSource.credentials
+  if (awsCreds.nonEmpty) {
+    self ! AddPlugin(context.actorOf(Props(classOf[AWSSupport], awsCreds), "aws-support"))
   }
 
   private val atMention = """<@(\w+)>:(.*)""".r

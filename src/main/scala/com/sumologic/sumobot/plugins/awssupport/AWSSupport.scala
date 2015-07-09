@@ -10,11 +10,13 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
-class AWSSupport(credentials: AWSCredentials)
+class AWSSupport(credentials: Map[String, AWSCredentials])
   extends BotPlugin
   with ActorLogging {
 
-  private val support = new AWSSupportClient(credentials)
+  case class CaseInAccount(account: String, caseDetails: CaseDetails)
+
+  private val clients = credentials.map(tpl => tpl._1 -> new AWSSupportClient(tpl._2))
 
   override protected def name: String = "aws-support"
 
@@ -33,9 +35,8 @@ class AWSSupport(credentials: AWSCredentials)
       respondInFuture {
         msg =>
           val caseList = getAllCases.map(summary(_) + "\n").mkString("\n")
-          msg.response(caseList)
+          msg.message(caseList)
       }
-
 
     case CaseDetails(caseId) =>
       respondInFuture {
@@ -44,11 +45,11 @@ class AWSSupport(credentials: AWSCredentials)
 
           Try(getAllCases) match {
             case Success(cases) =>
-              cases.find(_.getDisplayId == caseId) match {
+              cases.find(_.caseDetails.getDisplayId == caseId) match {
                 case None =>
                   msg.response("Not a known support case.")
                 case Some(cse) =>
-                  msg.response(summary(cse))
+                  msg.message(summary(cse))
               }
             case Failure(e) if e.getMessage.contains("Invalid case ID:") =>
               msg.response(s"Invalid case ID: $caseId")
@@ -56,12 +57,17 @@ class AWSSupport(credentials: AWSCredentials)
       }
   }
 
-  private def getAllCases: List[CaseDetails] = {
-    val unresolved = support.describeCases(new DescribeCasesRequest()).getCases.asScala.toList
-    val resolved = support.describeCases(new DescribeCasesRequest().withIncludeResolvedCases(true)).getCases.asScala.toList
-    unresolved ++ resolved
+  private def getAllCases: Seq[CaseInAccount] = {
+    clients.toSeq.par.flatMap {
+      tpl =>
+        val client = tpl._2
+        val unresolved = client.describeCases(new DescribeCasesRequest()).getCases.asScala.toList
+        val resolved = client.describeCases(new DescribeCasesRequest().withIncludeResolvedCases(true)).getCases.asScala.toList
+        (unresolved ++ resolved).map(CaseInAccount(tpl._1, _))
+    }.seq
   }
 
-  private def summary(cse: CaseDetails): String =
-    s"# ${cse.getDisplayId}: ${cse.getSubject}\n - submitted by: ${cse.getSubmittedBy}, status: ${cse.getStatus}"
+  private def summary(cia: CaseInAccount): String =
+    s"# ${cia.caseDetails.getDisplayId}: ${cia.caseDetails.getSubject}\n" +
+      s" - account: ${cia.account}, submitted by: ${cia.caseDetails.getSubmittedBy}, status: ${cia.caseDetails.getStatus}"
 }

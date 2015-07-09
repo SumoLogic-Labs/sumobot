@@ -1,12 +1,22 @@
 package com.sumologic.sumobot.plugins.aws
 
-import com.amazonaws.auth.{BasicAWSCredentials, AWSCredentials}
+import com.amazonaws.auth.{AWSCredentials, BasicAWSCredentials}
 
 object AWSCredentialSource {
-  def credentials: Option[AWSCredentials] = {
-    for (keyId <- sys.env.get(s"AWS_ACCESS_KEY_ID");
-         accessKey <- sys.env.get(s"AWS_SECRET_ACCESS_KEY"))
-      yield new BasicAWSCredentials(keyId.trim, accessKey.trim)
+  def credentials: Map[String, AWSCredentials] = {
+    sys.env.get(s"AWS_ACCOUNTS") match {
+      case Some(accountList) =>
+        val names: Seq[String] = accountList.split(",").map(_.trim)
+        names.flatMap {
+          name =>
+            val nameUpper = name.toUpperCase
+            for (keyId <- sys.env.get(s"${nameUpper}_AWS_ACCESS_KEY_ID");
+                 accessKey <- sys.env.get(s"${nameUpper}_AWS_SECRET_ACCESS_KEY"))
+              yield name -> new BasicAWSCredentials(keyId.trim, accessKey.trim)
+        }.toMap
+      case None =>
+        Map.empty
+    }
   }
 }
 
