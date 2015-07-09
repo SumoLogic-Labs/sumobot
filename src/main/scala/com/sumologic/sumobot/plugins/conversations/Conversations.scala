@@ -20,6 +20,7 @@ package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.Bender
+import com.sumologic.sumobot.Bender.SendSlackMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import slack.rtm.RtmState
 
@@ -42,6 +43,9 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
   private val CountDownFromN = matchText("count down from (\\d+).*")
   private val TellColon = matchText("tell <@(\\w+)>:(.*)")
   private val TellTo = matchText("tell <@(\\w+)> to (.*)")
+  private val TellHe = matchText("tell <@(\\w+)> he (.*)")
+  private val TellShe = matchText("tell <@(\\w+)> she (.*)")
+  private val SayInChannel = matchText("say in <#(C\\w+)>:(.*)")
   private val FuckOff = matchText("fuck off.*")
   private val Sup = matchText("sup (\\S+).*")
   private val SupAtMention = matchText("sup <@(\\w+)>.*")
@@ -81,11 +85,21 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
     case TellTo(recipientUserId, what) if botMessage.addressedToUs =>
       tell(recipientUserId, what)
 
+    case TellHe(recipientUserId, what) if botMessage.addressedToUs =>
+      tell(recipientUserId, "you " + what)
+
+    case TellShe(recipientUserId, what) if botMessage.addressedToUs =>
+      tell(recipientUserId, "you " + what)
+
     case Sup(name) if name == state.self.name =>
       botMessage.respond("What is up!!")
 
     case SupAtMention(userId) if userId == state.self.id =>
       botMessage.say(s"What is up, <@${botMessage.slackMessage.user}>.")
+
+    case SayInChannel(channelId, what) if botMessage.addressedToUs =>
+      sender() ! SendSlackMessage(channelId, what)
+      botMessage.respond(s"Message sent.")
 
     case FuckOff() =>
       botMessage.respond("Same to you.")
