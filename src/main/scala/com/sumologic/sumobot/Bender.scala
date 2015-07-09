@@ -24,7 +24,7 @@ import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
-import com.sumologic.sumobot.plugins.pagerduty.PagerDuty
+import com.sumologic.sumobot.plugins.pagerduty.{PagerDutySchedulesManager, PagerDuty}
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
 import slack.rtm.{RtmState, SlackRtmClient, SlackRtmConnectionActor}
@@ -97,9 +97,13 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
       self ! AddPlugin(context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state, hudsonClient), "upgrade-test-runner"))
   }
 
+  PagerDutySchedulesManager.createClient().foreach {
+    pagerDutySchedulesManager =>
+      self ! AddPlugin(context.actorOf(Props(classOf[PagerDuty], pagerDutySchedulesManager), "pagerduty"))
+  }
+
   self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
   self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
-  self ! AddPlugin(context.actorOf(Props(classOf[PagerDuty]), "pagerduty"))
 
   val awsCreds = AWSCredentialSource.credentials
   if (awsCreds.nonEmpty) {
