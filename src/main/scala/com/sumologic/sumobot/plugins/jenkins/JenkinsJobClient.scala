@@ -23,7 +23,7 @@ object JenkinsJobClient {
   def createClient(name: String): Option[JenkinsJobClient] = {
 
     for (url <- DynamicStringProperty(s"jenkins.$name.url", null)();
-         user <- DynamicStringProperty(s"jenkins.$name.password", null)();
+         user <- DynamicStringProperty(s"jenkins.$name.username", null)();
          password <- DynamicStringProperty(s"jenkins.$name.password", null)())
       yield new JenkinsJobClient(name, url, user, password,
       DynamicStringProperty(s"jenkins.$name.buildtoken", null)())

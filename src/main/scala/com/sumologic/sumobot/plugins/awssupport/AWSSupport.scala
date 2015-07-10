@@ -71,6 +71,6 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
   }
 
   private def summary(cia: CaseInAccount): String =
-    s"# ${cia.caseDetails.getDisplayId}: ${cia.caseDetails.getSubject}\n" +
+    s"*# ${cia.caseDetails.getDisplayId}:* ${cia.caseDetails.getSubject}\n" +
       s" - account: ${cia.account}, submitted by: ${cia.caseDetails.getSubmittedBy}, status: ${cia.caseDetails.getStatus}"
 }
