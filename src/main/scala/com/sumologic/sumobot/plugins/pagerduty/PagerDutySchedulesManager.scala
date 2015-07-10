@@ -1,13 +1,14 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
+import com.netflix.config.scala.DynamicStringProperty
 import net.liftweb.json._
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 
 object PagerDutySchedulesManager {
   def createClient(): Option[PagerDutySchedulesManager] = {
-    for (token <- sys.env.get("PAGERDUTY_TOKEN");
-         pagerDutyUrl <- sys.env.get("PAGERDUTY_URL"))
+    for (token <- DynamicStringProperty("pagerduty.token", null)();
+         pagerDutyUrl <- DynamicStringProperty("pagerduty.url", null)())
       yield new PagerDutySchedulesManager(token, pagerDutyUrl)
   }
 }

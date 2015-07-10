@@ -2,6 +2,7 @@ package com.sumologic.sumobot.plugins.jenkins
 
 import java.net.{URI, URLEncoder}
 
+import com.netflix.config.scala.DynamicStringProperty
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
@@ -20,11 +21,12 @@ import scala.util.{Failure, Success, Try}
 
 object JenkinsJobClient {
   def createClient(name: String): Option[JenkinsJobClient] = {
-    val nameUpper = name.toUpperCase
-    for (url <- sys.env.get(s"${nameUpper}_URL");
-         user <- sys.env.get(s"${nameUpper}_USER");
-         password <- sys.env.get(s"${nameUpper}_PASSWORD"))
-      yield new JenkinsJobClient(name, url, user, password, sys.env.get(s"${nameUpper}_BUILD_TOKEN"))
+
+    for (url <- DynamicStringProperty(s"jenkins.$name.url", null)();
+         user <- DynamicStringProperty(s"jenkins.$name.password", null)();
+         password <- DynamicStringProperty(s"jenkins.$name.password", null)())
+      yield new JenkinsJobClient(name, url, user, password,
+      DynamicStringProperty(s"jenkins.$name.buildtoken", null)())
   }
 }
 

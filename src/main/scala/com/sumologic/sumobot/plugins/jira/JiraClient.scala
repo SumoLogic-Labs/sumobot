@@ -6,6 +6,7 @@ import com.atlassian.jira.rest.client.api.domain.Issue
 import com.atlassian.jira.rest.client.api.{AuthenticationHandler, JiraRestClient}
 import com.atlassian.jira.rest.client.auth.BasicHttpAuthenticationHandler
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory
+import com.netflix.config.scala.DynamicStringProperty
 
 import scala.collection.JavaConversions._
 import scala.concurrent.Future
@@ -14,10 +15,15 @@ import scala.concurrent.Future
  * @author Chris (chris@sumologic.com)
  */
 object JiraClient {
+
+  private val Url = DynamicStringProperty("jira.url", null)
+  private val Username = DynamicStringProperty("jira.username", null)
+  private val Password = DynamicStringProperty("jira.password", null)
+
   def createClient: Option[JiraClient] = {
-    for (username <- sys.env.get("JIRA_USERNAME");
-         password <- sys.env.get("JIRA_PASSWORD");
-         url <- sys.env.get("JIRA_URL"))
+    for (username <- Username();
+         password <- Password();
+         url <- Url())
       yield {
         val jiraServerUri = new URI(url)
         require(jiraServerUri.getHost != null, "host should not be null")
@@ -47,5 +53,4 @@ class JiraClient(restClient: JiraRestClient) {
       searchResult => searchResult.getIssues.toSeq
     }
   }
-
 }

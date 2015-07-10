@@ -19,6 +19,7 @@
 package com.sumologic.sumobot
 
 import akka.actor.{ActorRef, Props, ActorSystem}
+import com.netflix.config.scala.DynamicStringProperty
 import com.sumologic.sumobot.Bender.AddPlugin
 import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
@@ -31,9 +32,11 @@ import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.rtm.SlackRtmClient
 import scala.concurrent.duration._
 
-object Main extends App {
+object Main extends App  {
 
-  sys.env.get("SLACK_API_TOKEN") match {
+  private val SlackApiToken = DynamicStringProperty("slack.api.token", null)
+
+  SlackApiToken() match {
     case Some(token) =>
       implicit val system = ActorSystem("root")
       val rtmClient = SlackRtmClient(token, 15.seconds)
