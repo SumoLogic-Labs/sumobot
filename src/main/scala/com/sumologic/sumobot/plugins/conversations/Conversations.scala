@@ -120,10 +120,9 @@ class Conversations extends BotPlugin with ActorLogging {
               sender() ! Bender.SendSlackMessage(im.id, what)
               botMessage.respond(s"Message sent.")
             case None =>
-              sender() ! Bender.OpenIM(recipientUserId)
-              log.info(s"Opening IM channel to ${user.name}")
               val newMessage = botMessage.copy()
-              context.system.scheduler.scheduleOnce(1.seconds, self, newMessage)
+              sender() ! Bender.OpenIM(recipientUserId, self, newMessage)
+              log.info(s"Opening IM channel to ${user.name}")
           }
         case None =>
           botMessage.respond(s"I don't know who that is. $puzzled")

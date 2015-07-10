@@ -21,7 +21,7 @@ package com.sumologic.sumobot
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.help.Help.PluginAdded
-import slack.models.Message
+import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 import slack.rtm.{RtmState, SlackRtmClient}
 
@@ -38,7 +38,7 @@ object Bender {
 
   case class SendSlackMessage(channelId: String, text: String)
 
-  case class OpenIM(userId: String)
+  case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 
   case class BotMessage(canonicalText: String,
                         isAtMention: Boolean,
@@ -95,12 +95,22 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
   private val simpleNamePrefix = """(\w+)\:?\s(.*)""".r
 
+  private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
+
   override def receive: Receive = {
     case SendSlackMessage(channelId, text) =>
       slack ! SendMessage(channelId, text)
 
-    case OpenIM(userId) =>
+    case ImOpened(user, channel) =>
+      pendingIMSessionsByUserId.get(user).foreach {
+        tpl =>
+          tpl._1 ! tpl._2
+          pendingIMSessionsByUserId = pendingIMSessionsByUserId - user
+      }
+
+    case OpenIM(userId, doneRecipient, doneMessage) =>
       blockingClient.openIm(userId)
+      pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId ->(doneRecipient, doneMessage))
 
     case AddPlugin(plugin) =>
       plugins = plugins :+ plugin
