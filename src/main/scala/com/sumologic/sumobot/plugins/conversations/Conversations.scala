@@ -22,12 +22,11 @@ import akka.actor.ActorLogging
 import com.sumologic.sumobot.Bender
 import com.sumologic.sumobot.Bender.SendSlackMessage
 import com.sumologic.sumobot.plugins.BotPlugin
-import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
+class Conversations extends BotPlugin with ActorLogging {
 
   override protected def name: String = "conversations"
 
@@ -93,10 +92,10 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
     case TellShe(recipientUserId, what) if botMessage.addressedToUs =>
       tell(recipientUserId, "you " + what)
 
-    case Sup(name) if name == state.self.name =>
+    case Sup(name) if name == botMessage.state.self.name =>
       botMessage.respond("What is up!!")
 
-    case SupAtMention(userId) if userId == state.self.id =>
+    case SupAtMention(userId) if userId == botMessage.state.self.id =>
       botMessage.say(s"What is up, <@${botMessage.slackMessage.user}>.")
 
     case SayInChannel(channelId, what) if botMessage.addressedToUs =>
@@ -111,12 +110,12 @@ class Conversations(state: RtmState) extends BotPlugin with ActorLogging {
   }
 
   private def tell(recipientUserId: String, what: String): Unit = {
-    if (recipientUserId == state.self.id) {
+    if (recipientUserId == botMessage.state.self.id) {
       botMessage.respond(s"Dude. I can't talk to myself. $puzzled")
     } else {
-      state.getUserById(recipientUserId) match {
+      botMessage.state.getUserById(recipientUserId) match {
         case Some(user) =>
-          state.ims.find(_.user == user.id) match {
+          botMessage.state.ims.find(_.user == user.id) match {
             case Some(im) =>
               sender() ! Bender.SendSlackMessage(im.id, what)
               botMessage.respond(s"Message sent.")

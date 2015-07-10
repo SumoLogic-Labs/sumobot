@@ -19,16 +19,8 @@
 package com.sumologic.sumobot
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
-import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
-import com.sumologic.sumobot.plugins.awssupport.AWSSupport
-import com.sumologic.sumobot.plugins.beer.Beer
-import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.help.Help.PluginAdded
-import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
-import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
-import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
-import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.models.Message
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 import slack.rtm.{RtmState, SlackRtmClient}
@@ -51,7 +43,8 @@ object Bender {
   case class BotMessage(canonicalText: String,
                         isAtMention: Boolean,
                         isInstantMessage: Boolean,
-                        slackMessage: Message) {
+                        slackMessage: Message,
+                        state: RtmState) {
     val addressedToUs: Boolean = isAtMention || isInstantMessage
 
     def response(text: String) = SendSlackMessage(slackMessage.channel, responsePrefix + text)
@@ -66,14 +59,20 @@ object Bender {
 
     def originalText: String = slackMessage.text
 
-    def channelName(implicit state: RtmState): Option[String] =
+    def username(id: String): Option[String] = state.users.find(_.id == id).map(_.name)
+
+    def channelName: Option[String] =
       state.channels.find(_.id == slackMessage.channel).map(_.name)
 
-    def senderName(implicit state: RtmState): Option[String] =
+    def imName: Option[String] =
+      state.ims.find(_.id == slackMessage.channel).map(_.user).flatMap(username)
+
+    def senderName: Option[String] =
       state.users.find(_.id == slackMessage.user).map(_.name)
   }
 
   case class AddPlugin(plugin: ActorRef)
+
 }
 
 class Bender(rtmClient: SlackRtmClient) extends Actor {
@@ -91,35 +90,6 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private var plugins: Seq[ActorRef] = Nil
 
   self ! AddPlugin(helpPlugin)
-
-  JenkinsJobClient.createClient("jenkins").foreach {
-    jenkinsClient =>
-      self ! AddPlugin(context.actorOf(props = Jenkins.props(rtmClient.state, "jenkins", jenkinsClient)))
-  }
-
-  JenkinsJobClient.createClient("hudson").foreach {
-    hudsonClient =>
-      self ! AddPlugin(context.actorOf(props = Jenkins.props(rtmClient.state, "hudson", hudsonClient)))
-      self ! AddPlugin(context.actorOf(Props(classOf[UpgradeTestRunner], rtmClient.state, hudsonClient), "upgrade-test-runner"))
-  }
-
-  PagerDutySchedulesManager.createClient().foreach {
-    pagerDutySchedulesManager =>
-      self ! AddPlugin(context.actorOf(Props(classOf[PagerDuty], pagerDutySchedulesManager), "pagerduty"))
-  }
-
-  JiraClient.createClient.foreach {
-    jiraClient =>
-      self ! AddPlugin(context.actorOf(Props(classOf[Jira], jiraClient), "jira"))
-  }
-
-  self ! AddPlugin(context.actorOf(Props(classOf[Conversations], rtmClient.state), "conversations"))
-  self ! AddPlugin(context.actorOf(Props(classOf[Beer]), "beer"))
-
-  val awsCreds = AWSCredentialSource.credentials
-  if (awsCreds.nonEmpty) {
-    self ! AddPlugin(context.actorOf(Props(classOf[AWSSupport], awsCreds), "aws-support"))
-  }
 
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
@@ -150,13 +120,13 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
     val isInstantMessage = rtmClient.state.ims.exists(_.id == message.channel)
     message.text match {
       case atMention(user, text) if user == selfId =>
-        BotMessage(text.trim, true, isInstantMessage, message)
+        BotMessage(text.trim, true, isInstantMessage, message, rtmClient.state)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        BotMessage(text.trim, true, isInstantMessage, message)
+        BotMessage(text.trim, true, isInstantMessage, message, rtmClient.state)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        BotMessage(text.trim, true, isInstantMessage, message)
+        BotMessage(text.trim, true, isInstantMessage, message, rtmClient.state)
       case _ =>
-        BotMessage(message.text.trim, false, isInstantMessage, message)
+        BotMessage(message.text.trim, false, isInstantMessage, message, rtmClient.state)
     }
   }
 }

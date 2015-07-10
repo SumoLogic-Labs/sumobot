@@ -18,7 +18,16 @@
  */
 package com.sumologic.sumobot
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, Props, ActorSystem}
+import com.sumologic.sumobot.Bender.AddPlugin
+import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
+import com.sumologic.sumobot.plugins.awssupport.AWSSupport
+import com.sumologic.sumobot.plugins.beer.Beer
+import com.sumologic.sumobot.plugins.conversations.Conversations
+import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
+import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
+import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
+import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.rtm.SlackRtmClient
 import scala.concurrent.duration._
 
@@ -28,9 +37,42 @@ object Main extends App {
     case Some(token) =>
       implicit val system = ActorSystem("root")
       val rtmClient = SlackRtmClient(token, 15.seconds)
-      system.actorOf(Bender.props(rtmClient), "bot")
+      val bender = system.actorOf(Bender.props(rtmClient), "bot")
+      setupPlugins(bender)
     case None =>
       println(s"Please set the SLACK_API_TOKEN environment variable!")
       sys.exit(1)
+  }
+
+  private def setupPlugins(bender: ActorRef)(implicit system: ActorSystem): Unit = {
+
+    JenkinsJobClient.createClient("jenkins").foreach {
+      jenkinsClient =>
+        bender ! AddPlugin(system.actorOf(props = Jenkins.props("jenkins", jenkinsClient)))
+    }
+
+    JenkinsJobClient.createClient("hudson").foreach {
+      hudsonClient =>
+        bender ! AddPlugin(system.actorOf(props = Jenkins.props("hudson", hudsonClient)))
+        bender ! AddPlugin(system.actorOf(Props(classOf[UpgradeTestRunner], hudsonClient), "upgrade-test-runner"))
+    }
+
+    PagerDutySchedulesManager.createClient().foreach {
+      pagerDutySchedulesManager =>
+        bender ! AddPlugin(system.actorOf(Props(classOf[PagerDuty], pagerDutySchedulesManager), "pagerduty"))
+    }
+
+    JiraClient.createClient.foreach {
+      jiraClient =>
+        bender ! AddPlugin(system.actorOf(Props(classOf[Jira], jiraClient), "jira"))
+    }
+
+    bender ! AddPlugin(system.actorOf(Props(classOf[Conversations]), "conversations"))
+    bender ! AddPlugin(system.actorOf(Props(classOf[Beer]), "beer"))
+
+    val awsCreds = AWSCredentialSource.credentials
+    if (awsCreds.nonEmpty) {
+      bender ! AddPlugin(system.actorOf(Props(classOf[AWSSupport], awsCreds), "aws-support"))
+    }
   }
 }

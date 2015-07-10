@@ -21,9 +21,8 @@ package com.sumologic.sumobot.plugins.upgradetests
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobClient
-import slack.rtm.RtmState
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
 object UpgradeTestRunner {
@@ -34,10 +33,9 @@ object UpgradeTestRunner {
 
 }
 
-class UpgradeTestRunner(state: RtmState,
-                        jenkinsJobClient: JenkinsJobClient) extends BotPlugin with ActorLogging  {
+class UpgradeTestRunner(jenkinsJobClient: JenkinsJobClient) extends BotPlugin with ActorLogging  {
 
-  import UpgradeTestRunner._
+  import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner._
 
   private val RunTests = matchText("upgrade tests (\\S+).*")
 
@@ -65,7 +63,7 @@ class UpgradeTestRunner(state: RtmState,
 
   override protected def receiveText: ReceiveText = {
     case RunTests(assemblyGroup) =>
-      val channelName = botMessage.channelName(state)
+      val channelName = botMessage.channelName
       channels.filter(_ => channelName.isDefined).find(_.name == channelName.get) match {
         case Some(channel) =>
           channel.assemblyGroups.find(_.name == assemblyGroup) match {
@@ -76,7 +74,7 @@ class UpgradeTestRunner(state: RtmState,
                   val (succeeded, failed) = jobsToTrigger.partition {
                     job =>
                       Try {
-                        jenkinsJobClient.buildJob(job.getName, s"Triggered by ${msg.senderName(state)}")
+                        jenkinsJobClient.buildJob(job.getName, s"Triggered by ${msg.senderName}")
                       } match {
                         case Success(_) =>
                           true

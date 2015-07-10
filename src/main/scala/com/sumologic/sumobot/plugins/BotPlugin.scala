@@ -32,7 +32,6 @@ object BotPlugin {
   case object RequestHelp
 
   def matchText(regex: String): Regex = ("(?i)" + regex).r
-
 }
 
 trait BotPlugin
@@ -84,7 +83,7 @@ trait BotPlugin
   }
 
   protected final def receiveBotMessage: Receive = {
-    case botMessage @ BotMessage(text, _, _, _) =>
+    case botMessage @ BotMessage(text, _, _, _, _) =>
       try {
         this.botMessage = botMessage
         receiveTextInternal(text)

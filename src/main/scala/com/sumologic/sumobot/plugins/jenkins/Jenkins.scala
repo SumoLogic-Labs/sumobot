@@ -22,15 +22,13 @@ import java.net.URLEncoder
 
 import akka.actor.{ActorLogging, Props}
 import com.sumologic.sumobot.plugins.BotPlugin
-import slack.rtm.RtmState
 
 object Jenkins {
-  def props(state: RtmState, name: String, client: JenkinsJobClient): Props =
-    Props(classOf[Jenkins], state, name, client)
+  def props(name: String, client: JenkinsJobClient): Props =
+    Props(classOf[Jenkins], name, client)
 }
 
-class Jenkins(state: RtmState,
-              val name: String,
+class Jenkins(val name: String,
               client: JenkinsJobClient)
   extends BotPlugin with ActorLogging {
 
@@ -70,9 +68,8 @@ class Jenkins(state: RtmState,
       }
 
     case BuildJob(givenName) =>
-      val triggeredBy = state.users.find(_.id == botMessage.slackMessage.user).map(_.name).getOrElse("unknown user")
-      val channelName = state.channels.find(_.id == botMessage.slackMessage.channel).map(_.name)
-        .orElse(state.ims.find(_.id == botMessage.slackMessage.channel).map(_.user)).getOrElse(s"unknown: ${botMessage.slackMessage.channel}")
+      val triggeredBy = botMessage.senderName.getOrElse("unknown user")
+      val channelName = botMessage.channelName orElse botMessage.imName getOrElse s"unknown: ${botMessage.slackMessage.channel}"
       val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $channelName", "UTF-8")
       respondInFuture {
         msg =>
