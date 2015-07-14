@@ -43,7 +43,7 @@ object Main extends App  {
       val bender = system.actorOf(Bender.props(rtmClient), "bot")
       setupPlugins(bender)
     case None =>
-      println(s"Please set the SLACK_API_TOKEN environment variable!")
+      println(s"Please set the slack.api.token environment variable!")
       sys.exit(1)
   }
 
