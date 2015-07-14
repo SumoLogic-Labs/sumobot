@@ -12,7 +12,7 @@ class PagerDutyTest extends SumoBotSpec with MatchTextUtil {
   "PagerDuty.WhosOnCall" should {
     "match expected input" in {
       implicit val actorSystem = ActorSystem("PagerDutyTest")
-      val actorRef = TestActorRef(new PagerDuty(null))
+      val actorRef = TestActorRef(new PagerDuty(null, None))
       val sut = actorRef.underlyingActor //new PagerDuty(null)
 
       shouldMatch(sut.WhosOnCall, "who's on call?")

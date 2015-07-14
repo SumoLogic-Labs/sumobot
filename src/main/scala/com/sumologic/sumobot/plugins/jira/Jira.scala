@@ -2,7 +2,7 @@ package com.sumologic.sumobot.plugins.jira
 
 import akka.actor.ActorLogging
 import com.atlassian.jira.rest.client.api.domain.Issue
-import com.sumologic.sumobot.Bender.{SendSlackMessage, BotMessage}
+import com.sumologic.sumobot.Receptionist.{SendSlackMessage, BotMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration

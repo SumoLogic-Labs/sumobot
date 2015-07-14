@@ -18,11 +18,10 @@
  */
 package com.sumologic.sumobot.plugins
 
-import akka.actor.{Actor, ActorLogging}
+import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.pipe
-import com.sumologic.sumobot.Bender.{BotMessage, SendSlackMessage}
-import com.sumologic.sumobot.plugins.BotPlugin.RequestHelp
-import com.sumologic.sumobot.plugins.help.Help.AddHelp
+import com.sumologic.sumobot.Receptionist.{BotMessage, SendSlackMessage}
+import com.sumologic.sumobot.plugins.BotPlugin.{PluginAdded, PluginRemoved}
 
 import scala.concurrent.Future
 import scala.util.control.NonFatal
@@ -31,6 +30,10 @@ import scala.util.matching.Regex
 object BotPlugin {
   case object RequestHelp
 
+  case class PluginAdded(plugin: ActorRef, name: String, help: String)
+  
+  case class PluginRemoved(plugin: ActorRef, name: String)
+  
   def matchText(regex: String): Regex = ("(?i)" + regex).r
 }
 
@@ -65,18 +68,23 @@ trait BotPlugin
           log.error(e, "Execution failed.")
           msg.response("Execution failed.")
       }
-    } pipeTo sender()
+    } foreach(context.system.eventStream.publish)
   }
-
 
   // Implementation. Most plugins should not override.
 
-  override def receive: Receive = receiveBotMessage orElse receiveHelpRequest
-
-  private def receiveHelpRequest: Receive = {
-    case RequestHelp =>
-      sender() ! AddHelp(name, help)
+  override def preStart(): Unit = {
+    context.system.eventStream.subscribe(self, classOf[BotMessage])
+    context.system.eventStream.publish(PluginAdded(self, name, help))
   }
+
+  
+  override def postStop(): Unit = {
+    context.system.eventStream.publish(PluginRemoved(self, name))
+    context.system.eventStream.unsubscribe(self)
+  }
+
+  override def receive: Receive = receiveBotMessage
 
   private final def receiveTextInternal: ReceiveText = receiveText orElse {
     case _ =>

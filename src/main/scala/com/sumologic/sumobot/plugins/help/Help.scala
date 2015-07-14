@@ -1,14 +1,8 @@
 package com.sumologic.sumobot.plugins.help
 
-import akka.actor.ActorRef
 import com.sumologic.sumobot.plugins.BotPlugin
-import com.sumologic.sumobot.plugins.BotPlugin.RequestHelp
-import com.sumologic.sumobot.plugins.help.Help.{PluginAdded, AddHelp}
+import com.sumologic.sumobot.plugins.BotPlugin.PluginAdded
 
-object Help {
-  case class PluginAdded(plugin: ActorRef)
-  case class AddHelp(pluginName: String, helpText: String)
-}
 
 class Help extends BotPlugin {
   override protected def name = "help"
@@ -24,12 +18,19 @@ class Help extends BotPlugin {
 
   override def receive = super.receive orElse helpReceive
 
-  private def helpReceive: Receive = {
-    case AddHelp(pluginName, text) =>
-      helpText = helpText + (pluginName -> text)
+  override def preStart(): Unit = {
+    super.preStart()
+    context.system.eventStream.subscribe(self, classOf[PluginAdded])
+  }
 
-    case PluginAdded(plugin) =>
-      plugin ! RequestHelp
+  override def postStop(): Unit = {
+    super.postStop()
+    context.system.eventStream.unsubscribe(self)
+  }
+
+  private def helpReceive: Receive = {
+    case PluginAdded(_, pluginName, text) =>
+      helpText = helpText + (pluginName -> text)
   }
 
   private val ListPlugins = matchText("help")

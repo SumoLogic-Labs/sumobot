@@ -19,8 +19,8 @@
 package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
-import com.sumologic.sumobot.Bender
-import com.sumologic.sumobot.Bender.SendSlackMessage
+import com.sumologic.sumobot.Receptionist
+import com.sumologic.sumobot.Receptionist.{OpenIM, SendSlackMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -57,7 +57,7 @@ class Conversations extends BotPlugin with ActorLogging {
 
   override protected def receiveText: ReceiveText = {
     case "sup" if botMessage.addressedToUs =>
-      context.system.scheduler.scheduleOnce(1.seconds, sender(), botMessage.response(s"What's up homie! $cheerful"))
+      botMessage.scheduleResponse(1.seconds, s"What's up homie! $cheerful")
 
     case CountToN(number) if botMessage.addressedToUs =>
       if (number.toInt > NumberStrings.length - 1) {
@@ -65,7 +65,7 @@ class Conversations extends BotPlugin with ActorLogging {
       } else {
         (1 to number.toInt).map(i => i -> NumberStrings(i)).foreach {
           tuple =>
-            context.system.scheduler.scheduleOnce(tuple._1.seconds, sender(), botMessage.message(s"${tuple._2}!"))
+            botMessage.scheduleMessage(tuple._1.seconds, s"${tuple._2}!")
         }
       }
 
@@ -76,7 +76,7 @@ class Conversations extends BotPlugin with ActorLogging {
       } else {
         (1 to start).map(i => i -> NumberStrings(start - i)).foreach {
           tuple =>
-            context.system.scheduler.scheduleOnce(tuple._1.seconds, sender(), botMessage.message(s"${tuple._2}!"))
+            botMessage.scheduleMessage(tuple._1.seconds, s"${tuple._2}!")
         }
       }
 
@@ -99,7 +99,7 @@ class Conversations extends BotPlugin with ActorLogging {
       botMessage.say(s"What is up, <@${botMessage.slackMessage.user}>.")
 
     case SayInChannel(channelId, what) if botMessage.addressedToUs =>
-      sender() ! SendSlackMessage(channelId, what)
+      context.system.eventStream.publish(SendSlackMessage(channelId, what))
       botMessage.respond(s"Message sent.")
 
     case FuckOff() =>
@@ -117,11 +117,11 @@ class Conversations extends BotPlugin with ActorLogging {
         case Some(user) =>
           botMessage.state.ims.find(_.user == user.id) match {
             case Some(im) =>
-              sender() ! Bender.SendSlackMessage(im.id, what)
+              context.system.eventStream.publish(SendSlackMessage(im.id, what))
               botMessage.respond(s"Message sent.")
             case None =>
               val newMessage = botMessage.copy()
-              sender() ! Bender.OpenIM(recipientUserId, self, newMessage)
+              context.system.eventStream.publish(OpenIM(recipientUserId, self, newMessage))
               log.info(s"Opening IM channel to ${user.name}")
           }
         case None =>

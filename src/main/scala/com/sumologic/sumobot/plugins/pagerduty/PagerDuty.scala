@@ -2,7 +2,7 @@ package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.Bender.{SendSlackMessage, BotMessage}
+import com.sumologic.sumobot.Receptionist.{SendSlackMessage, BotMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -15,7 +15,7 @@ trait EscalationPolicyFilter {
  * @author Chris (chris@sumologic.com)
  */
 class PagerDuty(manager: PagerDutySchedulesManager,
-                policyFilter: Option[EscalationPolicyFilter] = None) extends BotPlugin with ActorLogging {
+                policyFilter: Option[EscalationPolicyFilter]) extends BotPlugin with ActorLogging {
 
   override protected def name: String = "pagerduty"
 

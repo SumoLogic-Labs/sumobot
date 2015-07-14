@@ -19,22 +19,21 @@
 package com.sumologic.sumobot
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
-import com.sumologic.sumobot.plugins.help.Help
-import com.sumologic.sumobot.plugins.help.Help.PluginAdded
 import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.FiniteDuration
 
 // Ideas
 // - reminder for maintenance windows, with n minutes remaining.
 // - service log entry creation
 // - online help
 
-object Bender {
+object Receptionist {
 
-  def props(rtmClient: SlackRtmClient): Props = Props(classOf[Bender], rtmClient)
+  def props(rtmClient: SlackRtmClient): Props = Props(classOf[Receptionist], rtmClient)
 
   case class SendSlackMessage(channelId: String, text: String)
 
@@ -46,17 +45,6 @@ object Bender {
                         slackMessage: Message,
                         state: RtmState) {
     val addressedToUs: Boolean = isAtMention || isInstantMessage
-
-    def response(text: String) = SendSlackMessage(slackMessage.channel, responsePrefix + text)
-
-    def message(text: String) = SendSlackMessage(slackMessage.channel, text)
-
-    def say(text: String)(implicit context: ActorContext) = context.sender() ! message(text)
-
-    def respond(text: String)(implicit context: ActorContext) = context.sender() ! response(text)
-
-    def responsePrefix: String = if (isInstantMessage) "" else s"<@${slackMessage.user}>: "
-
     def originalText: String = slackMessage.text
 
     def username(id: String): Option[String] = state.users.find(_.id == id).map(_.name)
@@ -69,15 +57,35 @@ object Bender {
 
     def senderName: Option[String] =
       state.users.find(_.id == slackMessage.user).map(_.name)
-  }
 
-  case class AddPlugin(plugin: ActorRef)
+    def response(text: String) = SendSlackMessage(slackMessage.channel, responsePrefix + text)
+
+    def message(text: String) = SendSlackMessage(slackMessage.channel, text)
+
+    def say(text: String)(implicit context: ActorContext) = context.system.eventStream.publish(message(text))
+
+    def respond(text: String)(implicit context: ActorContext) = context.system.eventStream.publish(response(text))
+
+    def responsePrefix: String = if (isInstantMessage) "" else s"<@${slackMessage.user}>: "
+
+    def scheduleResponse(delay: FiniteDuration, text: String)(implicit context: ActorContext): Unit = {
+      context.system.scheduler.scheduleOnce(delay, new Runnable() {
+        override def run(): Unit = context.system.eventStream.publish(response(text))
+      })
+    }
+
+    def scheduleMessage(delay: FiniteDuration, text: String)(implicit context: ActorContext): Unit = {
+      context.system.scheduler.scheduleOnce(delay, new Runnable() {
+        override def run(): Unit = context.system.eventStream.publish(message(text))
+      })
+    }
+  }
 
 }
 
-class Bender(rtmClient: SlackRtmClient) extends Actor {
+class Receptionist(rtmClient: SlackRtmClient) extends Actor {
 
-  import com.sumologic.sumobot.Bender._
+  import com.sumologic.sumobot.Receptionist._
 
   private val slack = rtmClient.actor
   private val blockingClient = rtmClient.apiClient
@@ -85,17 +93,21 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
   private val selfName = rtmClient.state.self.name
   rtmClient.addEventListener(self)
 
-  private val helpPlugin = context.actorOf(Props(classOf[Help]), "help")
-
-  private var plugins: Seq[ActorRef] = Nil
-
-  self ! AddPlugin(helpPlugin)
-
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
   private val simpleNamePrefix = """(\w+)\:?\s(.*)""".r
 
   private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
+
+  override def preStart(): Unit = {
+    context.system.eventStream.subscribe(self, classOf[SendSlackMessage])
+    context.system.eventStream.subscribe(self, classOf[OpenIM])
+  }
+
+
+  override def postStop(): Unit = {
+    context.system.eventStream.unsubscribe(self)
+  }
 
   override def receive: Receive = {
     case SendSlackMessage(channelId, text) =>
@@ -112,17 +124,10 @@ class Bender(rtmClient: SlackRtmClient) extends Actor {
       blockingClient.openIm(userId)
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId ->(doneRecipient, doneMessage))
 
-    case AddPlugin(plugin) =>
-      plugins = plugins :+ plugin
-      helpPlugin ! PluginAdded(plugin)
-
     case message: Message =>
       val msgToBot = translateMessage(message)
       if (message.user != selfId) {
-        plugins.foreach {
-          plugin =>
-            plugin ! msgToBot
-        }
+        context.system.eventStream.publish(msgToBot)
       }
   }
 

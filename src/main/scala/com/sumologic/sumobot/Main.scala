@@ -18,64 +18,25 @@
  */
 package com.sumologic.sumobot
 
-import akka.actor.{ActorRef, Props, ActorSystem}
+import akka.actor.ActorSystem
 import com.netflix.config.scala.DynamicStringProperty
-import com.sumologic.sumobot.Bender.AddPlugin
-import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
-import com.sumologic.sumobot.plugins.awssupport.AWSSupport
-import com.sumologic.sumobot.plugins.beer.Beer
-import com.sumologic.sumobot.plugins.conversations.Conversations
-import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
-import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
-import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
-import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 import slack.rtm.SlackRtmClient
+
 import scala.concurrent.duration._
 
 object Main extends App  {
 
   private val SlackApiToken = DynamicStringProperty("slack.api.token", null)
 
+  implicit val system = ActorSystem("root")
+
   SlackApiToken() match {
     case Some(token) =>
-      implicit val system = ActorSystem("root")
       val rtmClient = SlackRtmClient(token, 15.seconds)
-      val bender = system.actorOf(Bender.props(rtmClient), "bot")
-      setupPlugins(bender)
+      system.actorOf(Receptionist.props(rtmClient), "bot")
+      DefaultPlugins.setup()
     case None =>
       println(s"Please set the slack.api.token environment variable!")
       sys.exit(1)
-  }
-
-  private def setupPlugins(bender: ActorRef)(implicit system: ActorSystem): Unit = {
-
-    JenkinsJobClient.createClient("jenkins").foreach {
-      jenkinsClient =>
-        bender ! AddPlugin(system.actorOf(props = Jenkins.props("jenkins", jenkinsClient)))
-    }
-
-    JenkinsJobClient.createClient("hudson").foreach {
-      hudsonClient =>
-        bender ! AddPlugin(system.actorOf(props = Jenkins.props("hudson", hudsonClient)))
-        bender ! AddPlugin(system.actorOf(Props(classOf[UpgradeTestRunner], hudsonClient), "upgrade-test-runner"))
-    }
-
-    PagerDutySchedulesManager.createClient().foreach {
-      pagerDutySchedulesManager =>
-        bender ! AddPlugin(system.actorOf(Props(classOf[PagerDuty], pagerDutySchedulesManager), "pagerduty"))
-    }
-
-    JiraClient.createClient.foreach {
-      jiraClient =>
-        bender ! AddPlugin(system.actorOf(Props(classOf[Jira], jiraClient), "jira"))
-    }
-
-    bender ! AddPlugin(system.actorOf(Props(classOf[Conversations]), "conversations"))
-    bender ! AddPlugin(system.actorOf(Props(classOf[Beer]), "beer"))
-
-    val awsCreds = AWSCredentialSource.credentials
-    if (awsCreds.nonEmpty) {
-      bender ! AddPlugin(system.actorOf(Props(classOf[AWSSupport], awsCreds), "aws-support"))
-    }
   }
 }
