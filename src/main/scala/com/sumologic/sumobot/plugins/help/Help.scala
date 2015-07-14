@@ -34,7 +34,7 @@ class Help extends BotPlugin {
   }
 
   private val ListPlugins = matchText("help")
-  private val HelpForPlugin = matchText("help (\\w+).*")
+  private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
 
   override protected def receiveText = {
     case ListPlugins() if botMessage.addressedToUs =>
