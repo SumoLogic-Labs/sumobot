@@ -52,7 +52,7 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
                 case None =>
                   msg.response("Not a known support case.")
                 case Some(cse) =>
-                  msg.message(summary(cse))
+                  msg.message(details(cse))
               }
             case Failure(e) if e.getMessage.contains("Invalid case ID:") =>
               msg.response(s"Invalid case ID: $caseId")
@@ -73,4 +73,12 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
   private def summary(cia: CaseInAccount): String =
     s"*# ${cia.caseDetails.getDisplayId}:* ${cia.caseDetails.getSubject}\n" +
       s" - account: ${cia.account}, submitted by: ${cia.caseDetails.getSubmittedBy}, status: ${cia.caseDetails.getStatus}"
+
+  private def details(cia: CaseInAccount): String = {
+    val latest = cia.caseDetails.getRecentCommunications.getCommunications.asScala.head
+    summary(cia) + "\n\n" + s"""
+      |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
+      |${latest.getBody}
+    """.stripMargin
+  }
 }
