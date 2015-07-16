@@ -1,6 +1,6 @@
-package com.sumologic.sumobot
+package com.sumologic.sumobot.plugins
 
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
@@ -12,9 +12,8 @@ import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesMan
 import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 
 object DefaultPlugins {
-  implicit val system = Main.system
 
-  def setup(): Unit = {
+  def setup(implicit system: ActorSystem): Unit = {
 
     system.actorOf(Props(classOf[Help]), "help")
     system.actorOf(Props(classOf[Conversations]), "conversations")

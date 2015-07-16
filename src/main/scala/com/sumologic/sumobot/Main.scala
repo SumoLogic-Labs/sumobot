@@ -19,24 +19,12 @@
 package com.sumologic.sumobot
 
 import akka.actor.ActorSystem
-import com.netflix.config.scala.DynamicStringProperty
-import slack.rtm.SlackRtmClient
+import com.sumologic.sumobot.plugins.DefaultPlugins
 
-import scala.concurrent.duration._
 
-object Main extends App  {
-
-  private val SlackApiToken = DynamicStringProperty("slack.api.token", null)
-
-  implicit val system = ActorSystem("root")
-
-  SlackApiToken() match {
-    case Some(token) =>
-      val rtmClient = SlackRtmClient(token, 15.seconds)
-      system.actorOf(Receptionist.props(rtmClient), "bot")
-      DefaultPlugins.setup()
-    case None =>
-      println(s"Please set the slack.api.token environment variable!")
-      sys.exit(1)
-  }
+object Main extends App {
+  private implicit val system = ActorSystem("root")
+  val rtmClient = SlackSettings.connectOrExit
+  system.actorOf(Receptionist.props(rtmClient), "bot")
+  DefaultPlugins.setup
 }
