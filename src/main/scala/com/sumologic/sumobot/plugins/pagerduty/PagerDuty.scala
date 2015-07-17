@@ -4,11 +4,12 @@ import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
 import com.sumologic.sumobot.Receptionist.{BotMessage, SendSlackMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
+import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait EscalationPolicyFilter {
-  def filter(request: BotMessage, policies: Seq[PagerDutyEscalationPolicy]): Seq[PagerDutyEscalationPolicy]
+  def filter(botMessage: BotMessage, policies: Seq[PagerDutyEscalationPolicy])(implicit state: RtmState): Seq[PagerDutyEscalationPolicy]
 }
 
 /**
@@ -56,7 +57,7 @@ class PagerDuty(manager: PagerDutySchedulesManager,
         }
 
         val nonFilteredPolicies = policyFilter match {
-          case Some(filter) => filter.filter(msg, partiallyFilteredPolicies)
+          case Some(filter) => filter.filter(msg, partiallyFilteredPolicies)(state)
           case None => partiallyFilteredPolicies
         }
 

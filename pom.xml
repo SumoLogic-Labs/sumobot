@@ -5,7 +5,7 @@
   <artifactId>sumobot</artifactId>
   <name>sumobot</name>
   <packaging>jar</packaging>
-  <version>0.1</version>
+  <version>0.1-SNAPSHOT</version>
 
   <scm><connection>scm:git:git@github.com:SumoLogic/sumobot.git</connection></scm>
 
@@ -64,13 +64,6 @@
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-support</artifactId>
       <version>${aws.sdk.version}</version>
-    </dependency>
-
-    <!-- TODO: These JIRA dependencies can probably be collapsed; I was struggling with it and didn't to spend the time right now -->
-    <dependency>
-      <groupId>com.atlassian.jira</groupId>
-      <artifactId>jira-rest-java-client-parent</artifactId>
-      <version>3.0.0</version>
     </dependency>
 
     <dependency>

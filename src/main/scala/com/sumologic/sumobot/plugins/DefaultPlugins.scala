@@ -9,7 +9,6 @@ import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
-import com.sumologic.sumobot.plugins.upgradetests.UpgradeTestRunner
 
 object DefaultPlugins {
 
