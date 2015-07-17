@@ -1,5 +1,6 @@
 package com.sumologic.sumobot.plugins.help
 
+import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.BotPlugin.PluginAdded
 
@@ -36,11 +37,11 @@ class Help extends BotPlugin {
   private val ListPlugins = matchText("help")
   private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
 
-  override protected def receiveText = {
-    case ListPlugins() if botMessage.addressedToUs =>
+  override protected def receiveBotMessage = {
+    case botMessage@BotMessage(ListPlugins(), _, _, _) if botMessage.addressedToUs =>
       botMessage.say(helpText.keys.toList.sorted.mkString("\n"))
 
-    case HelpForPlugin(pluginName) if botMessage.addressedToUs =>
+    case botMessage@BotMessage(HelpForPlugin(pluginName), _, _, _) if botMessage.addressedToUs =>
       helpText.get(pluginName) match {
         case Some(text) =>
           botMessage.say(text)

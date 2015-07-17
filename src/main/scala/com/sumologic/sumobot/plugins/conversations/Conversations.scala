@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.Receptionist
-import com.sumologic.sumobot.Receptionist.{OpenIM, SendSlackMessage}
+import com.sumologic.sumobot.Receptionist.{BotMessage, OpenIM, SendSlackMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -55,11 +55,11 @@ class Conversations extends BotPlugin with ActorLogging {
   private val NumberStrings =
     Array("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten")
 
-  override protected def receiveText: ReceiveText = {
-    case "sup" if botMessage.addressedToUs =>
+  override protected def receiveBotMessage: ReceiveBotMessage = {
+    case botMessage @ BotMessage("sup", _, _, _) if botMessage.addressedToUs =>
       botMessage.scheduleResponse(1.seconds, s"What's up homie! $cheerful")
 
-    case CountToN(number) if botMessage.addressedToUs =>
+    case botMessage @ BotMessage(CountToN(number), _, _, _) if botMessage.addressedToUs =>
       if (number.toInt > NumberStrings.length - 1) {
         botMessage.respond(s"I can only count to ${NumberStrings.length - 1}!")
       } else {
@@ -69,7 +69,7 @@ class Conversations extends BotPlugin with ActorLogging {
         }
       }
 
-    case CountDownFromN(number) if botMessage.addressedToUs =>
+    case botMessage @ BotMessage(CountDownFromN(number), _, _, _) if botMessage.addressedToUs =>
       val start = number.toInt + 1
       if (start > NumberStrings.length) {
         botMessage.respond(s"I can only count down from ${NumberStrings.length - 1}!")
@@ -80,42 +80,42 @@ class Conversations extends BotPlugin with ActorLogging {
         }
       }
 
-    case TellColon(recipientUserId, what) if botMessage.addressedToUs =>
-      tell(recipientUserId, what)
+    case botMessage @ BotMessage(TellColon(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
+      tell(botMessage, recipientUserId, what)
 
-    case TellTo(recipientUserId, what) if botMessage.addressedToUs =>
-      tell(recipientUserId, what)
+    case botMessage @ BotMessage(TellTo(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
+      tell(botMessage, recipientUserId, what)
 
-    case TellHe(recipientUserId, what) if botMessage.addressedToUs =>
-      tell(recipientUserId, "you " + what)
+    case botMessage @ BotMessage(TellHe(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
+      tell(botMessage, recipientUserId, "you " + what)
 
-    case TellShe(recipientUserId, what) if botMessage.addressedToUs =>
-      tell(recipientUserId, "you " + what)
+    case botMessage @ BotMessage(TellShe(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
+      tell(botMessage, recipientUserId, "you " + what)
 
-    case Sup(name) if name == botMessage.state.self.name =>
+    case botMessage @ BotMessage(Sup(name), _, _, _) if name == state.self.name =>
       botMessage.respond("What is up!!")
 
-    case SupAtMention(userId) if userId == botMessage.state.self.id =>
+    case botMessage @ BotMessage(SupAtMention(userId), _, _, _) if userId == state.self.id =>
       botMessage.say(s"What is up, <@${botMessage.slackMessage.user}>.")
 
-    case SayInChannel(channelId, what) if botMessage.addressedToUs =>
+    case botMessage @ BotMessage(SayInChannel(channelId, what), _, _, _) if botMessage.addressedToUs =>
       context.system.eventStream.publish(SendSlackMessage(channelId, what))
       botMessage.respond(s"Message sent.")
 
-    case FuckOff() =>
+    case botMessage @ BotMessage(FuckOff(), _, _, _) =>
       botMessage.respond("Same to you.")
 
-    case FuckYou() =>
+    case botMessage @ BotMessage(FuckYou(), _, _, _) =>
       botMessage.respond("This is the worst kind of discrimination there is: the kind against me!")
   }
 
-  private def tell(recipientUserId: String, what: String): Unit = {
-    if (recipientUserId == botMessage.state.self.id) {
+  private def tell(botMessage: BotMessage, recipientUserId: String, what: String): Unit = {
+    if (recipientUserId == state.self.id) {
       botMessage.respond(s"Dude. I can't talk to myself. $puzzled")
     } else {
-      botMessage.state.getUserById(recipientUserId) match {
+      state.getUserById(recipientUserId) match {
         case Some(user) =>
-          botMessage.state.ims.find(_.user == user.id) match {
+          state.ims.find(_.user == user.id) match {
             case Some(im) =>
               context.system.eventStream.publish(SendSlackMessage(im.id, what))
               botMessage.respond(s"Message sent.")

@@ -1,5 +1,6 @@
 package com.sumologic.sumobot.plugins.beer
 
+import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.util.Random
@@ -24,8 +25,8 @@ class Beer extends BotPlugin {
 
   private var lastChimedIn = 0l
 
-  override protected def receiveText: ReceiveText = {
-    case BeerMention(beer) =>
+  override protected def receiveBotMessage: ReceiveBotMessage = {
+    case botMessage @ BotMessage(BeerMention(beer), _, _, _) =>
       val now = System.currentTimeMillis()
       if (now - lastChimedIn > 60000 && Random.nextInt(10) < 8) {
         lastChimedIn = now

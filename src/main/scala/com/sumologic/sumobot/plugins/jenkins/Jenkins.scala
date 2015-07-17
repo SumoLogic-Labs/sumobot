@@ -21,6 +21,7 @@ package com.sumologic.sumobot.plugins.jenkins
 import java.net.URLEncoder
 
 import akka.actor.{ActorLogging, Props}
+import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 object Jenkins {
@@ -46,10 +47,10 @@ class Jenkins(val name: String,
 
   import context.dispatcher
 
-  override protected def receiveText: ReceiveText = {
+  override protected def receiveBotMessage: ReceiveBotMessage = {
 
-    case JobStatus(jobName) =>
-      respondInFuture {
+    case botMessage @ BotMessage(JobStatus(jobName), _, _, _) =>
+      botMessage.respondInFuture {
         msg =>
           client.jobs.find(_._2.getName.trim.toLowerCase == jobName.trim.toLowerCase) match {
             case Some(tuple) =>
@@ -67,11 +68,11 @@ class Jenkins(val name: String,
           }
       }
 
-    case BuildJob(givenName) =>
+    case botMessage @ BotMessage(BuildJob(givenName), _, _, _) =>
       val triggeredBy = botMessage.senderName.getOrElse("unknown user")
-      val channelName = botMessage.channelName orElse botMessage.imName getOrElse s"unknown: ${botMessage.slackMessage.channel}"
-      val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $channelName", "UTF-8")
-      respondInFuture {
+      val cn = botMessage.channelName orElse botMessage.imName getOrElse s"unknown: ${botMessage.slackMessage.channel}"
+      val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $cn", "UTF-8")
+      botMessage.respondInFuture {
         msg =>
           msg.response(client.buildJob(givenName, cause))
       }

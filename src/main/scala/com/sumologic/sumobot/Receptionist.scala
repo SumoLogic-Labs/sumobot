@@ -18,13 +18,13 @@
  */
 package com.sumologic.sumobot
 
-import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
+import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import slack.models.{ImOpened, Message}
+import slack.rtm.SlackRtmClient
 import slack.rtm.SlackRtmConnectionActor.SendMessage
-import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.FiniteDuration
 
 // Ideas
 // - reminder for maintenance windows, with n minutes remaining.
@@ -42,43 +42,11 @@ object Receptionist {
   case class BotMessage(canonicalText: String,
                         isAtMention: Boolean,
                         isInstantMessage: Boolean,
-                        slackMessage: Message,
-                        state: RtmState) {
+                        slackMessage: Message) {
+
     val addressedToUs: Boolean = isAtMention || isInstantMessage
+
     def originalText: String = slackMessage.text
-
-    def username(id: String): Option[String] = state.users.find(_.id == id).map(_.name)
-
-    def channelName: Option[String] =
-      state.channels.find(_.id == slackMessage.channel).map(_.name)
-
-    def imName: Option[String] =
-      state.ims.find(_.id == slackMessage.channel).map(_.user).flatMap(username)
-
-    def senderName: Option[String] =
-      state.users.find(_.id == slackMessage.user).map(_.name)
-
-    def response(text: String) = SendSlackMessage(slackMessage.channel, responsePrefix + text)
-
-    def message(text: String) = SendSlackMessage(slackMessage.channel, text)
-
-    def say(text: String)(implicit context: ActorContext) = context.system.eventStream.publish(message(text))
-
-    def respond(text: String)(implicit context: ActorContext) = context.system.eventStream.publish(response(text))
-
-    def responsePrefix: String = if (isInstantMessage) "" else s"<@${slackMessage.user}>: "
-
-    def scheduleResponse(delay: FiniteDuration, text: String)(implicit context: ActorContext): Unit = {
-      context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = context.system.eventStream.publish(response(text))
-      })
-    }
-
-    def scheduleMessage(delay: FiniteDuration, text: String)(implicit context: ActorContext): Unit = {
-      context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = context.system.eventStream.publish(message(text))
-      })
-    }
   }
 
 }
@@ -101,6 +69,7 @@ class Receptionist(rtmClient: SlackRtmClient) extends Actor {
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[SendSlackMessage])
+    context.system.eventStream.subscribe(self, classOf[PluginAdded])
     context.system.eventStream.subscribe(self, classOf[OpenIM])
   }
 
@@ -110,6 +79,10 @@ class Receptionist(rtmClient: SlackRtmClient) extends Actor {
   }
 
   override def receive: Receive = {
+
+    case PluginAdded(plugin, _, _) =>
+      plugin ! InitializePlugin(rtmClient.state)
+
     case SendSlackMessage(channelId, text) =>
       slack ! SendMessage(channelId, text)
 
@@ -135,13 +108,13 @@ class Receptionist(rtmClient: SlackRtmClient) extends Actor {
     val isInstantMessage = rtmClient.state.ims.exists(_.id == message.channel)
     message.text match {
       case atMention(user, text) if user == selfId =>
-        BotMessage(text.trim, true, isInstantMessage, message, rtmClient.state)
+        BotMessage(text.trim, true, isInstantMessage, message)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        BotMessage(text.trim, true, isInstantMessage, message, rtmClient.state)
+        BotMessage(text.trim, true, isInstantMessage, message)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        BotMessage(text.trim, true, isInstantMessage, message, rtmClient.state)
+        BotMessage(text.trim, true, isInstantMessage, message)
       case _ =>
-        BotMessage(message.text.trim, false, isInstantMessage, message, rtmClient.state)
+        BotMessage(message.text.trim, false, isInstantMessage, message)
     }
   }
 }

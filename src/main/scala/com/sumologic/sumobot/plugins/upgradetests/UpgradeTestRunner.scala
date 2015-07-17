@@ -19,6 +19,7 @@
 package com.sumologic.sumobot.plugins.upgradetests
 
 import akka.actor.ActorLogging
+import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobClient
 
@@ -61,14 +62,14 @@ class UpgradeTestRunner(jenkinsJobClient: JenkinsJobClient) extends BotPlugin wi
       testChannel ::
       Nil
 
-  override protected def receiveText: ReceiveText = {
-    case RunTests(assemblyGroup) =>
+  override protected def receiveBotMessage: ReceiveBotMessage = {
+    case botMessage @ BotMessage(RunTests(assemblyGroup), _, _, _) =>
       val channelName = botMessage.channelName
       channels.filter(_ => channelName.isDefined).find(_.name == channelName.get) match {
         case Some(channel) =>
           channel.assemblyGroups.find(_.name == assemblyGroup) match {
             case Some(foundGroup) =>
-              respondInFuture {
+              botMessage.respondInFuture {
                 msg =>
                   val jobsToTrigger = jenkinsJobClient.jobs.filter(job => foundGroup.jobs.contains(job._2.getName)).values
                   val (succeeded, failed) = jobsToTrigger.partition {

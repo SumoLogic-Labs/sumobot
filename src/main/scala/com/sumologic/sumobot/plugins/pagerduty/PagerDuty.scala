@@ -2,7 +2,7 @@ package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.Receptionist.{SendSlackMessage, BotMessage}
+import com.sumologic.sumobot.Receptionist.{BotMessage, SendSlackMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,8 +32,9 @@ class PagerDuty(manager: PagerDutySchedulesManager,
 
   @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 
-  override protected def receiveText: ReceiveText = {
-    case WhosOnCall(filter) => respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
+  override protected def receiveBotMessage: ReceiveBotMessage = {
+    case botMessage@BotMessage(WhosOnCall(filter), _, _, _) =>
+      botMessage.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
   }
 
   private[this] def whoIsOnCall(msg: BotMessage,
@@ -50,8 +51,8 @@ class PagerDuty(manager: PagerDutySchedulesManager,
         val partiallyFilteredPolicies = nonTestPolicies.filter {
           policy =>
             (filterOpt.isEmpty ||
-                filterOpt.exists(filter => policy.name.toLowerCase.contains(filter.toLowerCase))) &&
-                policy.on_call.nonEmpty
+              filterOpt.exists(filter => policy.name.toLowerCase.contains(filter.toLowerCase))) &&
+              policy.on_call.nonEmpty
         }
 
         val nonFilteredPolicies = policyFilter match {

@@ -4,6 +4,7 @@ import akka.actor.ActorLogging
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.support.AWSSupportClient
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
+import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.collection.JavaConverters._
@@ -32,17 +33,17 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   private val ListCases = matchText("list aws cases")
 
-  override protected def receiveText: ReceiveText = {
+  override protected def receiveBotMessage: ReceiveBotMessage = {
 
-    case ListCases() =>
-      respondInFuture {
+    case botMessage @ BotMessage(ListCases(), _, _, _) =>
+      botMessage.respondInFuture {
         msg =>
           val caseList = getAllCases.map(summary(_) + "\n").mkString("\n")
           msg.message(caseList)
       }
 
-    case CaseDetails(caseId) =>
-      respondInFuture {
+    case botMessage @ BotMessage(CaseDetails(caseId), _, _, _) =>
+      botMessage.respondInFuture {
         msg =>
           log.info(s"Looking for case $caseId")
 
