@@ -27,7 +27,6 @@ object DefaultPlugins {
     JenkinsJobClient.createClient("hudson").foreach {
       hudsonClient =>
         system.actorOf(props = Jenkins.props("hudson", hudsonClient))
-        system.actorOf(Props(classOf[UpgradeTestRunner], hudsonClient), "upgrade-test-runner")
     }
 
     PagerDutySchedulesManager.createClient().foreach {
