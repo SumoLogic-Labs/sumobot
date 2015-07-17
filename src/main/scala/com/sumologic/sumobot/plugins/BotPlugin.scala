@@ -131,17 +131,19 @@ abstract class BotPlugin
     case _ =>
   }
 
-  override def receive: Receive = uninitialized
+  override def receive: Receive = uninitialized orElse pluginReceive
 
   private def uninitialized: Receive = {
     case InitializePlugin(newState) =>
       this.state = newState
-      context.become(initialized)
+      context.become(initialized orElse pluginReceive)
   }
 
   protected final def initialized: Receive = {
     case botMessage@BotMessage(text, _, _, _) =>
       receiveBotMessageInternal(botMessage)
   }
+
+  protected def pluginReceive: Receive = Map.empty
 }
 

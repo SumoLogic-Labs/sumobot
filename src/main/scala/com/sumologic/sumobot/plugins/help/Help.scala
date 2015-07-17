@@ -18,12 +18,13 @@
  */
 package com.sumologic.sumobot.plugins.help
 
+import akka.actor.ActorLogging
 import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.BotPlugin.PluginAdded
 
 
-class Help extends BotPlugin {
+class Help extends BotPlugin with ActorLogging {
   override protected def name = "help"
 
   override protected def help =
@@ -35,8 +36,6 @@ class Help extends BotPlugin {
 
   private var helpText = Map[String, String]().empty
 
-  override def receive = super.receive orElse helpReceive
-
   override def preStart(): Unit = {
     super.preStart()
     context.system.eventStream.subscribe(self, classOf[PluginAdded])
@@ -47,8 +46,9 @@ class Help extends BotPlugin {
     context.system.eventStream.unsubscribe(self)
   }
 
-  private def helpReceive: Receive = {
+  override protected def pluginReceive: Receive = {
     case PluginAdded(_, pluginName, text) =>
+      log.info(s"Adding help for plugin '$pluginName'")
       helpText = helpText + (pluginName -> text)
   }
 
