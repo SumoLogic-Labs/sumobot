@@ -24,6 +24,7 @@ import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
+import com.sumologic.sumobot.plugins.info.Info
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
@@ -35,6 +36,7 @@ object DefaultPlugins {
     system.actorOf(Props(classOf[Help]), "help")
     system.actorOf(Props(classOf[Conversations]), "conversations")
     system.actorOf(Props(classOf[Beer]), "beer")
+    system.actorOf(Props(classOf[Info]), "info")
 
     JenkinsJobClient.createClient("jenkins").foreach {
       jenkinsClient =>
