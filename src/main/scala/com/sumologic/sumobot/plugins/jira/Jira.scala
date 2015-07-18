@@ -33,8 +33,6 @@ import scala.util.{Try, Failure, Success}
  */
 class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
 
-  override protected def name: String = "jira"
-
   override protected def help: String =
     """Communicate with JIRA about stuff
       |

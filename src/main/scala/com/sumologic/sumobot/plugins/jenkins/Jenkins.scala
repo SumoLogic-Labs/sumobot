@@ -25,13 +25,14 @@ import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 object Jenkins {
-  def props(name: String, client: JenkinsJobClient): Props =
-    Props(classOf[Jenkins], name, client)
+  def props(client: JenkinsJobClient): Props =
+    Props(classOf[Jenkins], client)
 }
 
-class Jenkins(val name: String,
-              client: JenkinsJobClient)
+class Jenkins(client: JenkinsJobClient)
   extends BotPlugin with ActorLogging {
+
+  def name = self.path.name
 
   override protected def help: String =
     s"""

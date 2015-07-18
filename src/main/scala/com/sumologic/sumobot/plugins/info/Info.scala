@@ -25,8 +25,6 @@ import com.sumologic.sumobot.Receptionist.BotMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 class Info extends BotPlugin {
-  override protected def name = "info"
-
   override protected def help =
     """You can ask me about myself:
       |

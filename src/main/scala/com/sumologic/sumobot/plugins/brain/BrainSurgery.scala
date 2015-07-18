@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class BrainSurgery extends BotPlugin {
-  override protected def name = "brain-surgery"
+
   override protected def help =
     """Mess with my brain:
       |

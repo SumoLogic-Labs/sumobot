@@ -42,11 +42,10 @@ object BotPlugin {
   def matchText(regex: String): Regex = ("(?i)" + regex).r
 }
 
-
 abstract class BotPlugin
-  extends Actor
-  with ActorLogging
-  with Emotions {
+    extends Actor
+    with ActorLogging
+    with Emotions {
 
   type ReceiveBotMessage = PartialFunction[BotMessage, Unit]
 
@@ -58,10 +57,7 @@ abstract class BotPlugin
 
   protected def receiveBotMessage: ReceiveBotMessage
 
-  protected def name: String
-
   protected def help: String
-
 
   class RichIncomingMessage(msg: BotMessage) {
     // Helpers for plugins to use.
@@ -120,12 +116,11 @@ abstract class BotPlugin
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[BotMessage])
-    context.system.eventStream.publish(PluginAdded(self, name, help))
+    context.system.eventStream.publish(PluginAdded(self, self.path.name, help))
   }
 
-
   override def postStop(): Unit = {
-    context.system.eventStream.publish(PluginRemoved(self, name))
+    context.system.eventStream.publish(PluginRemoved(self, self.path.name))
     context.system.eventStream.unsubscribe(self)
   }
 

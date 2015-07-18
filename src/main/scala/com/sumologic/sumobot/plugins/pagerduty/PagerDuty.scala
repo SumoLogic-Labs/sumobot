@@ -36,8 +36,6 @@ trait EscalationPolicyFilter {
 class PagerDuty(manager: PagerDutySchedulesManager,
                 policyFilter: Option[EscalationPolicyFilter]) extends BotPlugin with ActorLogging {
 
-  override protected def name: String = "pagerduty"
-
   override protected def help: String =
     """
       |Communicate with PagerDuty to learn about on-call processes. And stuff.

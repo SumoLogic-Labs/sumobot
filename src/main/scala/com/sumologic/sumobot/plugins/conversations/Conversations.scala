@@ -28,8 +28,6 @@ import scala.concurrent.duration._
 
 class Conversations extends BotPlugin with ActorLogging {
 
-  override protected def name: String = "conversations"
-
   override protected def help: String =
     s"""
        |You can tell me to some random stuff for you:

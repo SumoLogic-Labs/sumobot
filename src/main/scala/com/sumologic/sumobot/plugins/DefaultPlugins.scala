@@ -42,12 +42,12 @@ object DefaultPlugins {
 
     JenkinsJobClient.createClient("jenkins").foreach {
       jenkinsClient =>
-        system.actorOf(props = Jenkins.props("jenkins", jenkinsClient))
+        system.actorOf(props = Jenkins.props(jenkinsClient), "jenkins")
     }
 
     JenkinsJobClient.createClient("hudson").foreach {
       hudsonClient =>
-        system.actorOf(props = Jenkins.props("hudson", hudsonClient))
+        system.actorOf(props = Jenkins.props(hudsonClient), "hudson")
     }
 
     PagerDutySchedulesManager.createClient().foreach {

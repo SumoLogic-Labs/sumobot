@@ -37,8 +37,6 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   private val clients = credentials.map(tpl => tpl._1 -> new AWSSupportClient(tpl._2))
 
-  override protected def name: String = "aws-support"
-
   override protected def help: String =
     s"""
        |I can tell you about AWS support tickets.

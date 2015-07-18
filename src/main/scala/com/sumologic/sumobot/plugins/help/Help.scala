@@ -25,8 +25,6 @@ import com.sumologic.sumobot.plugins.BotPlugin.PluginAdded
 
 
 class Help extends BotPlugin with ActorLogging {
-  override protected def name = "help"
-
   override protected def help =
     s"""I can help you understand plugins.
        |
