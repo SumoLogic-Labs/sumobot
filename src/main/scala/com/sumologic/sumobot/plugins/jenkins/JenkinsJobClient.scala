@@ -49,7 +49,7 @@ object JenkinsJobClient {
 }
 
 class JenkinsJobClient(val name: String,
-                       url: String,
+                       val url: String,
                        user: String,
                        password: String,
                        buildToken: Option[String])

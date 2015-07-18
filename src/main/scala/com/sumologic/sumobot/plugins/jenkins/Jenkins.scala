@@ -50,6 +50,9 @@ class Jenkins(client: JenkinsJobClient)
 
   override protected def receiveBotMessage: ReceiveBotMessage = {
 
+
+    case botMessage @ BotMessage(Info(), _, _, _) =>
+      botMessage.respond(s"Connected to ${client.url}")
     case botMessage @ BotMessage(JobStatus(jobName), _, _, _) =>
       botMessage.respondInFuture {
         msg =>
