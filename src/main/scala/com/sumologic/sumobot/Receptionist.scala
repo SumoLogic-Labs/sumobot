@@ -33,7 +33,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object Receptionist {
 
-  def props(rtmClient: SlackRtmClient): Props = Props(classOf[Receptionist], rtmClient)
+  def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
+    Props(classOf[Receptionist], rtmClient, brain)
 
   case class SendSlackMessage(channelId: String, text: String)
 
@@ -48,10 +49,9 @@ object Receptionist {
 
     def originalText: String = slackMessage.text
   }
-
 }
 
-class Receptionist(rtmClient: SlackRtmClient) extends Actor {
+class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
 
   import com.sumologic.sumobot.Receptionist._
 
@@ -81,7 +81,7 @@ class Receptionist(rtmClient: SlackRtmClient) extends Actor {
   override def receive: Receive = {
 
     case PluginAdded(plugin, _, _) =>
-      plugin ! InitializePlugin(rtmClient.state)
+      plugin ! InitializePlugin(rtmClient.state, brain)
 
     case SendSlackMessage(channelId, text) =>
       slack ! SendMessage(channelId, text)

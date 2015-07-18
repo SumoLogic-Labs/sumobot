@@ -37,7 +37,7 @@ object BotPlugin {
 
   case class PluginRemoved(plugin: ActorRef, name: String)
 
-  case class InitializePlugin(state: RtmState)
+  case class InitializePlugin(state: RtmState, brain: ActorRef)
 
   def matchText(regex: String): Regex = ("(?i)" + regex).r
 }
@@ -51,6 +51,8 @@ abstract class BotPlugin
   type ReceiveBotMessage = PartialFunction[BotMessage, Unit]
 
   protected var state: RtmState = _
+
+  protected var brain: ActorRef = _
 
   // For plugins to implement.
 
@@ -134,8 +136,9 @@ abstract class BotPlugin
   override def receive: Receive = uninitialized orElse pluginReceive
 
   private def uninitialized: Receive = {
-    case InitializePlugin(newState) =>
+    case InitializePlugin(newState, newBrain) =>
       this.state = newState
+      this.brain = newBrain
       context.become(initialized orElse pluginReceive)
   }
 

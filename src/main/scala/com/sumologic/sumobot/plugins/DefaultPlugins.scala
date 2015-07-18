@@ -22,6 +22,7 @@ import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
+import com.sumologic.sumobot.plugins.brain.BrainSurgery
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.info.Info
@@ -37,6 +38,7 @@ object DefaultPlugins {
     system.actorOf(Props(classOf[Conversations]), "conversations")
     system.actorOf(Props(classOf[Beer]), "beer")
     system.actorOf(Props(classOf[Info]), "info")
+    system.actorOf(Props(classOf[BrainSurgery]), "brain-surgery")
 
     JenkinsJobClient.createClient("jenkins").foreach {
       jenkinsClient =>

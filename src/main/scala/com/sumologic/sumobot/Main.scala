@@ -18,13 +18,15 @@
  */
 package com.sumologic.sumobot
 
-import akka.actor.ActorSystem
+import akka.actor.{Props, ActorSystem}
+import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.plugins.DefaultPlugins
 
 
 object Main extends App {
   private implicit val system = ActorSystem("root")
   val rtmClient = SlackSettings.connectOrExit
-  system.actorOf(Receptionist.props(rtmClient), "bot")
+  val brain = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
+  system.actorOf(Receptionist.props(rtmClient, brain), "bot")
   DefaultPlugins.setup
 }
