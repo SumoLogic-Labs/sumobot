@@ -19,17 +19,13 @@
 package com.sumologic.sumobot.core
 
 import akka.actor.ActorRef
-import slack.models.Message
+import slack.models.User
 
-
-case class OutgoingMessage(channelId: String, text: String)
+case class OutgoingMessage(channel: Channel, text: String)
 
 case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 
 case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
-                           slackMessage: Message) {
-
-  def originalText: String = slackMessage.text
-}
-
+                           channel: Channel,
+                           sentByUser: User)

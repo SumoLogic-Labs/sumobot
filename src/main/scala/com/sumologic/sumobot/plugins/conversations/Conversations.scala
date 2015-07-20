@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
-import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage}
+import com.sumologic.sumobot.core._
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.duration._
@@ -52,10 +52,10 @@ class Conversations extends BotPlugin with ActorLogging {
     Array("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage("sup", true, _)  =>
+    case message@IncomingMessage("sup", true, _, _)  =>
       message.scheduleResponse(1.seconds, s"What's up homie! $cheerful")
 
-    case message@IncomingMessage(CountToN(number), true, _) =>
+    case message@IncomingMessage(CountToN(number), true, _, _) =>
       if (number.toInt > NumberStrings.length - 1) {
         message.respond(s"I can only count to ${NumberStrings.length - 1}!")
       } else {
@@ -65,7 +65,7 @@ class Conversations extends BotPlugin with ActorLogging {
         }
       }
 
-    case message@IncomingMessage(CountDownFromN(number), true, _) =>
+    case message@IncomingMessage(CountDownFromN(number), true, _, _) =>
       val start = number.toInt + 1
       if (start > NumberStrings.length) {
         message.respond(s"I can only count down from ${NumberStrings.length - 1}!")
@@ -76,32 +76,32 @@ class Conversations extends BotPlugin with ActorLogging {
         }
       }
 
-    case message@IncomingMessage(TellColon(recipientUserId, what), true, _) =>
+    case message@IncomingMessage(TellColon(recipientUserId, what), true, _, _) =>
       tell(message, recipientUserId, what)
 
-    case message@IncomingMessage(TellTo(recipientUserId, what), true, _) =>
+    case message@IncomingMessage(TellTo(recipientUserId, what), true, _, _) =>
       tell(message, recipientUserId, what)
 
-    case message@IncomingMessage(TellHe(recipientUserId, what), true, _) =>
+    case message@IncomingMessage(TellHe(recipientUserId, what), true, _, _) =>
       tell(message, recipientUserId, "you " + what)
 
-    case message@IncomingMessage(TellShe(recipientUserId, what), true, _) =>
+    case message@IncomingMessage(TellShe(recipientUserId, what), true, _, _) =>
       tell(message, recipientUserId, "you " + what)
 
-    case message@IncomingMessage(Sup(name), _, _) if name == state.self.name =>
+    case message@IncomingMessage(Sup(name), _, _, _) if name == state.self.name =>
       message.respond("What is up!!")
 
-    case message@IncomingMessage(SupAtMention(userId), _, _) if userId == state.self.id =>
-      message.say(s"What is up, <@${message.slackMessage.user}>.")
+    case message@IncomingMessage(SupAtMention(userId), _, _, _) if userId == state.self.id =>
+      message.say(s"What is up, <@${message.sentByUser.id}>.")
 
-    case message@IncomingMessage(SayInChannel(channelId, what), true, _) =>
-      context.system.eventStream.publish(OutgoingMessage(channelId, what))
+    case message@IncomingMessage(SayInChannel(channelId, what), true, _, _) =>
+      context.system.eventStream.publish(OutgoingMessage(Channel.forChannelId(state, channelId), what))
       message.respond(s"Message sent.")
 
-    case message@IncomingMessage(FuckOff(), _, _) =>
+    case message@IncomingMessage(FuckOff(), _, _, _) =>
       message.respond("Same to you.")
 
-    case message@IncomingMessage(FuckYou(), _, _) =>
+    case message@IncomingMessage(FuckYou(), _, _, _) =>
       message.respond("This is the worst kind of discrimination there is: the kind against me!")
   }
 
@@ -113,7 +113,7 @@ class Conversations extends BotPlugin with ActorLogging {
         case Some(user) =>
           state.ims.find(_.user == user.id) match {
             case Some(im) =>
-              context.system.eventStream.publish(OutgoingMessage(im.id, what))
+              context.system.eventStream.publish(OutgoingMessage(InstantMessageChannel(im.id, user), what))
               message.respond(s"Message sent.")
             case None =>
               val newMessage = message.copy()

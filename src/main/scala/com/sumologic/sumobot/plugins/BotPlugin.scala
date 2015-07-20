@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.Bootstrap
-import com.sumologic.sumobot.core.{OutgoingMessage, IncomingMessage}
+import com.sumologic.sumobot.core.{InstantMessageChannel, OutgoingMessage, IncomingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.util.SlackMessageHelpers
 import slack.rtm.RtmState
@@ -65,27 +65,15 @@ abstract class BotPlugin
 
   class RichIncomingMessage(msg: IncomingMessage) {
     // Helpers for plugins to use.
-    def response(text: String) = OutgoingMessage(msg.slackMessage.channel, responsePrefix + text)
+    def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
 
-    def message(text: String) = OutgoingMessage(msg.slackMessage.channel, text)
+    def message(text: String) = OutgoingMessage(msg.channel, text)
 
     def say(text: String) = context.system.eventStream.publish(message(text))
 
     def respond(text: String) = context.system.eventStream.publish(response(text))
 
-    def responsePrefix: String = if (SlackMessageHelpers.isInstantMessage(msg.slackMessage)(state)) "" else s"<@${msg.slackMessage.user}>: "
-
-    def username(id: String): Option[String] =
-      state.users.find(_.id == id).map(_.name)
-
-    def channelName: Option[String] =
-      state.channels.find(_.id == msg.slackMessage.channel).map(_.name)
-
-    def imName: Option[String] =
-      state.ims.find(_.id == msg.slackMessage.channel).map(_.user).flatMap(username)
-
-    def senderName: Option[String] =
-      state.users.find(_.id == msg.slackMessage.user).map(_.name)
+    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"<@${msg.sentByUser.id}>: "
 
     def scheduleResponse(delay: FiniteDuration, text: String): Unit = {
       context.system.scheduler.scheduleOnce(delay, new Runnable() {
@@ -143,7 +131,7 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _) =>
+    case message@IncomingMessage(text, _, _, _) =>
       receiveIncomingMessageInternal(message)
   }
 

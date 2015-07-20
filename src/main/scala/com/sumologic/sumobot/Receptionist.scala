@@ -18,19 +18,15 @@
  */
 package com.sumologic.sumobot
 
-import java.util.concurrent.TimeUnit
-
 import akka.actor._
-import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage, PluginRegistry}
+import com.sumologic.sumobot.core._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.util.SlackMessageHelpers
-import slack.models.{ImOpened, Message}
+import slack.models.{User, ImOpened, Message}
 import slack.rtm.SlackRtmClient
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.FiniteDuration
-import scala.util.Success
 
 object Receptionist {
   def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
@@ -72,8 +68,8 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
     case message@PluginRemoved(_, _) =>
       pluginRegistry ! message
 
-    case OutgoingMessage(channelId, text) =>
-      slack ! SendMessage(channelId, text)
+    case OutgoingMessage(channel, text) =>
+      slack ! SendMessage(channel.id, text)
 
     case ImOpened(user, channel) =>
       pendingIMSessionsByUserId.get(user).foreach {
@@ -94,15 +90,20 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
   }
 
   protected def translateMessage(slackMessage: Message): IncomingMessage = {
+
+    val channel = Channel.forMessage(rtmClient.state, slackMessage)
+    val sentByUser = rtmClient.state.users.find(_.id == slackMessage.user).
+      getOrElse(throw new IllegalStateException(s"Message from unknown user: ${slackMessage.user}"))
+
     slackMessage.text match {
       case atMention(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, slackMessage)
+        IncomingMessage(text.trim, true, channel, sentByUser)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, slackMessage)
+        IncomingMessage(text.trim, true, channel, sentByUser)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        IncomingMessage(text.trim, true, slackMessage)
+        IncomingMessage(text.trim, true, channel, sentByUser)
       case _ =>
-        IncomingMessage(slackMessage.text.trim, SlackMessageHelpers.isInstantMessage(slackMessage)(rtmClient.state), slackMessage)
+        IncomingMessage(slackMessage.text.trim, SlackMessageHelpers.isInstantMessage(slackMessage)(rtmClient.state), channel, sentByUser)
     }
   }
 }

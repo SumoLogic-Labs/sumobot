@@ -20,14 +20,13 @@ package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.core.{OutgoingMessage, IncomingMessage}
+import com.sumologic.sumobot.core.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
-import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait EscalationPolicyFilter {
-  def filter(message: IncomingMessage, policies: Seq[PagerDutyEscalationPolicy])(implicit state: RtmState): Seq[PagerDutyEscalationPolicy]
+  def filter(message: IncomingMessage, policies: Seq[PagerDutyEscalationPolicy]): Seq[PagerDutyEscalationPolicy]
 }
 
 /**
@@ -50,7 +49,7 @@ class PagerDuty(manager: PagerDutySchedulesManager,
   @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(WhosOnCall(filter), _, _) =>
+    case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
   }
 
@@ -73,7 +72,7 @@ class PagerDuty(manager: PagerDutySchedulesManager,
         }
 
         val nonFilteredPolicies = policyFilter match {
-          case Some(filter) => filter.filter(msg, partiallyFilteredPolicies)(state)
+          case Some(filter) => filter.filter(msg, partiallyFilteredPolicies)
           case None => partiallyFilteredPolicies
         }
 
