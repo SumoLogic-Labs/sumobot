@@ -46,8 +46,8 @@ class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
   private val InProgressJirasFor = matchText("in\\s?progress jiras for (.+?)")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(JiraInfo(id), _, _) => message.respondInFuture(loadJiraInfo(_, id))
-    case message@IncomingMessage(InProgressJirasFor(username), _, _) => message.respondInFuture(loadInProgressJirasFor(_, username))
+    case message@IncomingMessage(JiraInfo(id), _, _, _) => message.respondInFuture(loadJiraInfo(_, id))
+    case message@IncomingMessage(InProgressJirasFor(username), _, _, _) => message.respondInFuture(loadInProgressJirasFor(_, username))
   }
 
   private def loadJiraInfo(msg: IncomingMessage, id: String): OutgoingMessage = {
