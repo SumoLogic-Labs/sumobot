@@ -103,7 +103,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
         IncomingMessage(text.trim, true, channel, sentByUser)
       case _ =>
-        IncomingMessage(slackMessage.text.trim, SlackMessageHelpers.isInstantMessage(slackMessage)(rtmClient.state), channel, sentByUser)
+        IncomingMessage(slackMessage.text.trim, channel.isInstanceOf[InstantMessageChannel], channel, sentByUser)
     }
   }
 }
