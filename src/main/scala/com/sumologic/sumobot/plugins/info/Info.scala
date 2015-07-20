@@ -21,7 +21,7 @@ package com.sumologic.sumobot.plugins.info
 import java.net.InetAddress
 import java.util.Date
 
-import com.sumologic.sumobot.Receptionist.BotMessage
+import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 class Info extends BotPlugin {
@@ -39,10 +39,10 @@ class Info extends BotPlugin {
   private val hostAddress = InetAddress.getLocalHost.getHostAddress
   private val startTime = new Date().toString
 
-  override protected def receiveBotMessage = {
-    case botMessage @ BotMessage(whereAreYou(), _, _, _) if botMessage.addressedToUs =>
-      botMessage.respond(s"I'm running at $hostname ($hostAddress)")
-    case botMessage @ BotMessage(whenDidYouStart(_), _, _, _) if botMessage.addressedToUs =>
-      botMessage.respond(s"I started at $startTime")
+  override protected def receiveIncomingMessage = {
+    case message@IncomingMessage(whereAreYou(), _, _, _) if message.addressedToUs =>
+      message.respond(s"I'm running at $hostname ($hostAddress)")
+    case message@IncomingMessage(whenDidYouStart(_), _, _, _) if message.addressedToUs =>
+      message.respond(s"I started at $startTime")
   }
 }

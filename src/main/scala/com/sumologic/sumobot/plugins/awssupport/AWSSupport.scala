@@ -22,7 +22,7 @@ import akka.actor.ActorLogging
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.support.AWSSupportClient
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
-import com.sumologic.sumobot.Receptionist.BotMessage
+import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.collection.JavaConverters._
@@ -49,17 +49,17 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   private val ListCases = matchText("list aws cases")
 
-  override protected def receiveBotMessage: ReceiveBotMessage = {
+  override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
-    case botMessage @ BotMessage(ListCases(), _, _, _) =>
-      botMessage.respondInFuture {
+    case message@IncomingMessage(ListCases(), _, _, _) =>
+      message.respondInFuture {
         msg =>
           val caseList = getAllCases.map(summary(_) + "\n").mkString("\n")
           msg.message(caseList)
       }
 
-    case botMessage @ BotMessage(CaseDetails(caseId), _, _, _) =>
-      botMessage.respondInFuture {
+    case message@IncomingMessage(CaseDetails(caseId), _, _, _) =>
+      message.respondInFuture {
         msg =>
           log.info(s"Looking for case $caseId")
 
@@ -94,8 +94,8 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
   private def details(cia: CaseInAccount): String = {
     val latest = cia.caseDetails.getRecentCommunications.getCommunications.asScala.head
     summary(cia) + "\n\n" + s"""
-      |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
-      |${latest.getBody}
+                               |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
+                                                                                       |${latest.getBody}
     """.stripMargin
   }
 }

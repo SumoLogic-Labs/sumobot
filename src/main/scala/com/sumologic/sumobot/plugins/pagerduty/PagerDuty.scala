@@ -20,14 +20,14 @@ package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.Receptionist.{BotMessage, SendSlackMessage}
+import com.sumologic.sumobot.core.{OutgoingMessage, IncomingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 trait EscalationPolicyFilter {
-  def filter(botMessage: BotMessage, policies: Seq[PagerDutyEscalationPolicy])(implicit state: RtmState): Seq[PagerDutyEscalationPolicy]
+  def filter(message: IncomingMessage, policies: Seq[PagerDutyEscalationPolicy])(implicit state: RtmState): Seq[PagerDutyEscalationPolicy]
 }
 
 /**
@@ -49,14 +49,14 @@ class PagerDuty(manager: PagerDutySchedulesManager,
 
   @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 
-  override protected def receiveBotMessage: ReceiveBotMessage = {
-    case botMessage@BotMessage(WhosOnCall(filter), _, _, _) =>
-      botMessage.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
+  override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
+    case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
+      message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
   }
 
-  private[this] def whoIsOnCall(msg: BotMessage,
+  private[this] def whoIsOnCall(msg: IncomingMessage,
                                 maximumLevel: Int,
-                                filterOpt: Option[String]): SendSlackMessage = {
+                                filterOpt: Option[String]): OutgoingMessage = {
     manager.getEscalationPolicies match {
       case Some(policies) =>
         val escalationPolicies = policies.escalation_policies

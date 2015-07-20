@@ -2,11 +2,12 @@ package com.sumologic.sumobot.plugins.brain
 
 import akka.pattern._
 import akka.util.Timeout
-import com.sumologic.sumobot.Receptionist.BotMessage
-import com.sumologic.sumobot.brain.Brain.{Remove, Store, ListValues, ValueMap}
+import com.sumologic.sumobot.brain.Brain.{ListValues, Remove, Store, ValueMap}
+import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
-import scala.concurrent.duration._
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class BrainSurgery extends BotPlugin {
 
@@ -24,21 +25,21 @@ class BrainSurgery extends BotPlugin {
 
   private val forget = matchText("forget about ([\\.\\w]+).*")
 
-  override protected def receiveBotMessage = {
-    case botMessage@BotMessage(remember(key, value), _, _, _) if botMessage.addressedToUs =>
+  override protected def receiveIncomingMessage = {
+    case message@IncomingMessage(remember(key, value), _, _, _) if message.addressedToUs =>
       brain ! Store(key.trim, value.trim)
-      botMessage.respond(s"Got it, $key is $value")
-    case botMessage@BotMessage(forget(key), _, _, _) if botMessage.addressedToUs =>
+      message.respond(s"Got it, $key is $value")
+    case message@IncomingMessage(forget(key), _, _, _) if message.addressedToUs =>
       brain ! Remove(key.trim)
-      botMessage.respond(s"$key? I've forgotten all about it.")
-    case botMessage@BotMessage(brainDump(), _, _, _) if botMessage.addressedToUs =>
-      implicit val timeout = Timeout(5 seconds)
+      message.respond(s"$key? I've forgotten all about it.")
+    case message@IncomingMessage(brainDump(), _, _, _) if message.addressedToUs =>
+      implicit val timeout = Timeout(5.seconds)
       (brain ? ListValues()) map {
         case ValueMap(map) =>
           if (map.isEmpty) {
-            botMessage.say("My brain is empty.")
+            message.say("My brain is empty.")
           } else {
-            botMessage.say(map.toSeq.sortBy(_._1).map(tpl => s"${tpl._1}=${tpl._2}").mkString("\n"))
+            message.say(map.toSeq.sortBy(_._1).map(tpl => s"${tpl._1}=${tpl._2}").mkString("\n"))
           }
       }
   }

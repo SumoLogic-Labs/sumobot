@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.sumologic.sumobot.Receptionist.{BotMessage, SendSlackMessage}
+import com.sumologic.sumobot.core.{OutgoingMessage, IncomingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.rtm.RtmState
 
@@ -47,7 +47,7 @@ abstract class BotPlugin
     with ActorLogging
     with Emotions {
 
-  type ReceiveBotMessage = PartialFunction[BotMessage, Unit]
+  type ReceiveIncomingMessage = PartialFunction[IncomingMessage, Unit]
 
   protected var state: RtmState = _
 
@@ -55,15 +55,15 @@ abstract class BotPlugin
 
   // For plugins to implement.
 
-  protected def receiveBotMessage: ReceiveBotMessage
+  protected def receiveIncomingMessage: ReceiveIncomingMessage
 
   protected def help: String
 
-  class RichIncomingMessage(msg: BotMessage) {
+  class RichIncomingMessage(msg: IncomingMessage) {
     // Helpers for plugins to use.
-    def response(text: String) = SendSlackMessage(msg.slackMessage.channel, responsePrefix + text)
+    def response(text: String) = OutgoingMessage(msg.slackMessage.channel, responsePrefix + text)
 
-    def message(text: String) = SendSlackMessage(msg.slackMessage.channel, text)
+    def message(text: String) = OutgoingMessage(msg.slackMessage.channel, text)
 
     def say(text: String) = context.system.eventStream.publish(message(text))
 
@@ -95,7 +95,7 @@ abstract class BotPlugin
       })
     }
 
-    def respondInFuture(body: BotMessage => SendSlackMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
+    def respondInFuture(body: IncomingMessage => OutgoingMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
       Future {
         try {
           body(msg)
@@ -108,14 +108,14 @@ abstract class BotPlugin
     }
   }
 
-  implicit def wrapMessage(msg: BotMessage): RichIncomingMessage = new RichIncomingMessage(msg)
+  implicit def wrapMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
 
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   // Implementation. Most plugins should not override.
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[BotMessage])
+    context.system.eventStream.subscribe(self, classOf[IncomingMessage])
     context.system.eventStream.publish(PluginAdded(self, self.path.name, help))
   }
 
@@ -124,8 +124,8 @@ abstract class BotPlugin
     context.system.eventStream.unsubscribe(self)
   }
 
-  private final def receiveBotMessageInternal: ReceiveBotMessage = receiveBotMessage orElse {
-    case _ =>
+  private final def receiveIncomingMessageInternal: ReceiveIncomingMessage = receiveIncomingMessage orElse {
+    case ignore =>
   }
 
   override def receive: Receive = uninitialized orElse pluginReceive
@@ -138,8 +138,8 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case botMessage@BotMessage(text, _, _, _) =>
-      receiveBotMessageInternal(botMessage)
+    case message@IncomingMessage(text, _, _, _) =>
+      receiveIncomingMessageInternal(message)
   }
 
   protected def pluginReceive: Receive = Map.empty

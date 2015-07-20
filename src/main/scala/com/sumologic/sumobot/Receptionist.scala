@@ -19,6 +19,7 @@
 package com.sumologic.sumobot
 
 import akka.actor.{Actor, ActorRef, Props}
+import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmClient
@@ -36,24 +37,9 @@ object Receptionist {
   def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
     Props(classOf[Receptionist], rtmClient, brain)
 
-  case class SendSlackMessage(channelId: String, text: String)
-
-  case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
-
-  case class BotMessage(canonicalText: String,
-                        isAtMention: Boolean,
-                        isInstantMessage: Boolean,
-                        slackMessage: Message) {
-
-    val addressedToUs: Boolean = isAtMention || isInstantMessage
-
-    def originalText: String = slackMessage.text
-  }
 }
 
 class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
-
-  import com.sumologic.sumobot.Receptionist._
 
   private val slack = rtmClient.actor
   private val blockingClient = rtmClient.apiClient
@@ -68,7 +54,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
   private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[SendSlackMessage])
+    context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
     context.system.eventStream.subscribe(self, classOf[PluginAdded])
     context.system.eventStream.subscribe(self, classOf[OpenIM])
   }
@@ -83,7 +69,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
     case PluginAdded(plugin, _, _) =>
       plugin ! InitializePlugin(rtmClient.state, brain)
 
-    case SendSlackMessage(channelId, text) =>
+    case OutgoingMessage(channelId, text) =>
       slack ! SendMessage(channelId, text)
 
     case ImOpened(user, channel) =>
@@ -104,17 +90,17 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       }
   }
 
-  protected def translateMessage(message: Message): BotMessage = {
+  protected def translateMessage(message: Message): IncomingMessage = {
     val isInstantMessage = rtmClient.state.ims.exists(_.id == message.channel)
     message.text match {
       case atMention(user, text) if user == selfId =>
-        BotMessage(text.trim, true, isInstantMessage, message)
+        IncomingMessage(text.trim, true, isInstantMessage, message)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        BotMessage(text.trim, true, isInstantMessage, message)
+        IncomingMessage(text.trim, true, isInstantMessage, message)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        BotMessage(text.trim, true, isInstantMessage, message)
+        IncomingMessage(text.trim, true, isInstantMessage, message)
       case _ =>
-        BotMessage(message.text.trim, false, isInstantMessage, message)
+        IncomingMessage(message.text.trim, false, isInstantMessage, message)
     }
   }
 }

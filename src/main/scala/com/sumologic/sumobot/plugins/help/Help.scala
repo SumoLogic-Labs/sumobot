@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins.help
 
 import akka.actor.ActorLogging
-import com.sumologic.sumobot.Receptionist.BotMessage
+import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.BotPlugin.PluginAdded
 
@@ -53,16 +53,16 @@ class Help extends BotPlugin with ActorLogging {
   private val ListPlugins = matchText("help")
   private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
 
-  override protected def receiveBotMessage = {
-    case botMessage@BotMessage(ListPlugins(), _, _, _) if botMessage.addressedToUs =>
-      botMessage.say(helpText.keys.toList.sorted.mkString("\n"))
+  override protected def receiveIncomingMessage = {
+    case message@IncomingMessage(ListPlugins(), _, _, _) if message.addressedToUs =>
+      message.say(helpText.keys.toList.sorted.mkString("\n"))
 
-    case botMessage@BotMessage(HelpForPlugin(pluginName), _, _, _) if botMessage.addressedToUs =>
+    case message@IncomingMessage(HelpForPlugin(pluginName), _, _, _) if message.addressedToUs =>
       helpText.get(pluginName) match {
         case Some(text) =>
-          botMessage.say(text)
+          message.say(text)
         case None =>
-          botMessage.respond(s"Sorry, I don't know $pluginName")
+          message.respond(s"Sorry, I don't know $pluginName")
       }
   }
 }

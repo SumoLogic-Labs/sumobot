@@ -21,7 +21,7 @@ package com.sumologic.sumobot.plugins.jenkins
 import java.net.URLEncoder
 
 import akka.actor.{ActorLogging, Props}
-import com.sumologic.sumobot.Receptionist.BotMessage
+import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 object Jenkins {
@@ -48,13 +48,13 @@ class Jenkins(client: JenkinsJobClient)
 
   import context.dispatcher
 
-  override protected def receiveBotMessage: ReceiveBotMessage = {
+  override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
 
-    case botMessage @ BotMessage(Info(), _, _, _) =>
-      botMessage.respond(s"Connected to ${client.url}")
-    case botMessage @ BotMessage(JobStatus(jobName), _, _, _) =>
-      botMessage.respondInFuture {
+    case message@IncomingMessage(Info(), _, _, _) =>
+      message.respond(s"Connected to ${client.url}")
+    case message@IncomingMessage(JobStatus(jobName), _, _, _) =>
+      message.respondInFuture {
         msg =>
           client.jobs.find(_._2.getName.trim.toLowerCase == jobName.trim.toLowerCase) match {
             case Some(tuple) =>
@@ -72,11 +72,11 @@ class Jenkins(client: JenkinsJobClient)
           }
       }
 
-    case botMessage @ BotMessage(BuildJob(givenName), _, _, _) =>
-      val triggeredBy = botMessage.senderName.getOrElse("unknown user")
-      val cn = botMessage.channelName orElse botMessage.imName getOrElse s"unknown: ${botMessage.slackMessage.channel}"
+    case message@IncomingMessage(BuildJob(givenName), _, _, _) =>
+      val triggeredBy = message.senderName.getOrElse("unknown user")
+      val cn = message.channelName orElse message.imName getOrElse s"unknown: ${message.slackMessage.channel}"
       val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $cn", "UTF-8")
-      botMessage.respondInFuture {
+      message.respondInFuture {
         msg =>
           msg.response(client.buildJob(givenName, cause))
       }

@@ -19,11 +19,9 @@
 package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
-import com.sumologic.sumobot.Receptionist
-import com.sumologic.sumobot.Receptionist.{BotMessage, OpenIM, SendSlackMessage}
+import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class Conversations extends BotPlugin with ActorLogging {
@@ -53,77 +51,77 @@ class Conversations extends BotPlugin with ActorLogging {
   private val NumberStrings =
     Array("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten")
 
-  override protected def receiveBotMessage: ReceiveBotMessage = {
-    case botMessage @ BotMessage("sup", _, _, _) if botMessage.addressedToUs =>
-      botMessage.scheduleResponse(1.seconds, s"What's up homie! $cheerful")
+  override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
+    case message@IncomingMessage("sup", _, _, _) if message.addressedToUs =>
+      message.scheduleResponse(1.seconds, s"What's up homie! $cheerful")
 
-    case botMessage @ BotMessage(CountToN(number), _, _, _) if botMessage.addressedToUs =>
+    case message@IncomingMessage(CountToN(number), _, _, _) if message.addressedToUs =>
       if (number.toInt > NumberStrings.length - 1) {
-        botMessage.respond(s"I can only count to ${NumberStrings.length - 1}!")
+        message.respond(s"I can only count to ${NumberStrings.length - 1}!")
       } else {
         (1 to number.toInt).map(i => i -> NumberStrings(i)).foreach {
           tuple =>
-            botMessage.scheduleMessage(tuple._1.seconds, s"${tuple._2}!")
+            message.scheduleMessage(tuple._1.seconds, s"${tuple._2}!")
         }
       }
 
-    case botMessage @ BotMessage(CountDownFromN(number), _, _, _) if botMessage.addressedToUs =>
+    case message@IncomingMessage(CountDownFromN(number), _, _, _) if message.addressedToUs =>
       val start = number.toInt + 1
       if (start > NumberStrings.length) {
-        botMessage.respond(s"I can only count down from ${NumberStrings.length - 1}!")
+        message.respond(s"I can only count down from ${NumberStrings.length - 1}!")
       } else {
         (1 to start).map(i => i -> NumberStrings(start - i)).foreach {
           tuple =>
-            botMessage.scheduleMessage(tuple._1.seconds, s"${tuple._2}!")
+            message.scheduleMessage(tuple._1.seconds, s"${tuple._2}!")
         }
       }
 
-    case botMessage @ BotMessage(TellColon(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
-      tell(botMessage, recipientUserId, what)
+    case message@IncomingMessage(TellColon(recipientUserId, what), _, _, _) if message.addressedToUs =>
+      tell(message, recipientUserId, what)
 
-    case botMessage @ BotMessage(TellTo(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
-      tell(botMessage, recipientUserId, what)
+    case message@IncomingMessage(TellTo(recipientUserId, what), _, _, _) if message.addressedToUs =>
+      tell(message, recipientUserId, what)
 
-    case botMessage @ BotMessage(TellHe(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
-      tell(botMessage, recipientUserId, "you " + what)
+    case message@IncomingMessage(TellHe(recipientUserId, what), _, _, _) if message.addressedToUs =>
+      tell(message, recipientUserId, "you " + what)
 
-    case botMessage @ BotMessage(TellShe(recipientUserId, what), _, _, _) if botMessage.addressedToUs =>
-      tell(botMessage, recipientUserId, "you " + what)
+    case message@IncomingMessage(TellShe(recipientUserId, what), _, _, _) if message.addressedToUs =>
+      tell(message, recipientUserId, "you " + what)
 
-    case botMessage @ BotMessage(Sup(name), _, _, _) if name == state.self.name =>
-      botMessage.respond("What is up!!")
+    case message@IncomingMessage(Sup(name), _, _, _) if name == state.self.name =>
+      message.respond("What is up!!")
 
-    case botMessage @ BotMessage(SupAtMention(userId), _, _, _) if userId == state.self.id =>
-      botMessage.say(s"What is up, <@${botMessage.slackMessage.user}>.")
+    case message@IncomingMessage(SupAtMention(userId), _, _, _) if userId == state.self.id =>
+      message.say(s"What is up, <@${message.slackMessage.user}>.")
 
-    case botMessage @ BotMessage(SayInChannel(channelId, what), _, _, _) if botMessage.addressedToUs =>
-      context.system.eventStream.publish(SendSlackMessage(channelId, what))
-      botMessage.respond(s"Message sent.")
+    case message@IncomingMessage(SayInChannel(channelId, what), _, _, _) if message.addressedToUs =>
+      context.system.eventStream.publish(OutgoingMessage(channelId, what))
+      message.respond(s"Message sent.")
 
-    case botMessage @ BotMessage(FuckOff(), _, _, _) =>
-      botMessage.respond("Same to you.")
+    case message@IncomingMessage(FuckOff(), _, _, _) =>
+      message.respond("Same to you.")
 
-    case botMessage @ BotMessage(FuckYou(), _, _, _) =>
-      botMessage.respond("This is the worst kind of discrimination there is: the kind against me!")
+    case message@IncomingMessage(FuckYou(), _, _, _) =>
+      message.respond("This is the worst kind of discrimination there is: the kind against me!")
   }
 
-  private def tell(botMessage: BotMessage, recipientUserId: String, what: String): Unit = {
+  private def tell(message: IncomingMessage, recipientUserId: String, what: String): Unit = {
     if (recipientUserId == state.self.id) {
-      botMessage.respond(s"Dude. I can't talk to myself. $puzzled")
+      message.respond(s"Dude. I can't talk to myself. $puzzled")
     } else {
       state.getUserById(recipientUserId) match {
         case Some(user) =>
           state.ims.find(_.user == user.id) match {
             case Some(im) =>
-              context.system.eventStream.publish(SendSlackMessage(im.id, what))
-              botMessage.respond(s"Message sent.")
+              context.system.eventStream.publish(OutgoingMessage(im.id, what))
+              message.respond(s"Message sent.")
             case None =>
-              val newMessage = botMessage.copy()
+              val newMessage = message.copy()
               context.system.eventStream.publish(OpenIM(recipientUserId, self, newMessage))
               log.info(s"Opening IM channel to ${user.name}")
           }
         case None =>
-          botMessage.respond(s"I don't know who that is. $puzzled")
+          message.respond(s"I don't know who that is. $puzzled")
       }
     }
   }

@@ -20,13 +20,13 @@ package com.sumologic.sumobot.plugins.jira
 
 import akka.actor.ActorLogging
 import com.atlassian.jira.rest.client.api.domain.Issue
-import com.sumologic.sumobot.Receptionist.{SendSlackMessage, BotMessage}
+import com.sumologic.sumobot.core.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-
 import scala.concurrent.{Await, Future}
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 /**
  * @author Chris (chris@sumologic.com)
@@ -44,12 +44,13 @@ class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
 
   private val JiraInfo = matchText("jira (.+?)")
   private val InProgressJirasFor = matchText("in\\s?progress jiras for (.+?)")
-  override protected def receiveBotMessage: ReceiveBotMessage = {
-    case botMessage @ BotMessage(JiraInfo(id), _, _, _) => botMessage.respondInFuture(loadJiraInfo(_, id))
-    case botMessage @ BotMessage(InProgressJirasFor(username), _, _, _) => botMessage.respondInFuture(loadInProgressJirasFor(_, username))
+
+  override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
+    case message@IncomingMessage(JiraInfo(id), _, _, _) => message.respondInFuture(loadJiraInfo(_, id))
+    case message@IncomingMessage(InProgressJirasFor(username), _, _, _) => message.respondInFuture(loadInProgressJirasFor(_, username))
   }
 
-  private def loadJiraInfo(msg: BotMessage, id: String): SendSlackMessage = {
+  private def loadJiraInfo(msg: IncomingMessage, id: String): OutgoingMessage = {
     val jiraInfoFuture: Future[Issue] = client.getIssue(id)
     val issueTry = Try(Await.result(jiraInfoFuture, Duration.apply(10, "seconds")))
 
@@ -68,7 +69,7 @@ class Jira(client: JiraClient) extends BotPlugin with ActorLogging {
     }
   }
 
-  private def loadInProgressJirasFor(msg: BotMessage, username: String): SendSlackMessage = {
+  private def loadInProgressJirasFor(msg: IncomingMessage, username: String): OutgoingMessage = {
     val jiraInfoFuture = client.getInProgressIssuesForUser(username)
     val issuesTry = Try(Await.result(jiraInfoFuture, Duration.apply(10, "seconds")))
 
