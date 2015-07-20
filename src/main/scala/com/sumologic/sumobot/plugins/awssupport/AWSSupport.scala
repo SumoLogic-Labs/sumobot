@@ -51,14 +51,14 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
-    case message@IncomingMessage(ListCases(), _, _) =>
+    case message@IncomingMessage(ListCases(), _, _, _) =>
       message.respondInFuture {
         msg =>
           val caseList = getAllCases.map(summary(_) + "\n").mkString("\n")
           msg.message(caseList)
       }
 
-    case message@IncomingMessage(CaseDetails(caseId), _, _) =>
+    case message@IncomingMessage(CaseDetails(caseId), _, _, _) =>
       message.respondInFuture {
         msg =>
           log.info(s"Looking for case $caseId")

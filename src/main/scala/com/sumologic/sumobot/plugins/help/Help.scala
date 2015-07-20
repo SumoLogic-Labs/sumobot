@@ -39,7 +39,7 @@ class Help extends BotPlugin with ActorLogging {
   private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(ListPlugins(), true, _) =>
+    case message@IncomingMessage(ListPlugins(), true, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
@@ -47,7 +47,7 @@ class Help extends BotPlugin with ActorLogging {
           msg.respond(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
       }
 
-    case message@IncomingMessage(HelpForPlugin(pluginName), true, _) =>
+    case message@IncomingMessage(HelpForPlugin(pluginName), true, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
