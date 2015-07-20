@@ -21,8 +21,7 @@ package com.sumologic.sumobot
 import akka.actor._
 import com.sumologic.sumobot.core._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import com.sumologic.sumobot.util.SlackMessageHelpers
-import slack.models.{User, ImOpened, Message}
+import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmClient
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 
@@ -61,11 +60,11 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
 
   override def receive: Receive = {
 
-    case message@PluginAdded(plugin, _, _) =>
+    case message@PluginAdded(plugin, _) =>
       plugin ! InitializePlugin(rtmClient.state, brain, pluginRegistry)
       pluginRegistry ! message
 
-    case message@PluginRemoved(_, _) =>
+    case message@PluginRemoved(_) =>
       pluginRegistry ! message
 
     case OutgoingMessage(channel, text) =>

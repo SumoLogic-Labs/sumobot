@@ -20,9 +20,8 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.Bootstrap
-import com.sumologic.sumobot.core.{InstantMessageChannel, OutgoingMessage, IncomingMessage}
+import com.sumologic.sumobot.core.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import com.sumologic.sumobot.util.SlackMessageHelpers
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,9 +34,9 @@ object BotPlugin {
 
   case object RequestHelp
 
-  case class PluginAdded(plugin: ActorRef, name: String, help: String)
+  case class PluginAdded(plugin: ActorRef, help: String)
 
-  case class PluginRemoved(plugin: ActorRef, name: String)
+  case class PluginRemoved(plugin: ActorRef)
 
   case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef)
 
@@ -108,11 +107,11 @@ abstract class BotPlugin
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[IncomingMessage])
-    Bootstrap.receptionist.foreach(_ ! PluginAdded(self, self.path.name, help))
+    Bootstrap.receptionist.foreach(_ ! PluginAdded(self, help))
   }
 
   override def postStop(): Unit = {
-    Bootstrap.receptionist.foreach(_ ! PluginRemoved(self, self.path.name))
+    Bootstrap.receptionist.foreach(_ ! PluginRemoved(self))
     context.system.eventStream.unsubscribe(self)
   }
 

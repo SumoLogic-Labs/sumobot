@@ -6,7 +6,7 @@ import com.sumologic.sumobot.plugins.BotPlugin.{PluginAdded, PluginRemoved}
 
 object PluginRegistry {
 
-  case class Plugin(name: String, help: String, actor: ActorRef)
+  case class Plugin(plugin: ActorRef, help: String)
 
   case object RequestPluginList
   case class PluginList(plugins: Seq[Plugin])
@@ -17,16 +17,18 @@ class PluginRegistry extends Actor with ActorLogging {
   private var list = List.empty[Plugin]
 
   override def receive: Receive = {
-    case PluginAdded(plugin, name, help) =>
+    case PluginAdded(plugin, help) =>
+      val name = plugin.path.name
       log.info(s"Plugin added: $name")
-      if (list.exists(_.name == name)) {
+      if (list.exists(_.plugin.path.name == name)) {
         log.error(s"Attempt to register duplicate plugin: $name")
       } else {
-        list +:= Plugin(name, help, plugin)
+        list +:= Plugin(plugin, help)
       }
 
-    case PluginRemoved(_, name) =>
-      list = list.filterNot(_.name == name)
+    case PluginRemoved(plugin) =>
+      val name = plugin.path.name
+      list = list.filterNot(_.plugin.path.name == name)
       log.info(s"Plugin removed: $name")
 
     case RequestPluginList =>

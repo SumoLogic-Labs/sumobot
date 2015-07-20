@@ -44,7 +44,7 @@ class Help extends BotPlugin with ActorLogging {
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
         case PluginList(plugins) =>
-          msg.respond(plugins.map(_.name).sorted.mkString("\n"))
+          msg.respond(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
       }
 
     case message@IncomingMessage(HelpForPlugin(pluginName), true, _) =>
@@ -52,7 +52,7 @@ class Help extends BotPlugin with ActorLogging {
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
         case PluginList(plugins) =>
-          plugins.find(_.name.equalsIgnoreCase(pluginName)) match {
+          plugins.find(_.plugin.path.name.equalsIgnoreCase(pluginName)) match {
             case Some(plugin) =>
               msg.say(plugin.help)
             case None =>
