@@ -18,26 +18,23 @@
  */
 package com.sumologic.sumobot
 
-import akka.actor.{Actor, ActorRef, Props}
-import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage}
-import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
+import java.util.concurrent.TimeUnit
+
+import akka.actor._
+import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage, PluginRegistry}
+import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.util.SlackMessageHelpers
 import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmClient
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
-// Ideas
-// - reminder for maintenance windows, with n minutes remaining.
-// - service log entry creation
-// - online help
+import scala.concurrent.duration.FiniteDuration
+import scala.util.Success
 
 object Receptionist {
-
   def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
     Props(classOf[Receptionist], rtmClient, brain)
-
 }
 
 class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
@@ -54,9 +51,10 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
 
   private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
 
+  private val pluginRegistry = context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
+
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
-    context.system.eventStream.subscribe(self, classOf[PluginAdded])
     context.system.eventStream.subscribe(self, classOf[OpenIM])
   }
 
@@ -67,8 +65,12 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
 
   override def receive: Receive = {
 
-    case PluginAdded(plugin, _, _) =>
-      plugin ! InitializePlugin(rtmClient.state, brain)
+    case message@PluginAdded(plugin, _, _) =>
+      plugin ! InitializePlugin(rtmClient.state, brain, pluginRegistry)
+      pluginRegistry ! message
+
+    case message@PluginRemoved(_, _) =>
+      pluginRegistry ! message
 
     case OutgoingMessage(channelId, text) =>
       slack ! SendMessage(channelId, text)

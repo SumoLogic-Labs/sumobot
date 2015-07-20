@@ -19,10 +19,13 @@
 package com.sumologic.sumobot.plugins.help
 
 import akka.actor.ActorLogging
+import akka.pattern.ask
+import akka.util.Timeout
 import com.sumologic.sumobot.core.IncomingMessage
+import com.sumologic.sumobot.core.PluginRegistry.{RequestPluginList, PluginList}
 import com.sumologic.sumobot.plugins.BotPlugin
-import com.sumologic.sumobot.plugins.BotPlugin.PluginAdded
-
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class Help extends BotPlugin with ActorLogging {
   override protected def help =
@@ -32,37 +35,29 @@ class Help extends BotPlugin with ActorLogging {
        |help <plugin>. - I'll tell you how <plugin> works.
      """.stripMargin
 
-  private var helpText = Map[String, String]().empty
-
-  override def preStart(): Unit = {
-    super.preStart()
-    context.system.eventStream.subscribe(self, classOf[PluginAdded])
-  }
-
-  override def postStop(): Unit = {
-    super.postStop()
-    context.system.eventStream.unsubscribe(self)
-  }
-
-  override protected def pluginReceive: Receive = {
-    case PluginAdded(_, pluginName, text) =>
-      log.info(s"Adding help for plugin '$pluginName'")
-      helpText = helpText + (pluginName -> text)
-  }
-
   private val ListPlugins = matchText("help")
   private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
 
   override protected def receiveIncomingMessage = {
     case message@IncomingMessage(ListPlugins(), true, _) =>
-      message.say(helpText.keys.toList.sorted.mkString("\n"))
+      val msg = message
+      implicit val timeout = Timeout(5.seconds)
+      pluginRegistry ? RequestPluginList onSuccess {
+        case PluginList(plugins) =>
+          msg.respond(plugins.map(_.name).sorted.mkString("\n"))
+      }
 
     case message@IncomingMessage(HelpForPlugin(pluginName), true, _) =>
-      helpText.get(pluginName) match {
-        case Some(text) =>
-          message.say(text)
-        case None =>
-          message.respond(s"Sorry, I don't know $pluginName")
+      val msg = message
+      implicit val timeout = Timeout(5.seconds)
+      pluginRegistry ? RequestPluginList onSuccess {
+        case PluginList(plugins) =>
+          plugins.find(_.name.equalsIgnoreCase(pluginName)) match {
+            case Some(plugin) =>
+              msg.say(plugin.help)
+            case None =>
+              msg.respond(s"Sorry, I don't know $pluginName")
+          }
       }
   }
 }

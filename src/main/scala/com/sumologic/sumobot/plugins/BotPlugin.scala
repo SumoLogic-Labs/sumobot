@@ -19,6 +19,7 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
+import com.sumologic.sumobot.Bootstrap
 import com.sumologic.sumobot.core.{OutgoingMessage, IncomingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.util.SlackMessageHelpers
@@ -38,7 +39,7 @@ object BotPlugin {
 
   case class PluginRemoved(plugin: ActorRef, name: String)
 
-  case class InitializePlugin(state: RtmState, brain: ActorRef)
+  case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef)
 
   def matchText(regex: String): Regex = ("(?i)" + regex).r
 }
@@ -53,6 +54,8 @@ abstract class BotPlugin
   protected var state: RtmState = _
 
   protected var brain: ActorRef = _
+
+  protected var pluginRegistry: ActorRef = _
 
   // For plugins to implement.
 
@@ -117,11 +120,11 @@ abstract class BotPlugin
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[IncomingMessage])
-    context.system.eventStream.publish(PluginAdded(self, self.path.name, help))
+    Bootstrap.receptionist.foreach(_ ! PluginAdded(self, self.path.name, help))
   }
 
   override def postStop(): Unit = {
-    context.system.eventStream.publish(PluginRemoved(self, self.path.name))
+    Bootstrap.receptionist.foreach(_ ! PluginRemoved(self, self.path.name))
     context.system.eventStream.unsubscribe(self)
   }
 
@@ -132,9 +135,10 @@ abstract class BotPlugin
   override def receive: Receive = uninitialized orElse pluginReceive
 
   private def uninitialized: Receive = {
-    case InitializePlugin(newState, newBrain) =>
+    case InitializePlugin(newState, newBrain, newPluginRegistry) =>
       this.state = newState
       this.brain = newBrain
+      this.pluginRegistry = newPluginRegistry
       context.become(initialized orElse pluginReceive)
   }
 
