@@ -30,39 +30,39 @@ import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
 
-object DefaultPlugins {
+object DefaultPlugins extends PluginCollection {
 
   def setup(implicit system: ActorSystem): Unit = {
 
-    system.actorOf(Props(classOf[Help]), "help")
-    system.actorOf(Props(classOf[Conversations]), "conversations")
-    system.actorOf(Props(classOf[Beer]), "beer")
-    system.actorOf(Props(classOf[Info]), "info")
-    system.actorOf(Props(classOf[BrainSurgery]), "brain-surgery")
+    addPlugin("help", Props(classOf[Help]))
+    addPlugin("conversations", Props(classOf[Conversations]))
+    addPlugin("beer", Props(classOf[Beer]))
+    addPlugin("info", Props(classOf[Info]))
+    addPlugin("brain-surgery", Props(classOf[BrainSurgery]))
 
     JenkinsJobClient.createClient("jenkins").foreach {
       jenkinsClient =>
-        system.actorOf(props = Jenkins.props(jenkinsClient), "jenkins")
+        addPlugin("jenkins", Jenkins.props(jenkinsClient))
     }
 
     JenkinsJobClient.createClient("hudson").foreach {
       hudsonClient =>
-        system.actorOf(props = Jenkins.props(hudsonClient), "hudson")
+        addPlugin("hudson", Jenkins.props(hudsonClient))
     }
 
     PagerDutySchedulesManager.createClient().foreach {
       pagerDutySchedulesManager =>
-        system.actorOf(Props(classOf[PagerDuty], pagerDutySchedulesManager, None), "pagerduty")
+        addPlugin("pagerduty", Props(classOf[PagerDuty], pagerDutySchedulesManager, None))
     }
 
     JiraClient.createClient.foreach {
       jiraClient =>
-        system.actorOf(Props(classOf[Jira], jiraClient), "jira")
+        addPlugin("jira", Props(classOf[Jira], jiraClient))
     }
 
     val awsCreds = AWSCredentialSource.credentials
     if (awsCreds.nonEmpty) {
-      system.actorOf(Props(classOf[AWSSupport], awsCreds), "aws-support")
+      addPlugin("aws-support", Props(classOf[AWSSupport], awsCreds))
     }
   }
 }
