@@ -50,7 +50,7 @@ class PagerDuty(manager: PagerDutySchedulesManager,
   @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
+    case message@IncomingMessage(WhosOnCall(filter), _, _) =>
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
   }
 

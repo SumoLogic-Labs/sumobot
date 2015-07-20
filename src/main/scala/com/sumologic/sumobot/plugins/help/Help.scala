@@ -54,10 +54,10 @@ class Help extends BotPlugin with ActorLogging {
   private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(ListPlugins(), _, _, _) if message.addressedToUs =>
+    case message@IncomingMessage(ListPlugins(), true, _) =>
       message.say(helpText.keys.toList.sorted.mkString("\n"))
 
-    case message@IncomingMessage(HelpForPlugin(pluginName), _, _, _) if message.addressedToUs =>
+    case message@IncomingMessage(HelpForPlugin(pluginName), true, _) =>
       helpText.get(pluginName) match {
         case Some(text) =>
           message.say(text)

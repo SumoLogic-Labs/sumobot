@@ -21,6 +21,7 @@ package com.sumologic.sumobot
 import akka.actor.{Actor, ActorRef, Props}
 import com.sumologic.sumobot.core.{IncomingMessage, OpenIM, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
+import com.sumologic.sumobot.util.SlackMessageHelpers
 import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmClient
 import slack.rtm.SlackRtmConnectionActor.SendMessage
@@ -90,17 +91,16 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       }
   }
 
-  protected def translateMessage(message: Message): IncomingMessage = {
-    val isInstantMessage = rtmClient.state.ims.exists(_.id == message.channel)
-    message.text match {
+  protected def translateMessage(slackMessage: Message): IncomingMessage = {
+    slackMessage.text match {
       case atMention(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, isInstantMessage, message)
+        IncomingMessage(text.trim, true, slackMessage)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, isInstantMessage, message)
+        IncomingMessage(text.trim, true, slackMessage)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        IncomingMessage(text.trim, true, isInstantMessage, message)
+        IncomingMessage(text.trim, true, slackMessage)
       case _ =>
-        IncomingMessage(message.text.trim, false, isInstantMessage, message)
+        IncomingMessage(slackMessage.text.trim, SlackMessageHelpers.isInstantMessage(slackMessage)(rtmClient.state), slackMessage)
     }
   }
 }

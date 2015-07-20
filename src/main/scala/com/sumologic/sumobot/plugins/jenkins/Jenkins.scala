@@ -51,9 +51,9 @@ class Jenkins(client: JenkinsJobClient)
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
 
-    case message@IncomingMessage(Info(), _, _, _) =>
+    case message@IncomingMessage(Info(), _, _) =>
       message.respond(s"Connected to ${client.url}")
-    case message@IncomingMessage(JobStatus(jobName), _, _, _) =>
+    case message@IncomingMessage(JobStatus(jobName), _, _) =>
       message.respondInFuture {
         msg =>
           client.jobs.find(_._2.getName.trim.toLowerCase == jobName.trim.toLowerCase) match {
@@ -72,7 +72,7 @@ class Jenkins(client: JenkinsJobClient)
           }
       }
 
-    case message@IncomingMessage(BuildJob(givenName), _, _, _) =>
+    case message@IncomingMessage(BuildJob(givenName), _, _) =>
       val triggeredBy = message.senderName.getOrElse("unknown user")
       val cn = message.channelName orElse message.imName getOrElse s"unknown: ${message.slackMessage.channel}"
       val cause = URLEncoder.encode(s"Triggered via sumobot by $triggeredBy in $cn", "UTF-8")

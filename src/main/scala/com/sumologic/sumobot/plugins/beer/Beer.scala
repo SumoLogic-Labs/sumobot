@@ -42,7 +42,7 @@ class Beer extends BotPlugin {
   private var lastChimedIn = 0l
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(BeerMention(beer), _, _, _) =>
+    case message@IncomingMessage(BeerMention(beer), _, _) =>
       val now = System.currentTimeMillis()
       if (now - lastChimedIn > 60000 && Random.nextInt(10) < 8) {
         lastChimedIn = now

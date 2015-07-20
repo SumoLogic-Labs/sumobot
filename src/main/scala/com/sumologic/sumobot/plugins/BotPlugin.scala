@@ -21,6 +21,7 @@ package com.sumologic.sumobot.plugins
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.core.{OutgoingMessage, IncomingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
+import com.sumologic.sumobot.util.SlackMessageHelpers
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -69,7 +70,7 @@ abstract class BotPlugin
 
     def respond(text: String) = context.system.eventStream.publish(response(text))
 
-    def responsePrefix: String = if (msg.isInstantMessage) "" else s"<@${msg.slackMessage.user}>: "
+    def responsePrefix: String = if (SlackMessageHelpers.isInstantMessage(msg.slackMessage)(state)) "" else s"<@${msg.slackMessage.user}>: "
 
     def username(id: String): Option[String] =
       state.users.find(_.id == id).map(_.name)
@@ -108,7 +109,7 @@ abstract class BotPlugin
     }
   }
 
-  implicit def wrapMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
+  implicit def enrichIncomingMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
 
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
@@ -138,7 +139,7 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _, _) =>
+    case message@IncomingMessage(text, _, _) =>
       receiveIncomingMessageInternal(message)
   }
 

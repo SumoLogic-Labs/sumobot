@@ -40,9 +40,9 @@ class Info extends BotPlugin {
   private val startTime = new Date().toString
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(whereAreYou(), _, _, _) if message.addressedToUs =>
+    case message@IncomingMessage(whereAreYou(), true, _) =>
       message.respond(s"I'm running at $hostname ($hostAddress)")
-    case message@IncomingMessage(whenDidYouStart(_), _, _, _) if message.addressedToUs =>
+    case message@IncomingMessage(whenDidYouStart(_), true, _) =>
       message.respond(s"I started at $startTime")
   }
 }
