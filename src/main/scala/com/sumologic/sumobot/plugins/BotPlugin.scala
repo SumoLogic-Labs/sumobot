@@ -20,6 +20,7 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.Bootstrap
+import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.rtm.RtmState
@@ -102,6 +103,8 @@ abstract class BotPlugin
   implicit def enrichIncomingMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
 
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
+
+  protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
 
   // Implementation. Most plugins should not override.
 

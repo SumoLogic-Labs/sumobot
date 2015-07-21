@@ -18,14 +18,8 @@
  */
 package com.sumologic.sumobot.plugins.brain
 
-import akka.pattern._
-import akka.util.Timeout
-import com.sumologic.sumobot.brain.Brain.{ListValues, Remove, Store, ValueMap}
 import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 
 class BrainSurgery extends BotPlugin {
 
@@ -45,20 +39,17 @@ class BrainSurgery extends BotPlugin {
 
   override protected def receiveIncomingMessage = {
     case message@IncomingMessage(remember(key, value), true, _, _) =>
-      brain ! Store(key.trim, value.trim)
+      blockingBrain.store(key.trim, value.trim)
       message.respond(s"Got it, $key is $value")
     case message@IncomingMessage(forget(key), true, _, _) =>
-      brain ! Remove(key.trim)
+      blockingBrain.remove(key.trim)
       message.respond(s"$key? I've forgotten all about it.")
-    case message@IncomingMessage(brainDump(), true, _, _)  =>
-      implicit val timeout = Timeout(5.seconds)
-      (brain ? ListValues()) map {
-        case ValueMap(map) =>
-          if (map.isEmpty) {
-            message.say("My brain is empty.")
-          } else {
-            message.say(map.toSeq.sortBy(_._1).map(tpl => s"${tpl._1}=${tpl._2}").mkString("\n"))
-          }
+    case message@IncomingMessage(brainDump(), true, _, _) =>
+      val map = blockingBrain.listValues()
+      if (map.isEmpty) {
+        message.say("My brain is empty.")
+      } else {
+        message.say(map.toSeq.sortBy(_._1).map(tpl => s"${tpl._1}=${tpl._2}").mkString("\n"))
       }
   }
 }
