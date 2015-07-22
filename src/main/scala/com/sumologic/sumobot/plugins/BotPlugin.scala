@@ -63,8 +63,9 @@ abstract class BotPlugin
 
   protected def help: String
 
+  // Helpers for plugins to use.
+
   class RichIncomingMessage(msg: IncomingMessage) {
-    // Helpers for plugins to use.
     def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
 
     def message(text: String) = OutgoingMessage(msg.channel, text)
@@ -129,6 +130,7 @@ abstract class BotPlugin
       this.state = newState
       this.brain = newBrain
       this.pluginRegistry = newPluginRegistry
+      this.initialize()
       context.become(initialized orElse pluginReceive)
   }
 
@@ -138,5 +140,7 @@ abstract class BotPlugin
   }
 
   protected def pluginReceive: Receive = Map.empty
+
+  protected def initialize(): Unit = {}
 }
 
