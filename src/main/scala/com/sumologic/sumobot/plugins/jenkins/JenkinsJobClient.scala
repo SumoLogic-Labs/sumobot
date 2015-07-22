@@ -29,6 +29,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.client.params.{ClientPNames, CookiePolicy}
 import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.impl.conn.PoolingClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.slf4j.LoggerFactory
@@ -58,6 +59,10 @@ class JenkinsJobClient(val name: String,
   private val log = LoggerFactory.getLogger(classOf[JenkinsJobClient])
 
   private val uri = new URI(url)
+
+  private val rawConMan = new PoolingClientConnectionManager()
+  rawConMan.setMaxTotal(200)
+  rawConMan.setDefaultMaxPerRoute(20)
   private val rawHttpClient = new DefaultHttpClient()
   rawHttpClient.getParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY)
 
