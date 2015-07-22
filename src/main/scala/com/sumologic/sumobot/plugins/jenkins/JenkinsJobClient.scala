@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins.jenkins
 
 import java.net.{URI, URLEncoder}
 
-import com.netflix.config.scala.DynamicStringProperty
+import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
@@ -65,7 +65,7 @@ class JenkinsJobClient(val name: String,
 
   private val server = new JenkinsServer(basicAuthClient)
 
-  private val CacheExpiration = 15000
+  private val CacheExpiration = DynamicIntProperty(s"jenkins.$name.cache.expiration", 15000)
   private val cacheLock = new AnyRef
   private var cachedJobs: Option[Map[String, Job]] = None
   private var lastCacheTime = 0l
@@ -109,7 +109,7 @@ class JenkinsJobClient(val name: String,
 
   def jobs: Map[String, Job] = {
     cacheLock synchronized {
-      if (cachedJobs.isEmpty || System.currentTimeMillis() - lastCacheTime > CacheExpiration) {
+      if (cachedJobs.isEmpty || System.currentTimeMillis() - lastCacheTime > CacheExpiration.get) {
         cachedJobs = Some(server.getJobs.asScala.toMap)
         lastCacheTime = System.currentTimeMillis()
       }
