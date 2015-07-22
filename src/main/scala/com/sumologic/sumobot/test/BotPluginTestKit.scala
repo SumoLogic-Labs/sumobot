@@ -20,7 +20,7 @@ package com.sumologic.sumobot.test
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestProbe, TestKit}
-import com.sumologic.sumobot.core.OutgoingMessage
+import com.sumologic.sumobot.core.{InstantMessageChannel, IncomingMessage, OutgoingMessage}
 import slack.models.User
 import scala.concurrent.duration._
 
@@ -39,8 +39,15 @@ class BotPluginTestKit(_system: ActorSystem) extends TestKit(_system) {
   }
 
 
+  protected def instantMessage(text: String, user: User = mockUser("123", "jshmoe")): IncomingMessage = {
+    IncomingMessage(text, true, InstantMessageChannel("125", user), user)
+  }
 
   protected def mockUser(id: String, name: String): User = {
     User(id, name, None, None, None, None, None, None, None, None, None, None)
+  }
+
+  protected def send(message: IncomingMessage): Unit = {
+    system.eventStream.publish(message)
   }
 }

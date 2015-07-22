@@ -19,6 +19,7 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
+import com.sumologic.sumobot.plugins.alias.Alias
 import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
@@ -39,6 +40,7 @@ object DefaultPlugins extends PluginCollection {
     addPlugin("beer", Props(classOf[Beer]))
     addPlugin("info", Props(classOf[Info]))
     addPlugin("brain-surgery", Props(classOf[BrainSurgery]))
+    addPlugin("alias", Props(classOf[Alias]))
 
     JenkinsJobClient.createClient("jenkins").foreach {
       jenkinsClient =>
