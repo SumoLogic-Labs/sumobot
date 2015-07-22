@@ -25,7 +25,7 @@ import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.test.BotPluginTestKit
 import org.scalatest.{Matchers, WordSpecLike}
 
-class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) with WordSpecLike with Matchers {
+class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
 
   def this() = this(ActorSystem("HelpTest"))
 

@@ -19,7 +19,7 @@
 package com.sumologic.sumobot
 
 import com.sumologic.sumobot.plugins.BotPlugin
-import org.scalatest.{Matchers, WordSpec}
+import com.sumologic.sumobot.test.SumoBotSpec
 
 class RegexPlaygroundTest extends SumoBotSpec {
   "BotPlugin.matchText()" should {

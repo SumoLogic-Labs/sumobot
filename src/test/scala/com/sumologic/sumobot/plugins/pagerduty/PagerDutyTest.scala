@@ -19,8 +19,8 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorSystem
-import com.sumologic.sumobot.{MatchTextUtil, SumoBotSpec}
 import akka.testkit.TestActorRef
+import com.sumologic.sumobot.test.{MatchTextUtil, SumoBotSpec}
 
 /**
  * @author Chris (chris@sumologic.com)

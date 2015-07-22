@@ -18,13 +18,19 @@
  */
 package com.sumologic.sumobot.brain
 
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{ActorSystem, Props}
 import akka.testkit.TestKit
-import org.scalatest.{Matchers, WordSpecLike}
+import com.sumologic.sumobot.test.SumoBotSpec
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
-class BlockingBrainTest(_system: ActorSystem) extends TestKit(_system) with Matchers with WordSpecLike {
-  def this() = this(ActorSystem("BlockingBrainTest"))
+class BlockingBrainTest()
+  extends TestKit(ActorSystem("BlockingBrainTest"))
+  with SumoBotSpec
+  with BeforeAndAfterAll {
 
+  override def afterAll {
+    TestKit.shutdownActorSystem(system)
+  }
 
   "BlockingBrain" should {
     "allow storing and reading back values" in {
@@ -32,7 +38,7 @@ class BlockingBrainTest(_system: ActorSystem) extends TestKit(_system) with Matc
       val sut = new BlockingBrain(brain)
       sut.retrieve("test") should not be 'defined
       sut.store("test", "value")
-      sut.retrieve("test") should be (Some("value"))
+      sut.retrieve("test") should be(Some("value"))
     }
 
     "allow listing all values" in {
@@ -42,9 +48,9 @@ class BlockingBrainTest(_system: ActorSystem) extends TestKit(_system) with Matc
       sut.store("test1", "value1")
       sut.store("test2", "value2")
       val returnedValues = sut.listValues()
-      returnedValues.size should be (2)
-      returnedValues.contains("test1") should be (true)
-      returnedValues.contains("test2") should be (true)
+      returnedValues.size should be(2)
+      returnedValues.contains("test1") should be(true)
+      returnedValues.contains("test2") should be(true)
     }
 
     "allow listing values with a filter" in {
@@ -55,9 +61,9 @@ class BlockingBrainTest(_system: ActorSystem) extends TestKit(_system) with Matc
       sut.store("test2", "value2")
       sut.store("not3", "value2")
       val returnedValues = sut.listValues("test")
-      returnedValues.size should be (2)
-      returnedValues.contains("test1") should be (true)
-      returnedValues.contains("test2") should be (true)
+      returnedValues.size should be(2)
+      returnedValues.contains("test1") should be(true)
+      returnedValues.contains("test2") should be(true)
     }
 
     "support removing values" in {
@@ -65,10 +71,10 @@ class BlockingBrainTest(_system: ActorSystem) extends TestKit(_system) with Matc
       val sut = new BlockingBrain(brain)
       sut.retrieve("test") should not be 'defined
       sut.store("test", "value1")
-      sut.listValues().size should be (1)
-      sut.retrieve("test") should be ('defined)
+      sut.listValues().size should be(1)
+      sut.retrieve("test") should be('defined)
       sut.remove("test")
-      sut.listValues().size should be (0)
+      sut.listValues().size should be(0)
       sut.retrieve("test") should not be 'defined
     }
   }

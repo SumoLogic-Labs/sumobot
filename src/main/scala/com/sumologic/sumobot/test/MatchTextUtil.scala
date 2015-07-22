@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot
+package com.sumologic.sumobot.test
 
 import scala.util.matching.Regex
 
@@ -41,5 +41,4 @@ trait MatchTextUtil {
   private def doesMatch(regex: Regex, text: String): Boolean = {
     regex.pattern.matcher(text).find()
   }
-
 }

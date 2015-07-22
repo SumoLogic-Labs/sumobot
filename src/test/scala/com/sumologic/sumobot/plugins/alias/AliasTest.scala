@@ -29,7 +29,8 @@ import scala.concurrent.duration._
 import org.scalatest.{Matchers, WordSpecLike}
 import org.scalatest.concurrent.Eventually._
 
-class AliasTest extends BotPluginTestKit(ActorSystem("AliasTest")) with WordSpecLike with Matchers {
+class AliasTest
+  extends BotPluginTestKit(ActorSystem("AliasTest")) {
 
   val aliasRef = system.actorOf(Props(classOf[Alias]), "alias")
   val brainRef = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
