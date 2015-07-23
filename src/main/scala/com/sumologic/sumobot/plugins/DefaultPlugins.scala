@@ -30,6 +30,7 @@ import com.sumologic.sumobot.plugins.info.Info
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
+import com.sumologic.sumobot.plugins.tts.TextToSpeech
 
 object DefaultPlugins extends PluginCollection {
 
@@ -41,6 +42,11 @@ object DefaultPlugins extends PluginCollection {
     addPlugin("info", Props(classOf[Info]))
     addPlugin("brain-surgery", Props(classOf[BrainSurgery]))
     addPlugin("alias", Props(classOf[Alias]))
+
+    TextToSpeech.propsOption.foreach {
+      props =>
+        addPlugin("text-to-speech", props)
+    }
 
     JenkinsJobClient.createClient("jenkins").foreach {
       jenkinsClient =>
