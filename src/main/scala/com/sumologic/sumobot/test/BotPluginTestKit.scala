@@ -29,7 +29,6 @@ import scala.concurrent.duration.FiniteDuration
 
 class BotPluginTestKit(_system: ActorSystem)
   extends TestKit(_system)
-//  with BeforeAndAfterAll
   with SumoBotSpec {
 
   protected val outgoingMessageProbe = TestProbe()
@@ -53,8 +52,4 @@ class BotPluginTestKit(_system: ActorSystem)
   protected def send(message: IncomingMessage): Unit = {
     system.eventStream.publish(message)
   }
-
-//  override def afterAll {
-//    TestKit.shutdownActorSystem(system)
-//  }
 }
