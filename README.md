@@ -1,4 +1,4 @@
-![TravisCI Build Status](https://travis-ci.org/SumoLogic/sumobot.svg?branch=master)
+[![Build Status](https://travis-ci.org/SumoLogic/sumobot.svg?branch=master)](https://travis-ci.org/SumoLogic/sumobot)
 
 # Sumo Bot
 
