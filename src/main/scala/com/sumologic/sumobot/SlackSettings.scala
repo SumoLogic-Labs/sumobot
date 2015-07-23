@@ -31,7 +31,7 @@ object SlackSettings {
   def connectOrExit(implicit system: ActorSystem): SlackRtmClient = {
     ApiToken() match {
       case Some(token) =>
-        SlackRtmClient(token, ConnectTimeout.get.seconds)
+        SlackRtmClient(token)
       case None =>
         println(s"Please set the slack.api.token environment variable!")
         sys.exit(1)
