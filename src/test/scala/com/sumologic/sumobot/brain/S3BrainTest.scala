@@ -19,49 +19,92 @@
 package com.sumologic.sumobot.brain
 
 import akka.actor.ActorSystem
+import akka.pattern.ask
 import akka.testkit.TestKit
 import akka.util.Timeout
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.services.s3.AmazonS3Client
+import com.sumologic.sumobot.brain.Brain.ValueRetrieved
 import com.sumologic.sumobot.core.aws.AWSCredentialSource
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import akka.pattern.ask
-import scala.concurrent.duration._
 
+import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.Random
 
 class S3BrainTest
-  extends TestKit(ActorSystem("S3SingleObjectBrainTest"))
-  with WordSpecLike
-  with BeforeAndAfterAll
-  with Matchers {
+    extends TestKit(ActorSystem("S3SingleObjectBrainTest"))
+    with WordSpecLike
+    with BeforeAndAfterAll
+    with Matchers {
 
-  private val creds = AWSCredentialSource.credentials
+  lazy val credsOption = AWSCredentialSource.credentials.values.headOption
 
-  if (creds.nonEmpty) {
+  val bucketPrefix = "sumobot-s3-brain"
 
-    "S3 brain" should {
-      "persist the contents across reloads" in {
-        implicit val timeout = Timeout(5.seconds)
-        val s3Key = randomS3Key
-        val firstBrain = system.actorOf(S3Brain.props(creds.head._2, "sumobot-s3-brain", s3Key))
-        firstBrain ! Brain.Store("hello", "world")
+  // The tests here only run if there are valid AWS credentials in the configuration. Otherwise,
+  // they're skipped.
+  credsOption foreach {
+    creds =>
+      cleanupBuckets(creds)
 
-        // Just wait for the next message to return.
-        firstBrain ? Brain.Retrieve("hello")
+      val bucket = bucketPrefix + randomString(5)
 
-        // Since we wrote to S3, the 2nd brain should now have the value.
-        val secondBrain = system.actorOf(S3Brain.props(creds.head._2, "sumobot-s3-brain", s3Key))
-        secondBrain ? Brain.Retrieve("hello")
+      "S3 brain" should {
+        "persist the contents across reloads" in {
+          implicit val timeout = Timeout(5.seconds)
+          val s3Key = randomString(16)
+          val firstBrain = system.actorOf(S3Brain.props(creds, bucket, s3Key))
+          firstBrain ! Brain.Store("hello", "world")
+
+          // Just wait for the next message to return.
+          val firstRetrieval = firstBrain ? Brain.Retrieve("hello")
+          val firstResult = Await.result(firstRetrieval, 5.seconds)
+          firstResult match {
+            case ValueRetrieved(k, v) =>
+              k should be("hello")
+              v should be("world")
+            case wrongResult => fail(s"Did not get what we expected: $wrongResult")
+          }
+
+          // Since we wrote to S3, the 2nd brain should now have the value.
+          val secondBrain = system.actorOf(S3Brain.props(creds, bucket, s3Key))
+          val secondRetrieval = secondBrain ? Brain.Retrieve("hello")
+          val secondResult = Await.result(secondRetrieval, 5.seconds)
+          secondResult match {
+            case ValueRetrieved(k, v) =>
+              k should be("hello")
+              v should be("world")
+            case wrongResult => fail(s"Did not get what we expected: $wrongResult")
+          }
+        }
       }
-    }
   }
 
-  private val s3KeyAlphabet = ('a' to 'z').mkString + ('A' to 'Z').mkString + ('0' to '9').mkString
+  private def randomString(length: Int): String = {
+    val alphabet = ('a' to 'z').mkString + ('0' to '9').mkString
+    (1 to length).
+        map(_ => Random.nextInt(alphabet.length)).
+        map(alphabet.charAt).mkString
+  }
 
-  private def randomS3Key: String = (1 to 16).
-    map(_ => Random.nextInt(s3KeyAlphabet.length)).
-    map(s3KeyAlphabet.charAt).mkString
-
-  override def afterAll {
+  override def afterAll() {
     TestKit.shutdownActorSystem(system)
+    credsOption.foreach(cleanupBuckets)
+  }
+
+  def cleanupBuckets(creds: AWSCredentials): Unit = {
+    val s3 = new AmazonS3Client(creds)
+    s3.listBuckets().asScala.filter(_.getName.startsWith(bucketPrefix)).foreach {
+      bucket =>
+        println(s"Deleting S3 bucket ${bucket.getName}")
+        val objects = s3.listObjects(bucket.getName).getObjectSummaries.asScala.map(_.getKey)
+        objects.foreach {
+          obj =>
+            s3.deleteObject(bucket.getName, obj)
+        }
+        s3.deleteBucket(bucket.getName)
+    }
   }
 }

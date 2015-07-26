@@ -64,9 +64,13 @@ class S3Brain(credentials: AWSCredentials,
   }
 
   private def loadFromS3(): Map[String, String] = {
-    val props = new Properties()
-    props.load(s3Client.getObject(bucket, s3Key).getObjectContent)
-    immutable.Map(props.asScala.toSeq: _*)
+    if (s3Client.doesBucketExist(bucket)) {
+      val props = new Properties()
+      props.load(s3Client.getObject(bucket, s3Key).getObjectContent)
+      immutable.Map(props.asScala.toSeq: _*)
+    } else {
+      Map.empty
+    }
   }
 
   private def saveToS3(contents: Map[String, String]): Unit = {
