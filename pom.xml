@@ -44,7 +44,7 @@
     <!-- TODO: Remove when upgrading to the latest slack-scala-client. -->
     <dependency>
       <groupId>com.typesafe.play</groupId>
-      <artifactId>play-json_${scala.version}</artifactId>
+      <artifactId>play-json_${scala.version.major}</artifactId>
       <version>2.3.9</version>
     </dependency>
 
