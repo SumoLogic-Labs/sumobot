@@ -19,17 +19,16 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
-import com.sumologic.sumobot.plugins.alias.Alias
 import com.sumologic.sumobot.core.aws.AWSCredentialSource
+import com.sumologic.sumobot.plugins.alias.Alias
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.brain.BrainSurgery
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
-import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
-import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
+import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.plugins.tts.TextToSpeech
 
 object DefaultPlugins extends PluginCollection {
@@ -61,11 +60,6 @@ object DefaultPlugins extends PluginCollection {
     PagerDutySchedulesManager.createClient().foreach {
       pagerDutySchedulesManager =>
         addPlugin("pagerduty", Props(classOf[PagerDuty], pagerDutySchedulesManager, None))
-    }
-
-    JiraClient.createClient.foreach {
-      jiraClient =>
-        addPlugin("jira", Props(classOf[Jira], jiraClient))
     }
 
     val awsCreds = AWSCredentialSource.credentials
