@@ -20,10 +20,12 @@ package com.sumologic.sumobot.plugins.jenkins
 
 import java.net.{URI, URLEncoder}
 
+import akka.event.Logging
 import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
+import com.sumologic.sumobot.Bootstrap
 import com.sumologic.sumobot.plugins.Emotions
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
@@ -32,7 +34,6 @@ import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.impl.conn.PoolingClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
@@ -56,7 +57,7 @@ class JenkinsJobClient(val name: String,
                        buildToken: Option[String])
   extends Emotions {
 
-  private val log = LoggerFactory.getLogger(classOf[JenkinsJobClient])
+  private val log = Logging.getLogger(Bootstrap.system, this)
 
   private val uri = new URI(url)
 

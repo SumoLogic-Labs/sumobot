@@ -24,9 +24,9 @@ import com.sumologic.sumobot.plugins.PluginCollection
 object Bootstrap {
 
   var receptionist: Option[ActorRef] = None
+  implicit val system = ActorSystem("root")
 
   def bootstrap(brainProps: Props, pluginCollections: PluginCollection*): Unit = {
-    implicit val system = ActorSystem("root")
     val rtmClient = SlackSettings.connectOrExit
     val brain = system.actorOf(brainProps, "brain")
     receptionist = Some(system.actorOf(Receptionist.props(rtmClient, brain), "bot"))
