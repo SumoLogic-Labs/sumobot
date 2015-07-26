@@ -22,12 +22,14 @@ import java.net.InetAddress
 import java.util.Date
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model.IncomingMessage
-import com.sumologic.sumobot.plugins.BotPlugin
+import com.sumologic.sumobot.plugins.{OperatorLimits, BotPlugin}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.duration._
 
-class System extends BotPlugin {
+class System
+    extends BotPlugin
+    with OperatorLimits {
   override protected def help =
     """Low-level system stuff:
       |
@@ -50,14 +52,18 @@ class System extends BotPlugin {
     case message@IncomingMessage(WhenDidYouStart(_), true, _, _) =>
       message.respond(s"I started at $startTime")
     case message@IncomingMessage(DieOn(host), true, _, _) =>
-      log.info(s"Got asked to die on $host")
+
       if (host.trim.equalsIgnoreCase(hostname)) {
-        message.respond(s"Shutting down on $hostname")
-        context.system.scheduler.scheduleOnce(3.seconds, new Runnable {
-          override def run() = {
-            Bootstrap.shutdown()
-          }
-        })
+        if (!sentByOperator(message)) {
+          message.respond(s"Sorry, ${message.senderId}, I can't do that.")
+        } else {
+          message.respond(s"Sayonara, ${message.senderId}!")
+          context.system.scheduler.scheduleOnce(2.seconds, new Runnable {
+            override def run() = {
+              Bootstrap.shutdown()
+            }
+          })
+        }
       }
   }
 }

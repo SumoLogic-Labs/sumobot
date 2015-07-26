@@ -74,7 +74,9 @@ abstract class BotPlugin
 
     def respond(text: String) = context.system.eventStream.publish(response(text))
 
-    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"<@${msg.sentByUser.id}>: "
+    def senderId: String = s"<@${msg.sentByUser.id}>"
+
+    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"$senderId: "
 
     def scheduleResponse(delay: FiniteDuration, text: String): Unit = {
       context.system.scheduler.scheduleOnce(delay, new Runnable() {
