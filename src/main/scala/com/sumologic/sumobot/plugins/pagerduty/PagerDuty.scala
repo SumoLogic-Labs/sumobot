@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.core.{IncomingMessage, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global

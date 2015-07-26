@@ -21,7 +21,7 @@ package com.sumologic.sumobot.plugins.alias
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.TestProbe
 import com.sumologic.sumobot.brain.InMemoryBrain
-import com.sumologic.sumobot.core.IncomingMessage
+import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin
 import com.sumologic.sumobot.test.BotPluginTestKit
 import org.scalatest.concurrent.PatienceConfiguration.Timeout

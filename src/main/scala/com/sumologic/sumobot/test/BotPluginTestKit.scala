@@ -19,13 +19,11 @@
 package com.sumologic.sumobot.test
 
 import akka.actor.ActorSystem
-import akka.testkit.{TestProbe, TestKit}
-import com.sumologic.sumobot.core.{InstantMessageChannel, IncomingMessage, OutgoingMessage}
-import org.scalatest.BeforeAndAfterAll
+import akka.testkit.{TestKit, TestProbe}
+import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
 import slack.models.User
-import scala.concurrent.duration._
 
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.{FiniteDuration, _}
 
 class BotPluginTestKit(_system: ActorSystem)
   extends TestKit(_system)

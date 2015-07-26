@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins.jira
 
 import akka.actor.ActorLogging
 import com.atlassian.jira.rest.client.api.domain.Issue
-import com.sumologic.sumobot.core.{IncomingMessage, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global

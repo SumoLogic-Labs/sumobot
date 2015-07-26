@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot
+package com.sumologic.sumobot.core
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.sumologic.sumobot.plugins.PluginCollection

@@ -19,7 +19,8 @@
 package com.sumologic.sumobot.plugins.help
 
 import akka.actor.{ActorSystem, Props}
-import com.sumologic.sumobot.core.{IncomingMessage, InstantMessageChannel, PluginRegistry}
+import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel}
+import com.sumologic.sumobot.core.PluginRegistry
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.test.BotPluginTestKit

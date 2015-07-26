@@ -16,25 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.plugins.aws
+package com.sumologic.sumobot.core.model
 
-import com.amazonaws.auth.{AWSCredentials, BasicAWSCredentials}
-import com.netflix.config.scala.{DynamicStringProperty, DynamicStringListProperty}
+import akka.actor.ActorRef
+import slack.models.User
 
-object AWSCredentialSource {
-  def credentials: Map[String, AWSCredentials] = {
-    DynamicStringListProperty("aws.accounts", List.empty, ",")() match {
-      case Some(names) =>
-        names.map {
-          name =>
-            for (keyId <- DynamicStringProperty(s"aws.$name.key.id", null)();
-                 accessKey <- DynamicStringProperty(s"aws.$name.key.secret", null)())
-              yield name -> new BasicAWSCredentials(keyId.trim, accessKey.trim)
-        }.flatten.toMap
-      case None =>
-        Map.empty
-    }
-  }
-}
+case class OutgoingMessage(channel: Channel, text: String)
 
+case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 
+case class IncomingMessage(canonicalText: String,
+                           addressedToUs: Boolean,
+                           channel: Channel,
+                           sentByUser: User)

@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot
+package com.sumologic.sumobot.core
 
 import akka.actor._
-import com.sumologic.sumobot.core._
+import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.models.{ImOpened, Message}
 import slack.rtm.SlackRtmClient

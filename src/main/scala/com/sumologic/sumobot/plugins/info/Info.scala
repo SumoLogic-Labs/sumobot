@@ -20,8 +20,7 @@ package com.sumologic.sumobot.plugins.info
 
 import java.net.InetAddress
 import java.util.Date
-
-import com.sumologic.sumobot.core.IncomingMessage
+import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 class Info extends BotPlugin {

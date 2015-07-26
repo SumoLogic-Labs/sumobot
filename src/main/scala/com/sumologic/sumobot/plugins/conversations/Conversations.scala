@@ -20,6 +20,7 @@ package com.sumologic.sumobot.plugins.conversations
 
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.core._
+import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.duration._

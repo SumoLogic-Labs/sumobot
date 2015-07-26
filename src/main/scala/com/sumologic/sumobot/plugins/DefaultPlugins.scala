@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.plugins.alias.Alias
-import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
+import com.sumologic.sumobot.core.aws.AWSCredentialSource
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.brain.BrainSurgery

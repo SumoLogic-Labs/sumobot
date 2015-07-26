@@ -25,7 +25,7 @@ import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.Bootstrap
+import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.plugins.Emotions
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost

@@ -18,14 +18,25 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor.ActorRef
-import slack.models.User
+import akka.actor.ActorSystem
+import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
+import slack.rtm.SlackRtmClient
 
-case class OutgoingMessage(channel: Channel, text: String)
 
-case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
+object SlackSettings {
+  val ApiToken = DynamicStringProperty("slack.api.token", null)
 
-case class IncomingMessage(canonicalText: String,
-                           addressedToUs: Boolean,
-                           channel: Channel,
-                           sentByUser: User)
+  // TODO: Wire this up when the 0.1.1 version of slack-scala-client is released.
+  val ConnectTimeout = DynamicIntProperty("slack.connect.timeout.seconds", 15)
+
+  def connectOrExit(implicit system: ActorSystem): SlackRtmClient = {
+    ApiToken() match {
+      case Some(token) =>
+        SlackRtmClient(token)
+      case None =>
+        println(s"Please set the slack.api.token environment variable!")
+        sys.exit(1)
+        null
+    }
+  }
+}

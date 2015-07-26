@@ -22,7 +22,7 @@ import akka.actor.ActorLogging
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.support.AWSSupportClient
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
-import com.sumologic.sumobot.core.IncomingMessage
+import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.collection.JavaConverters._

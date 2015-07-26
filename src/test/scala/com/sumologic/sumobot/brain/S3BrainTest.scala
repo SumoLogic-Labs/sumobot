@@ -21,7 +21,7 @@ package com.sumologic.sumobot.brain
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import akka.util.Timeout
-import com.sumologic.sumobot.plugins.aws.AWSCredentialSource
+import com.sumologic.sumobot.core.aws.AWSCredentialSource
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import akka.pattern.ask
 import scala.concurrent.duration._

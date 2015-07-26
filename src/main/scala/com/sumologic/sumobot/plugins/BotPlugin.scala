@@ -19,9 +19,9 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.sumologic.sumobot.Bootstrap
 import com.sumologic.sumobot.brain.BlockingBrain
-import com.sumologic.sumobot.core.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, InstantMessageChannel}
+import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.rtm.RtmState
 

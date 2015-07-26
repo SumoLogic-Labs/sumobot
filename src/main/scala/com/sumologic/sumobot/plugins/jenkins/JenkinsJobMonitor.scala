@@ -20,7 +20,7 @@ package com.sumologic.sumobot.plugins.jenkins
 
 import akka.actor.Actor
 import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.core.{Channel, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{OutgoingMessage, Channel}
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
 
 object JenkinsJobMonitor {

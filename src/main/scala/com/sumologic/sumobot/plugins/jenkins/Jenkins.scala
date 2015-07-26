@@ -22,7 +22,7 @@ import java.net.URLEncoder
 
 import akka.actor.{ActorLogging, ActorRef, PoisonPill, Props}
 import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.core.{Channel, IncomingMessage, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, Channel}
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
 import scala.concurrent.duration._

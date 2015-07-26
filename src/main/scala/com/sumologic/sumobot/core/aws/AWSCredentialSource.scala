@@ -16,27 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot
+package com.sumologic.sumobot.core.aws
 
-import akka.actor.ActorSystem
-import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
-import slack.rtm.SlackRtmClient
+import com.amazonaws.auth.{AWSCredentials, BasicAWSCredentials}
+import com.netflix.config.scala.{DynamicStringProperty, DynamicStringListProperty}
 
-
-object SlackSettings {
-  val ApiToken = DynamicStringProperty("slack.api.token", null)
-
-  // TODO: Wire this up when the 0.1.1 version of slack-scala-client is released.
-  val ConnectTimeout = DynamicIntProperty("slack.connect.timeout.seconds", 15)
-
-  def connectOrExit(implicit system: ActorSystem): SlackRtmClient = {
-    ApiToken() match {
-      case Some(token) =>
-        SlackRtmClient(token)
+object AWSCredentialSource {
+  def credentials: Map[String, AWSCredentials] = {
+    DynamicStringListProperty("aws.accounts", List.empty, ",")() match {
+      case Some(names) =>
+        names.map {
+          name =>
+            for (keyId <- DynamicStringProperty(s"aws.$name.key.id", null)();
+                 accessKey <- DynamicStringProperty(s"aws.$name.key.secret", null)())
+              yield name -> new BasicAWSCredentials(keyId.trim, accessKey.trim)
+        }.flatten.toMap
       case None =>
-        println(s"Please set the slack.api.token environment variable!")
-        sys.exit(1)
-        null
+        Map.empty
     }
   }
 }
+
+

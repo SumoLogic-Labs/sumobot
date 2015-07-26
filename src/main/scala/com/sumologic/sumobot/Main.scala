@@ -20,6 +20,7 @@ package com.sumologic.sumobot
 
 import akka.actor.Props
 import com.sumologic.sumobot.brain.InMemoryBrain
+import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.plugins.DefaultPlugins
 
 

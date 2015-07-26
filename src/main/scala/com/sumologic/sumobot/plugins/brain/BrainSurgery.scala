@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.brain
 
-import com.sumologic.sumobot.core.IncomingMessage
+import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 class BrainSurgery extends BotPlugin {

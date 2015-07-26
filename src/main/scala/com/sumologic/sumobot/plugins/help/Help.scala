@@ -21,8 +21,8 @@ package com.sumologic.sumobot.plugins.help
 import akka.actor.ActorLogging
 import akka.pattern.ask
 import akka.util.Timeout
-import com.sumologic.sumobot.core.IncomingMessage
 import com.sumologic.sumobot.core.PluginRegistry.{RequestPluginList, PluginList}
+import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global

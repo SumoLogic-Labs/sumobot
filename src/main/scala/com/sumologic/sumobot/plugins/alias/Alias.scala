@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.alias
 
-import com.sumologic.sumobot.core.IncomingMessage
+import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 class Alias extends BotPlugin {

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.core
+package com.sumologic.sumobot.core.model
 
 import slack.models.{Message, User}
 import slack.rtm.RtmState
