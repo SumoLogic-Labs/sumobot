@@ -37,15 +37,7 @@
     <dependency>
       <groupId>com.github.gilbertw1</groupId>
       <artifactId>slack-scala-client_2.11</artifactId>
-      <version>0.1.0</version>
-    </dependency>
-
-    <!-- slack-scala-client 0.1.0 depends on version 2.3.7, which is not in maven central -->
-    <!-- TODO: Remove when upgrading to the latest slack-scala-client. -->
-    <dependency>
-      <groupId>com.typesafe.play</groupId>
-      <artifactId>play-json_${scala.version.major}</artifactId>
-      <version>2.3.9</version>
+      <version>0.1.1</version>
     </dependency>
 
     <dependency>
