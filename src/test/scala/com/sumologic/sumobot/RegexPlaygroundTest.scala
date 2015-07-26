@@ -30,6 +30,13 @@ class RegexPlaygroundTest extends SumoBotSpec {
       "HellO" should fullyMatch regex testRegex
     }
 
+    "match host names" in {
+      val testRegex = BotPlugin.matchText("die on ([a-zA-Z0-9\\.\\-]+)")
+      "die on localhost" should fullyMatch regex testRegex
+      "die on www.google.com" should fullyMatch regex testRegex
+      "die on Stefans-MacBook-Pro.local" should fullyMatch regex testRegex
+    }
+
     "support or via pipe" in {
       val testRegex = BotPlugin.matchText("(hello|world)")
       "hello" should fullyMatch regex testRegex
@@ -39,7 +46,7 @@ class RegexPlaygroundTest extends SumoBotSpec {
     "extract stuff between pipes" in {
       val testRegex = BotPlugin.matchText("hello (\\w+) world!")
       "Hello beautiful world!" match {
-        case testRegex(kind) => kind should be ("beautiful")
+        case testRegex(kind) => kind should be("beautiful")
         case _ => fail("Did not match!")
       }
     }
@@ -47,11 +54,11 @@ class RegexPlaygroundTest extends SumoBotSpec {
     "extract stuff between pipes with or" in {
       val testRegex = BotPlugin.matchText("hello (\\d+|beautiful) world!")
       "Hello beautiful world!" match {
-        case testRegex(kind) => kind should be ("beautiful")
+        case testRegex(kind) => kind should be("beautiful")
         case _ => fail("Did not match!")
       }
       "Hello 123 world!" match {
-        case testRegex(kind) => kind should be ("123")
+        case testRegex(kind) => kind should be("123")
         case _ => fail("Did not match!")
       }
       "Hello NOT world!" match {
@@ -64,12 +71,12 @@ class RegexPlaygroundTest extends SumoBotSpec {
       val testRegex = BotPlugin.matchText("tell <@(\\w+)>[:]?\\s*(.*)")
 
       "tell <@ABCDEF> blah" match {
-        case testRegex(_, text) => text should be ("blah")
+        case testRegex(_, text) => text should be("blah")
         case _ => fail("Did not match!")
       }
 
       "tell <@ABCDEF>: blah" match {
-        case testRegex(_, text) => text should be ("blah")
+        case testRegex(_, text) => text should be("blah")
         case _ => fail("Did not match!")
       }
     }

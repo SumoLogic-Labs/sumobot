@@ -23,21 +23,26 @@ import com.sumologic.sumobot.plugins.PluginCollection
 
 object Bootstrap {
 
+  implicit val system = ActorSystem("sumobot")
   var receptionist: Option[ActorRef] = None
-  implicit val system = ActorSystem("root")
 
   def bootstrap(brainProps: Props, pluginCollections: PluginCollection*): Unit = {
     val rtmClient = SlackSettings.connectOrExit
     val brain = system.actorOf(brainProps, "brain")
-    receptionist = Some(system.actorOf(Receptionist.props(rtmClient, brain), "bot"))
+    receptionist = Some(system.actorOf(Receptionist.props(rtmClient, brain), "receptionist"))
 
     pluginCollections.par.foreach(_.setup)
 
-    def shutdownAndWait(): Unit = {
-      system.shutdown()
-      system.awaitTermination()
-    }
+    sys.addShutdownHook(shutdownActorSystem())
+  }
 
-    sys.addShutdownHook(shutdownAndWait())
+  private def shutdownActorSystem(): Unit = {
+    system.shutdown()
+    system.awaitTermination()
+  }
+
+  def shutdown(): Unit = {
+    shutdownActorSystem()
+    sys.exit()
   }
 }

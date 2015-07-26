@@ -16,32 +16,48 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.plugins.info
+package com.sumologic.sumobot.plugins.system
 
 import java.net.InetAddress
 import java.util.Date
+import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class Info extends BotPlugin {
+import scala.concurrent.duration._
+
+class System extends BotPlugin {
   override protected def help =
-    """You can ask me about myself:
+    """Low-level system stuff:
       |
       |where are you running? - And I'll tell you which host I'm on.
       |when did you start? - I'll tell you when I was started.
+      |die on <hostname> - Will cause me to shut down if you're allowed and I'm on that host.
     """.stripMargin
 
-  private val whereAreYou = matchText("where are you running.*")
-  private val whenDidYouStart = matchText("when did you (start|launch|boot).*")
+  private val WhereAreYou = matchText("where are you running.*")
+  private val WhenDidYouStart = matchText("when did you (start|launch|boot).*")
+  private val DieOn = matchText("die on ([a-zA-Z0-9\\.\\-]+)") // Per RFC952.
 
   private val hostname = InetAddress.getLocalHost.getHostName
   private val hostAddress = InetAddress.getLocalHost.getHostAddress
   private val startTime = new Date().toString
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(whereAreYou(), true, _, _) =>
+    case message@IncomingMessage(WhereAreYou(), true, _, _) =>
       message.respond(s"I'm running at $hostname ($hostAddress)")
-    case message@IncomingMessage(whenDidYouStart(_), true, _, _) =>
+    case message@IncomingMessage(WhenDidYouStart(_), true, _, _) =>
       message.respond(s"I started at $startTime")
+    case message@IncomingMessage(DieOn(host), true, _, _) =>
+      log.info(s"Got asked to die on $host")
+      if (host.trim.equalsIgnoreCase(hostname)) {
+        message.respond(s"Shutting down on $hostname")
+        context.system.scheduler.scheduleOnce(3.seconds, new Runnable {
+          override def run() = {
+            Bootstrap.shutdown()
+          }
+        })
+      }
   }
 }

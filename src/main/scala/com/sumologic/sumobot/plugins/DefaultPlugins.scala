@@ -26,7 +26,7 @@ import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.brain.BrainSurgery
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
-import com.sumologic.sumobot.plugins.info.Info
+import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
 import com.sumologic.sumobot.plugins.jira.{Jira, JiraClient}
 import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
@@ -39,7 +39,7 @@ object DefaultPlugins extends PluginCollection {
     addPlugin("help", Props(classOf[Help]))
     addPlugin("conversations", Props(classOf[Conversations]))
     addPlugin("beer", Props(classOf[Beer]))
-    addPlugin("info", Props(classOf[Info]))
+    addPlugin("system", Props(classOf[System]))
     addPlugin("brain-surgery", Props(classOf[BrainSurgery]))
     addPlugin("alias", Props(classOf[Alias]))
 
