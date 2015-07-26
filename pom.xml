@@ -1,10 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.sumologic.sumobot</groupId>
   <artifactId>sumobot</artifactId>
   <packaging>jar</packaging>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1.0-SNAPSHOT</version>
 
   <name>sumobot</name>
   <description>A Slack bot implemented in Akka</description>
@@ -18,45 +20,36 @@
     </license>
   </licenses>
 
-  <scm><connection>scm:git:git@github.com:SumoLogic/sumobot.git</connection></scm>
+  <scm>
+    <connection>scm:git:git@github.com:SumoLogic/sumobot.git</connection>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scala.version>2.11</scala.version>
-    <scala.version.full>${scala.version}.5</scala.version.full>
+    <scala.version.major>2.11</scala.version.major>
+    <scala.version>${scala.version.major}.7</scala.version>
     <akka.version>2.3.12</akka.version>
     <aws.sdk.version>1.10.3</aws.sdk.version>
   </properties>
 
   <dependencies>
+
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version.full}</version>
+      <groupId>com.github.gilbertw1</groupId>
+      <artifactId>slack-scala-client_2.11</artifactId>
+      <version>0.1.0</version>
     </dependency>
 
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-actor_${scala.version}</artifactId>
+      <artifactId>akka-testkit_${scala.version.major}</artifactId>
       <version>${akka.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-slf4j_${scala.version}</artifactId>
-      <version>${akka.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.bryangilbert</groupId>
-      <artifactId>slack-scala-client</artifactId>
-      <version>0.1.1-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-testkit_${scala.version}</artifactId>
-      <version>2.3.9</version>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_${scala.version.major}</artifactId>
+      <version>2.2.5</version>
     </dependency>
 
     <dependency>
@@ -68,13 +61,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.2</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.scalatest</groupId>
-      <artifactId>scalatest_${scala.version}</artifactId>
-      <version>2.2.5</version>
+      <version>1.7.12</version>
     </dependency>
 
     <dependency>
@@ -102,19 +89,19 @@
     </dependency>
 
     <dependency>
-    	<groupId>com.netflix.archaius</groupId>
-    	<artifactId>archaius-scala</artifactId>
-    	<version>0.7.1</version>
+      <groupId>com.netflix.archaius</groupId>
+      <artifactId>archaius-scala</artifactId>
+      <version>0.7.1</version>
     </dependency>
 
     <dependency>
       <groupId>net.liftweb</groupId>
-      <artifactId>lift-json_${scala.version}</artifactId>
+      <artifactId>lift-json_${scala.version.major}</artifactId>
       <version>2.6-RC1</version>
       <exclusions>
         <exclusion>
           <groupId>org.specs2</groupId>
-          <artifactId>specs2_${scala.version}</artifactId>
+          <artifactId>specs2_${scala.version.major}</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -126,7 +113,7 @@
       <plugin>
         <groupId>net.alchim31.maven</groupId>
         <artifactId>scala-maven-plugin</artifactId>
-        <version>3.2.1</version>
+        <version>3.2.2</version>
         <executions>
           <execution>
             <id>test-compile</id>
@@ -146,7 +133,8 @@
         </executions>
 
         <configuration>
-          <scalaVersion>${scala.version.full}</scalaVersion>
+          <scalaVersion>${scala.version}</scalaVersion>
+          <checkMultipleScalaVersions>false</checkMultipleScalaVersions>
           <args>
             <arg>-target:jvm-1.7</arg>
             <arg>-dependencyfile</arg>
@@ -168,6 +156,7 @@
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.5.5</version>
         <configuration>
           <descriptors>
             <descriptor>src/main/assembly.xml</descriptor>
@@ -184,6 +173,7 @@
           <header>${basedir}/src/etc/header.txt</header>
           <quiet>false</quiet>
           <failIfMissing>true</failIfMissing>
+          <strictCheck>true</strictCheck>
           <aggregate>false</aggregate>
           <includes>
             <include>src/**</include>
