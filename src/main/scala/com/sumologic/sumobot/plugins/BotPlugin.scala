@@ -20,9 +20,10 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.brain.BlockingBrain
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, InstantMessageChannel}
 import com.sumologic.sumobot.core.Bootstrap
+import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
+import slack.models.{Channel => ClientChannel, Group, Im}
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,9 +46,9 @@ object BotPlugin {
 }
 
 abstract class BotPlugin
-    extends Actor
-    with ActorLogging
-    with Emotions {
+  extends Actor
+  with ActorLogging
+  with Emotions {
 
   type ReceiveIncomingMessage = PartialFunction[IncomingMessage, Unit]
 
@@ -65,14 +66,16 @@ abstract class BotPlugin
 
   // Helpers for plugins to use.
 
+  protected def sendMessage(msg: OutgoingMessage): Unit = context.system.eventStream.publish(msg)
+
   class RichIncomingMessage(msg: IncomingMessage) {
     def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
 
     def message(text: String) = OutgoingMessage(msg.channel, text)
 
-    def say(text: String) = context.system.eventStream.publish(message(text))
+    def say(text: String) = sendMessage(message(text))
 
-    def respond(text: String) = context.system.eventStream.publish(response(text))
+    def respond(text: String) = sendMessage(response(text))
 
     def senderId: String = s"<@${msg.sentByUser.id}>"
 
@@ -80,13 +83,13 @@ abstract class BotPlugin
 
     def scheduleResponse(delay: FiniteDuration, text: String): Unit = {
       context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = context.system.eventStream.publish(response(text))
+        override def run(): Unit = sendMessage(response(text))
       })
     }
 
     def scheduleMessage(delay: FiniteDuration, text: String): Unit = {
       context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = context.system.eventStream.publish(message(text))
+        override def run(): Unit = sendMessage(message(text))
       })
     }
 
@@ -99,15 +102,32 @@ abstract class BotPlugin
             log.error(e, "Execution failed.")
             msg.response("Execution failed.")
         }
-      } foreach context.system.eventStream.publish
+      } foreach sendMessage
     }
   }
 
   implicit def enrichIncomingMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
 
+  implicit def clientToPublicChannel(channel: ClientChannel): PublicChannel = PublicChannel(channel.id, channel.name)
+
+  implicit def clientToGroupChannel(group: Group): GroupChannel = GroupChannel(group.id, group.name)
+
+  implicit def clientToInstanceMessageChannel(im: Im): InstantMessageChannel =
+    InstantMessageChannel(im.id, state.users.find(_.id == im.user).get)
+
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
+
+  protected def publicChannel(name: String): Option[PublicChannel] = state.channels.find(_.name == name).map(clientToPublicChannel)
+
+  protected def groupChannel(name: String): Option[GroupChannel] = state.groups.find(_.name == name).map(clientToGroupChannel)
+
+  protected def instantMessageChannel(name: String): Option[InstantMessageChannel] = {
+    for (user <- state.users.find(_.name == name);
+         im <- state.ims.find(_.user == user))
+      yield clientToInstanceMessageChannel(im)
+  }
 
   // Implementation. Most plugins should not override.
 

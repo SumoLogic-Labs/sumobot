@@ -96,7 +96,7 @@ class Conversations extends BotPlugin with ActorLogging {
       message.say(s"What is up, <@${message.sentByUser.id}>.")
 
     case message@IncomingMessage(SayInChannel(channelId, what), true, _, _) =>
-      context.system.eventStream.publish(OutgoingMessage(Channel.forChannelId(state, channelId), what))
+      sendMessage(OutgoingMessage(Channel.forChannelId(state, channelId), what))
       message.respond(s"Message sent.")
 
     case message@IncomingMessage(FuckOff(), _, _, _) =>
@@ -114,7 +114,7 @@ class Conversations extends BotPlugin with ActorLogging {
         case Some(user) =>
           state.ims.find(_.user == user.id) match {
             case Some(im) =>
-              context.system.eventStream.publish(OutgoingMessage(InstantMessageChannel(im.id, user), what))
+              sendMessage(OutgoingMessage(InstantMessageChannel(im.id, user), what))
               message.respond(s"Message sent.")
             case None =>
               val newMessage = message.copy()
