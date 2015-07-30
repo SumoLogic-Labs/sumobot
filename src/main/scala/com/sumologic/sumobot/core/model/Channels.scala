@@ -23,7 +23,6 @@ import slack.rtm.RtmState
 
 object Channel {
 
-
   def forMessage(state: RtmState, slackMessage: Message): Channel = forChannelId(state, slackMessage.channel)
 
   def forChannelId(state: RtmState, channelId: String): Channel = {
