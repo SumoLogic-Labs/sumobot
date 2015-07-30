@@ -202,7 +202,9 @@
         <configuration>
           <excludes>
             <exclude>**/Bootstrap.*</exclude>
+            <exclude>**/Main.*</exclude>
             <exclude>**/plugins/**</exclude>
+            <exclude>**/test/**</exclude>
           </excludes>
         </configuration>
         <executions>
