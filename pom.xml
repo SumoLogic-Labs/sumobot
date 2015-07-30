@@ -199,6 +199,12 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.7.5.201505241946</version>
+        <configuration>
+          <excludes>
+            <exclude>**/Bootstrap.*</exclude>
+            <exclude>**/plugins/**</exclude>
+          </excludes>
+        </configuration>
         <executions>
           <execution>
             <goals>
