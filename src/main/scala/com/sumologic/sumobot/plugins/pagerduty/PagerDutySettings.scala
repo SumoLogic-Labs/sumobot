@@ -16,25 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.plugins
+package com.sumologic.sumobot.plugins.pagerduty
 
-import com.sumologic.sumobot.core.Bootstrap
-import com.sumologic.sumobot.core.model.IncomingMessage
-import slack.models.User
+import com.typesafe.config.Config
 
-import scala.collection.JavaConverters._
+import scala.util.Try
 
-object OperatorLimits {
-  private val config = Bootstrap.system.settings.config
-  private lazy val operatorNames = config.getStringList("operators").asScala.toSet
-
-  def isOperator(user: User): Boolean =
-    operatorNames.exists(_.trim.equalsIgnoreCase(user.name.trim))
+object PagerDutySettings {
+  def load(config: Config): Option[PagerDutySettings] = {
+    Try {
+      PagerDutySettings(
+        token = config.getString("plugins.pagerduty.token"),
+        url = config.getString("plugins.pagerduty.url")
+      )
+    }.toOption
+  }
 }
 
-trait OperatorLimits {
-  this: BotPlugin => 
-  
-  protected def sentByOperator(message: IncomingMessage): Boolean =
-    OperatorLimits.isOperator(message.sentByUser)
-}
+case class PagerDutySettings(token: String, url: String)

@@ -25,7 +25,7 @@ import akka.util.Timeout
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.s3.AmazonS3Client
 import com.sumologic.sumobot.brain.Brain.ValueRetrieved
-import com.sumologic.sumobot.core.aws.AWSCredentialSource
+import com.sumologic.sumobot.core.aws.AWSAccounts
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.collection.JavaConverters._
@@ -39,7 +39,7 @@ class S3BrainTest
     with BeforeAndAfterAll
     with Matchers {
 
-  lazy val credsOption = AWSCredentialSource.credentials.values.headOption
+  lazy val credsOption = AWSAccounts.load(system.settings.config).values.headOption
 
   val bucketPrefix = "sumobot-s3-brain"
 

@@ -18,4 +18,4 @@ project/plugins/project/
 .worksheet
 sumo-env.txt
 .idea/
-config/
+config/*.conf
