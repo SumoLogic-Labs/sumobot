@@ -115,6 +115,8 @@ abstract class BotPlugin
   implicit def clientToInstanceMessageChannel(im: Im): InstantMessageChannel =
     InstantMessageChannel(im.id, state.users.find(_.id == im.user).get)
 
+  protected val UserId = "<@(\\w+)>"
+
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
