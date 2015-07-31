@@ -20,6 +20,7 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.core.aws.AWSCredentialSource
+import com.sumologic.sumobot.plugins.advice.Advice
 import com.sumologic.sumobot.plugins.alias.Alias
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
@@ -43,6 +44,7 @@ object DefaultPlugins extends PluginCollection {
     addPlugin("brain-surgery", Props(classOf[BrainSurgery]))
     addPlugin("alias", Props(classOf[Alias]))
     addPlugin("chuck", Props(classOf[ChuckNorris]))
+    addPlugin("advice", Props(classOf[Advice]))
 
     TextToSpeech.propsOption.foreach {
       props =>

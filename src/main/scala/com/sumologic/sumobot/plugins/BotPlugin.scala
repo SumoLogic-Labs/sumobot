@@ -18,6 +18,8 @@
  */
 package com.sumologic.sumobot.plugins
 
+import java.net.URLEncoder
+
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.Bootstrap
@@ -143,6 +145,10 @@ abstract class BotPlugin
          im <- state.ims.find(_.user == user))
       yield clientToInstanceMessageChannel(im)
   }
+
+  protected def urlEncode(string: String): String = URLEncoder.encode(string, "utf-8")
+
+
 
   // Implementation. Most plugins should not override.
 
