@@ -24,6 +24,7 @@ import com.sumologic.sumobot.plugins.alias.Alias
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
 import com.sumologic.sumobot.plugins.beer.Beer
 import com.sumologic.sumobot.plugins.brain.BrainSurgery
+import com.sumologic.sumobot.plugins.chuck.ChuckNorris
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
@@ -41,6 +42,7 @@ object DefaultPlugins extends PluginCollection {
     addPlugin("system", Props(classOf[System]))
     addPlugin("brain-surgery", Props(classOf[BrainSurgery]))
     addPlugin("alias", Props(classOf[Alias]))
+    addPlugin("chuck", Props(classOf[ChuckNorris]))
 
     TextToSpeech.propsOption.foreach {
       props =>
