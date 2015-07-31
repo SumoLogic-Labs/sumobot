@@ -16,26 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.core
+package com.sumologic.sumobot.core.aws
 
-import akka.actor.ActorSystem
-import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
-import slack.rtm.SlackRtmClient
-import scala.concurrent.duration._
+import com.amazonaws.auth.{AWSCredentials, BasicAWSCredentials}
+import com.sumologic.sumobot.core.config.ListOfConfigs
+import com.typesafe.config.Config
 
-object SlackSettings {
-  val ApiToken = DynamicStringProperty("slack.api.token", null)
-
-  val ConnectTimeout = DynamicIntProperty("slack.connect.timeout.seconds", 15)
-
-  def connectOrExit(implicit system: ActorSystem): SlackRtmClient = {
-    ApiToken() match {
-      case Some(token) =>
-        SlackRtmClient(token, ConnectTimeout.get.seconds)
-      case None =>
-        println(s"Please set the slack.api.token environment variable!")
-        sys.exit(1)
-        null
+object AWSAccounts {
+  def load(config: Config): Map[String, AWSCredentials] = {
+    ListOfConfigs.parse(config, "aws") {
+      (name, accountConfig) =>
+        val key = accountConfig.getString(s"key.id")
+        val secret = accountConfig.getString(s"key.secret")
+        new BasicAWSCredentials(key, secret)
     }
   }
 }
+
+

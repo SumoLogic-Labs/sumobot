@@ -62,7 +62,7 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
     case message@IncomingMessage(Info(), _, _, _) =>
-      message.respond(s"Connected to ${client.url}")
+      message.respond(s"Connected to ${client.configuration.url}")
 
     case message@IncomingMessage(JobStatus(givenName), _, _, _) =>
       message.respondInFuture {
