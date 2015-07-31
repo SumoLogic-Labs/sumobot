@@ -23,10 +23,10 @@ import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import slack.models.{Channel => ClientChannel, Group, Im}
 import org.apache.http.client.methods.{HttpUriRequest, HttpGet}
 import org.apache.http.impl.client.DefaultHttpClient
 import org.apache.http.{HttpRequest, HttpResponse}
+import slack.models.{Channel => ClientChannel, User, Group, Im}
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -131,6 +131,8 @@ abstract class BotPlugin
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
+
+  protected def userById(id: String): Option[User] = state.users.find(_.id == id)
 
   protected def publicChannel(name: String): Option[PublicChannel] = state.channels.find(_.name == name).map(clientToPublicChannel)
 
