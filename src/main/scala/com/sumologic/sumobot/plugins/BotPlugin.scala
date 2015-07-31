@@ -81,18 +81,16 @@ abstract class BotPlugin
 
     private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"$senderId: "
 
-    def scheduleResponse(delay: FiniteDuration, text: String): Unit = {
+    def scheduleResponse(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, response(text))
+
+    def scheduleMessage(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, message(text))
+
+    def scheduleOutgoingMessage(delay: FiniteDuration, outgoingMessage: OutgoingMessage): Unit = {
       context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = sendMessage(response(text))
+        override def run(): Unit = sendMessage(outgoingMessage)
       })
     }
-
-    def scheduleMessage(delay: FiniteDuration, text: String): Unit = {
-      context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = sendMessage(message(text))
-      })
-    }
-
+    
     def respondInFuture(body: IncomingMessage => OutgoingMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
       Future {
         try {
