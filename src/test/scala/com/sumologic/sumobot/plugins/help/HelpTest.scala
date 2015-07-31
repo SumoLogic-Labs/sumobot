@@ -26,9 +26,7 @@ import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.test.BotPluginTestKit
 import org.scalatest.{Matchers, WordSpecLike}
 
-class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
-
-  def this() = this(ActorSystem("HelpTest"))
+class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
 
   val helpRef = system.actorOf(Props[Help], "help")
 
@@ -65,6 +63,14 @@ class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
         msg =>
           msg.text should include("Sorry, I don't know")
       }
+    }
+
+    "work with ? variants" in {
+      "?" should fullyMatch regex Help.ListPlugins
+      "?" should fullyMatch regex Help.ListPlugins
+      "help  " should fullyMatch regex Help.ListPlugins
+      "? me " should fullyMatch regex Help.HelpForPlugin
+      "help me " should fullyMatch regex Help.HelpForPlugin
     }
   }
 }

@@ -27,6 +27,11 @@ import com.sumologic.sumobot.plugins.BotPlugin
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
+object Help {
+  private[help] val ListPlugins = BotPlugin.matchText("(help|\\?)\\W*")
+  private[help] val HelpForPlugin = BotPlugin.matchText("(help|\\?) ([\\-\\w]+).*")
+}
+
 class Help extends BotPlugin with ActorLogging {
   override protected def help =
     s"""I can help you understand plugins.
@@ -35,11 +40,10 @@ class Help extends BotPlugin with ActorLogging {
        |help <plugin>. - I'll tell you how <plugin> works.
      """.stripMargin
 
-  private val ListPlugins = matchText("help")
-  private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
+  import Help._
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(ListPlugins(), true, _, _) =>
+    case message@IncomingMessage(ListPlugins(_), true, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
@@ -47,7 +51,7 @@ class Help extends BotPlugin with ActorLogging {
           msg.respond(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
       }
 
-    case message@IncomingMessage(HelpForPlugin(pluginName), true, _, _) =>
+    case message@IncomingMessage(HelpForPlugin(_, pluginName), true, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
