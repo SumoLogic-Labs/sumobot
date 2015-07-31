@@ -10,7 +10,6 @@ ldap {
 
 
 aws {
-//  accounts = ["infra"]
   infra {
     key.id = ""..."
     key.secret = ""..."
