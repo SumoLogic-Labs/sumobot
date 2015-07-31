@@ -24,6 +24,9 @@ import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.models.{Channel => ClientChannel, Group, Im}
+import org.apache.http.client.methods.{HttpUriRequest, HttpGet}
+import org.apache.http.impl.client.DefaultHttpClient
+import org.apache.http.{HttpRequest, HttpResponse}
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -101,6 +104,16 @@ abstract class BotPlugin
             msg.response("Execution failed.")
         }
       } foreach sendMessage
+    }
+
+    def httpGet(url: String)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = http(new HttpGet(url))(func)
+
+    def http(request: HttpUriRequest)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = {
+      respondInFuture {
+        incoming =>
+          val client = new DefaultHttpClient()
+          func(incoming, client.execute(request))
+      }
     }
   }
 
