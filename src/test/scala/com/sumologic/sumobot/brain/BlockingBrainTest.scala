@@ -21,14 +21,14 @@ package com.sumologic.sumobot.brain
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.TestKit
 import com.sumologic.sumobot.test.SumoBotSpec
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.BeforeAndAfterAll
 
 class BlockingBrainTest()
   extends TestKit(ActorSystem("BlockingBrainTest"))
   with SumoBotSpec
   with BeforeAndAfterAll {
 
-  override def afterAll {
+  override def afterAll() {
     TestKit.shutdownActorSystem(system)
   }
 

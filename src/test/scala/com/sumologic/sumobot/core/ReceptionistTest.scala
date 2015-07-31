@@ -111,6 +111,6 @@ class ReceptionistTest
   }
 
   override protected def afterAll(): Unit = {
-    system.shutdown()
+    TestKit.shutdownActorSystem(system)
   }
 }

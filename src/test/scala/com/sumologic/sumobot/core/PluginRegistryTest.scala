@@ -39,7 +39,6 @@ class PluginRegistryTest
   "PluginRegistry" should {
     "maintain a list of all registered plugins" in {
 
-
       implicit val timeout = Timeout(1.second)
       val reg = system.actorOf(Props[PluginRegistry])
       def checkList(func: Seq[Plugin] => Unit) = {
@@ -59,8 +58,7 @@ class PluginRegistryTest
     }
   }
 
-
   override protected def afterAll(): Unit = {
-    system.shutdown()
+    TestKit.shutdownActorSystem(system)
   }
 }

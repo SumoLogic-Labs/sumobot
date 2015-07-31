@@ -19,17 +19,21 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorSystem
-import akka.testkit.TestActorRef
+import akka.testkit.{TestKit, TestActorRef}
 import com.sumologic.sumobot.test.{MatchTextUtil, SumoBotSpec}
+import org.scalatest.BeforeAndAfterAll
 
 /**
  * @author Chris (chris@sumologic.com)
  */
-class PagerDutyTest extends SumoBotSpec with MatchTextUtil {
+class PagerDutyTest
+    extends TestKit(ActorSystem("PagerDutyTest"))
+    with SumoBotSpec
+    with BeforeAndAfterAll
+    with MatchTextUtil {
 
   "PagerDuty.WhosOnCall" should {
     "match expected input" in {
-      implicit val actorSystem = ActorSystem("PagerDutyTest")
       val actorRef = TestActorRef(new PagerDuty(null, None))
       val sut = actorRef.underlyingActor //new PagerDuty(null)
 
@@ -40,12 +44,15 @@ class PagerDutyTest extends SumoBotSpec with MatchTextUtil {
       shouldMatch(sut.WhosOnCall, "whos oncall")
 
       "who's oncall for prod?" match {
-        case sut.WhosOnCall(filter) => filter should be ("prod")
+        case sut.WhosOnCall(filter) => filter should be("prod")
         case _ => fail("Did not match filter case")
       }
 
       shouldNotMatch(sut.WhosOnCall, "test")
-      actorSystem.shutdown()
     }
+  }
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
   }
 }

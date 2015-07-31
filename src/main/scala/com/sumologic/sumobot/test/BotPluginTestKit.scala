@@ -21,13 +21,15 @@ package com.sumologic.sumobot.test
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
+import org.scalatest.BeforeAndAfterAll
 import slack.models.User
 
 import scala.concurrent.duration.{FiniteDuration, _}
 
 class BotPluginTestKit(_system: ActorSystem)
   extends TestKit(_system)
-  with SumoBotSpec {
+  with SumoBotSpec
+  with BeforeAndAfterAll {
 
   protected val outgoingMessageProbe = TestProbe()
   system.eventStream.subscribe(outgoingMessageProbe.ref, classOf[OutgoingMessage])
@@ -49,5 +51,9 @@ class BotPluginTestKit(_system: ActorSystem)
 
   protected def send(message: IncomingMessage): Unit = {
     system.eventStream.publish(message)
+  }
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
   }
 }
