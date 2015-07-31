@@ -31,5 +31,4 @@ class ChuckNorrisTest extends SumoBotSpec {
       joke.asText() should be ("Chuck Norris doesn't cheat death. He wins fair and square.")
     }
   }
-
 }
