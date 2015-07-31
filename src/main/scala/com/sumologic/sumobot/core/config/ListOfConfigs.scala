@@ -16,26 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.core
+package com.sumologic.sumobot.core.config
 
-import akka.actor.ActorSystem
-import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
-import slack.rtm.SlackRtmClient
-import scala.concurrent.duration._
+import com.typesafe.config.{Config, ConfigException}
 
-object SlackSettings {
-  val ApiToken = DynamicStringProperty("slack.api.token", null)
+import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
-  val ConnectTimeout = DynamicIntProperty("slack.connect.timeout.seconds", 15)
-
-  def connectOrExit(implicit system: ActorSystem): SlackRtmClient = {
-    ApiToken() match {
-      case Some(token) =>
-        SlackRtmClient(token, ConnectTimeout.get.seconds)
-      case None =>
-        println(s"Please set the slack.api.token environment variable!")
-        sys.exit(1)
-        null
+object ListOfConfigs {
+  def parse[T](config: Config, path: String)(convert: (String, Config) => T): Map[String, T] = {
+    Try(config.getObject(path).asScala) match {
+      case Success(accounts) =>
+        accounts.map {
+          obj =>
+            val name = obj._1
+            name -> convert(name, config.getConfig(path + "." + name))
+        }.toMap
+      case Failure(e: ConfigException.Missing) =>
+        Map.empty
+      case Failure(other) =>
+        throw other
     }
   }
 }

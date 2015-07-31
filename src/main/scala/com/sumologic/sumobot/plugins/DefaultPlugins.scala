@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
-import com.sumologic.sumobot.core.aws.AWSCredentialSource
+import com.sumologic.sumobot.core.aws.AWSAccounts
 import com.sumologic.sumobot.plugins.advice.Advice
 import com.sumologic.sumobot.plugins.alias.Alias
 import com.sumologic.sumobot.plugins.awssupport.AWSSupport
@@ -28,8 +28,8 @@ import com.sumologic.sumobot.plugins.brain.BrainSurgery
 import com.sumologic.sumobot.plugins.chuck.ChuckNorris
 import com.sumologic.sumobot.plugins.conversations.Conversations
 import com.sumologic.sumobot.plugins.help.Help
-import com.sumologic.sumobot.plugins.jenkins.{Jenkins, JenkinsJobClient}
-import com.sumologic.sumobot.plugins.pagerduty.{PagerDuty, PagerDutySchedulesManager}
+import com.sumologic.sumobot.plugins.jenkins.{JenkinsConfigurations, Jenkins, JenkinsJobClient}
+import com.sumologic.sumobot.plugins.pagerduty.{PagerDutySettings, PagerDuty, PagerDutySchedulesManager}
 import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.plugins.tts.TextToSpeech
 
@@ -51,22 +51,18 @@ object DefaultPlugins extends PluginCollection {
         addPlugin("text-to-speech", props)
     }
 
-    JenkinsJobClient.createClient("jenkins").foreach {
-      jenkinsClient =>
-        addPlugin("jenkins", Jenkins.props(jenkinsClient))
+    JenkinsConfigurations.load(system.settings.config).foreach {
+      tpl =>
+        addPlugin(tpl._1, Jenkins.props(new JenkinsJobClient(tpl._2)))
     }
 
-    JenkinsJobClient.createClient("hudson").foreach {
-      hudsonClient =>
-        addPlugin("hudson", Jenkins.props(hudsonClient))
-    }
-
-    PagerDutySchedulesManager.createClient().foreach {
-      pagerDutySchedulesManager =>
+    PagerDutySettings.load(system.settings.config).foreach {
+      settings =>
+        val pagerDutySchedulesManager = new PagerDutySchedulesManager(settings)
         addPlugin("pagerduty", Props(classOf[PagerDuty], pagerDutySchedulesManager, None))
     }
 
-    val awsCreds = AWSCredentialSource.credentials
+    val awsCreds = AWSAccounts.load(system.settings.config)
     if (awsCreds.nonEmpty) {
       addPlugin("aws-support", Props(classOf[AWSSupport], awsCreds))
     }

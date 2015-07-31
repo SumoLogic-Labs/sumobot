@@ -21,7 +21,6 @@ package com.sumologic.sumobot.plugins.jenkins
 import java.net.{URI, URLEncoder}
 
 import akka.event.Logging
-import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
@@ -39,26 +38,11 @@ import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-object JenkinsJobClient {
-  def createClient(name: String): Option[JenkinsJobClient] = {
-
-    for (url <- DynamicStringProperty(s"jenkins.$name.url", null)();
-         user <- DynamicStringProperty(s"jenkins.$name.username", null)();
-         password <- DynamicStringProperty(s"jenkins.$name.password", null)())
-      yield new JenkinsJobClient(name, url, user, password,
-      DynamicStringProperty(s"jenkins.$name.buildtoken", null)())
-  }
-}
-
-class JenkinsJobClient(val name: String,
-                       val url: String,
-                       user: String,
-                       password: String,
-                       buildToken: Option[String])
+class JenkinsJobClient(val configuration: JenkinsConfiguration)
   extends Emotions {
 
   private val log = Logging.getLogger(Bootstrap.system, this)
-
+  import configuration._
   private val uri = new URI(url)
 
   private val rawConMan = new PoolingClientConnectionManager()
@@ -67,11 +51,11 @@ class JenkinsJobClient(val name: String,
   private val rawHttpClient = new DefaultHttpClient()
   rawHttpClient.getParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY)
 
-  private val basicAuthClient = new JenkinsHttpClient(uri, user, password)
+  private val basicAuthClient = new JenkinsHttpClient(uri, username, password)
 
   private val server = new JenkinsServer(basicAuthClient)
 
-  private val CacheExpiration = DynamicIntProperty(s"jenkins.$name.cache.expiration", 15000)
+  private val CacheExpiration = Bootstrap.system.settings.config.getInt(s"plugins.jenkins.cache.expiration.seconds") * 1000
   private val cacheLock = new AnyRef
   private var cachedJobs: Option[Map[String, Job]] = None
   private var lastCacheTime = 0l
@@ -115,7 +99,7 @@ class JenkinsJobClient(val name: String,
 
   def jobs: Map[String, Job] = {
     cacheLock synchronized {
-      if (cachedJobs.isEmpty || System.currentTimeMillis() - lastCacheTime > CacheExpiration.get) {
+      if (cachedJobs.isEmpty || System.currentTimeMillis() - lastCacheTime > CacheExpiration) {
         cachedJobs = Some(server.getJobs.asScala.toMap)
         lastCacheTime = System.currentTimeMillis()
       }
@@ -124,11 +108,10 @@ class JenkinsJobClient(val name: String,
     cachedJobs.get
   }
 
-
   private def loginWithCookie(): Unit = {
     val request = new HttpPost(url + "j_acegi_security_check")
     val pairs = List(
-      new BasicNameValuePair("j_username", user),
+      new BasicNameValuePair("j_username", username),
       new BasicNameValuePair("j_password", password),
       new BasicNameValuePair("remember_me", "on"),
       new BasicNameValuePair("from", "/"),
@@ -159,8 +142,7 @@ class JenkinsJobClient(val name: String,
     }
   }
 
-
-  def unknownJobMessage(jobName: String) = chooseRandom(
+  private[jenkins] def unknownJobMessage(jobName: String) = chooseRandom(
     s"I don't know any job named $jobName!! $upset",
     s"Bite my shiny metal ass. There's no job named $jobName!"
   )

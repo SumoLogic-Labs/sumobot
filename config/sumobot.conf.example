@@ -1,0 +1,52 @@
+slack {
+  api.token = "..."
+}
+
+ldap {
+  # Not read by the code, just used in the config.
+  username = ""..."
+  password = ""..."
+}
+
+
+aws {
+//  accounts = ["infra"]
+  infra {
+    key.id = ""..."
+    key.secret = ""..."
+  }
+}
+
+operators = johndoe
+
+plugins {
+  jira {
+    enabled = true
+    username = ${ldap.username}
+    password = ${ldap.password}
+    url = "https://jira.example.com/"
+  }
+
+  jenkins {
+    enabled = true
+    connections {
+      hudson {
+        url = "https://hudson.example.com/"
+        username = ${ldap.username}
+        password = ${ldap.password}
+      }
+
+      jenkins {
+        url = "https://jenkins.example.com/"
+        username = ${ldap.username}
+        password = ${ldap.password}
+      }
+    }
+  }
+
+  pagerduty {
+    enabled = true
+    token = "..."
+    url = "https://example.pagerduty.com/"
+  }
+}

@@ -18,20 +18,11 @@
  */
 package com.sumologic.sumobot.plugins.pagerduty
 
-import com.netflix.config.scala.DynamicStringProperty
 import net.liftweb.json._
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 
-object PagerDutySchedulesManager {
-  def createClient(): Option[PagerDutySchedulesManager] = {
-    for (token <- DynamicStringProperty("pagerduty.token", null)();
-         pagerDutyUrl <- DynamicStringProperty("pagerduty.url", null)())
-      yield new PagerDutySchedulesManager(token, pagerDutyUrl)
-  }
-}
-
-class PagerDutySchedulesManager(token: String, pagerdutyUrl: String) {
+class PagerDutySchedulesManager(settings: PagerDutySettings) {
 
   def getEscalationPolicies: Option[PagerDutyEscalationPolicies] = {
 
@@ -63,11 +54,11 @@ class PagerDutySchedulesManager(token: String, pagerdutyUrl: String) {
     val client = new DefaultHttpClient()
     try {
 
-      val url = s"$pagerdutyUrl/api/v1/$command"
+      val url = s"${settings.url}/api/v1/$command"
       val getReq = new HttpGet(url)
 
       getReq.addHeader("content-type", "application/json")
-      getReq.addHeader("Authorization", s"Token token=$token")
+      getReq.addHeader("Authorization", s"Token token=${settings.token}")
 
       val response = client.execute(getReq)
       val entity = response.getEntity
