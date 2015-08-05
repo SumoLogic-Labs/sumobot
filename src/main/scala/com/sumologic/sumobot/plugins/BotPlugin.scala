@@ -25,10 +25,11 @@ import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import org.apache.http.client.methods.{HttpUriRequest, HttpGet}
+import com.sumologic.sumobot.quartz.QuartzExtension
+import org.apache.http.HttpResponse
+import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.{HttpRequest, HttpResponse}
-import slack.models.{Channel => ClientChannel, User, Group, Im}
+import slack.models.{Channel => ClientChannel, Group, Im, User}
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -148,7 +149,9 @@ abstract class BotPlugin
 
   protected def urlEncode(string: String): String = URLEncoder.encode(string, "utf-8")
 
-
+  def scheduleActorMessage(name: String, cronExpression: String, message: AnyRef): Unit = {
+    QuartzExtension(context.system).scheduleMessage(name, cronExpression, self, message)
+  }
 
   // Implementation. Most plugins should not override.
 
