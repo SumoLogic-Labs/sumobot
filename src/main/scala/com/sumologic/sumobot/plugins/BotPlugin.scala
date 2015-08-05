@@ -47,7 +47,7 @@ object BotPlugin {
 
   case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef)
 
-  def matchText(regex: String): Regex = ("(?i)" + regex).r
+  def matchText(regex: String): Regex = ("(?i)(?s)" + regex).r
 }
 
 abstract class BotPlugin
