@@ -19,15 +19,21 @@
 package com.sumologic.sumobot.core
 
 import akka.actor._
+import com.sumologic.sumobot.core.Receptionist.{RtmStateResponse, RtmStateRequest}
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.models.{ImOpened, Message}
-import slack.rtm.SlackRtmClient
+import slack.rtm.{RtmState, SlackRtmClient}
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Receptionist {
+
+  case class RtmStateRequest(sendTo: ActorRef)
+
+  case class RtmStateResponse(rtmState: RtmState)
+
   def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
     Props(classOf[Receptionist], rtmClient, brain)
 }
@@ -51,6 +57,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
     context.system.eventStream.subscribe(self, classOf[OpenIM])
+    context.system.eventStream.subscribe(self, classOf[RtmStateRequest])
   }
 
 
@@ -86,6 +93,9 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       if (message.user != selfId) {
         context.system.eventStream.publish(msgToBot)
       }
+
+    case RtmStateRequest(sendTo) =>
+      sendTo ! RtmStateResponse(rtmClient.state)
   }
 
   protected def translateMessage(slackMessage: Message): IncomingMessage = {

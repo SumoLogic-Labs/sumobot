@@ -21,6 +21,7 @@ package com.sumologic.sumobot.core
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
+import com.sumologic.sumobot.core.Receptionist.{RtmStateResponse, RtmStateRequest}
 import com.sumologic.sumobot.core.model.{OpenIM, IncomingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.test.SumoBotSpec
@@ -107,6 +108,11 @@ class ReceptionistTest
       sut ! OpenIM(somebodyElse.id, probe.ref, DoneWithThat)
       sut ! ImOpened(somebodyElse.id, im.id)
       probe.expectMsgClass(DoneWithThat.getClass)
+    }
+
+    "return the RTM state when asked" in {
+      sut ! RtmStateRequest(probe.ref)
+      probe.expectMsgClass(classOf[RtmStateResponse])
     }
   }
 
