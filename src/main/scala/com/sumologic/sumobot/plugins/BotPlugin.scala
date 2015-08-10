@@ -131,6 +131,8 @@ abstract class BotPlugin
 
   protected val UserId = "<@(\\w+)>"
 
+  protected def mention(user: User): String = s"<@${user.id}>"
+
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
