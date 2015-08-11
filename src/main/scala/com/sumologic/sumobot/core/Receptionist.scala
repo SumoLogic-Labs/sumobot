@@ -22,7 +22,7 @@ import akka.actor._
 import com.sumologic.sumobot.core.Receptionist.{RtmStateResponse, RtmStateRequest}
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import slack.models.{ImOpened, Message}
+import slack.models.{MessageWithSubtype, ImOpened, Message}
 import slack.rtm.{RtmState, SlackRtmClient}
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 
@@ -89,7 +89,14 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId ->(doneRecipient, doneMessage))
 
     case message: Message =>
-      val msgToBot = translateMessage(message)
+      val msgToBot = translateMessage(message.channel, message.user, message.text)
+      if (message.user != selfId) {
+        context.system.eventStream.publish(msgToBot)
+      }
+
+    case edit: MessageWithSubtype if edit.subtype == "message_changed" =>
+      val message = edit.message
+      val msgToBot = translateMessage(edit.channel, message.user, message.text)
       if (message.user != selfId) {
         context.system.eventStream.publish(msgToBot)
       }
@@ -98,13 +105,13 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       sendTo ! RtmStateResponse(rtmClient.state)
   }
 
-  protected def translateMessage(slackMessage: Message): IncomingMessage = {
+  protected def translateMessage(channelId: String, userId: String, text: String): IncomingMessage = {
 
-    val channel = Channel.forMessage(rtmClient.state, slackMessage)
-    val sentByUser = rtmClient.state.users.find(_.id == slackMessage.user).
-      getOrElse(throw new IllegalStateException(s"Message from unknown user: ${slackMessage.user}"))
+    val channel = Channel.forChannelId(rtmClient.state, channelId)
+    val sentByUser = rtmClient.state.users.find(_.id == userId).
+      getOrElse(throw new IllegalStateException(s"Message from unknown user: $userId"))
 
-    slackMessage.text match {
+    text match {
       case atMention(user, text) if user == selfId =>
         IncomingMessage(text.trim, true, channel, sentByUser)
       case atMentionWithoutColon(user, text) if user == selfId =>
@@ -112,7 +119,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
         IncomingMessage(text.trim, true, channel, sentByUser)
       case _ =>
-        IncomingMessage(slackMessage.text.trim, channel.isInstanceOf[InstantMessageChannel], channel, sentByUser)
+        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, sentByUser)
     }
   }
 }
