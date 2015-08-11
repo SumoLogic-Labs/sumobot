@@ -20,10 +20,11 @@ package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
 import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{PublicChannel, IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 trait EscalationPolicyFilter {
   def filter(message: IncomingMessage, policies: Seq[PagerDutyEscalationPolicy]): Seq[PagerDutyEscalationPolicy]
@@ -40,17 +41,36 @@ class PagerDuty(manager: PagerDutySchedulesManager,
       |Communicate with PagerDuty to learn about on-call processes. And stuff.
       |
       |who's on call? - I'll tell you!
+      |page oncalls: <message> - I'll trigger an alert for the on-calls with the message.
     """.stripMargin
 
   // TODO: Turn these into actual settings
-  val maximumLevel = 2
-  val ignoreTest = true // Ignore policies containing the word test
+  private val maximumLevel = 2
+
+  private val ignoreTest = true // Ignore policies containing the word test
+
+  private val eventApi = new PagerDutyEventApi()
 
   @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
+
+  private val PageOnCalls = matchText("page on[\\-]?calls[\\:]? (.*)")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
     case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
+
+    case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), _) =>
+      pagerDutyKeyFor(channel) match  {
+        case Some(key) =>
+          eventApi.page(channel, key, s"${message.sentByUser.name} on $channel: $text")
+          message.say("Paged on-calls.")
+        case None =>
+          message.respond("Don't know how to page people in this channel.")
+      }
+  }
+
+  private def pagerDutyKeyFor(channel: String): Option[String] = {
+    Try(context.system.settings.config.getString(s"plugins.pagerduty.service.$channel")).toOption
   }
 
   private[this] def whoIsOnCall(msg: IncomingMessage,
