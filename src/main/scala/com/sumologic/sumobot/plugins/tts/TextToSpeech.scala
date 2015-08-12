@@ -28,7 +28,10 @@ import scala.sys.process._
 
 object TextToSpeech {
   def propsOption: Option[Props] =
-    Option(new File("/usr/bin/say")).map(Props(classOf[TextToSpeech], _))
+    Option(new File("/usr/bin/say")).
+      filter(_.isFile).
+      filter(_.canExecute).
+      map(Props(classOf[TextToSpeech], _))
 }
 
 class TextToSpeech(executable: File) extends BotPlugin {
