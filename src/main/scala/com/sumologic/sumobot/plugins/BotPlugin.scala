@@ -157,15 +157,21 @@ abstract class BotPlugin
 
   // Implementation. Most plugins should not override.
 
-  override def preStart(): Unit = {
+  override final def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[IncomingMessage])
     Bootstrap.receptionist.foreach(_ ! PluginAdded(self, help))
+    pluginPreStart()
   }
 
-  override def postStop(): Unit = {
+  protected def pluginPreStart(): Unit = {}
+
+  override final def postStop(): Unit = {
     Bootstrap.receptionist.foreach(_ ! PluginRemoved(self))
     context.system.eventStream.unsubscribe(self)
+    pluginPostStop()
   }
+
+  protected def pluginPostStop(): Unit = {}
 
   private final def receiveIncomingMessageInternal: ReceiveIncomingMessage = receiveIncomingMessage orElse {
     case ignore =>
