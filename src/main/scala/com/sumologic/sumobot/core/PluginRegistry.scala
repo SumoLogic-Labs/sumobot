@@ -19,8 +19,11 @@
 package com.sumologic.sumobot.core
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.sumologic.sumobot.core.PluginRegistry.{RequestPluginList, Plugin, PluginList}
+import com.sumologic.sumobot.core.PluginRegistry.{EnsureRequiredPlugins, RequestPluginList, Plugin, PluginList}
 import com.sumologic.sumobot.plugins.BotPlugin.{PluginAdded, PluginRemoved}
+import collection.JavaConverters._
+
+import scala.util.Try
 
 object PluginRegistry {
 
@@ -28,6 +31,8 @@ object PluginRegistry {
 
   case object RequestPluginList
   case class PluginList(plugins: Seq[Plugin])
+
+  case object EnsureRequiredPlugins
 }
 
 class PluginRegistry extends Actor with ActorLogging {
@@ -51,5 +56,16 @@ class PluginRegistry extends Actor with ActorLogging {
 
     case RequestPluginList =>
       sender() ! PluginList(list)
+
+    case EnsureRequiredPlugins =>
+      val requiredPlugins: Seq[String] = Try(context.system.settings.config.getStringList("plugins.required").asScala).
+        toOption.getOrElse(List.empty)
+      val missing = requiredPlugins.filterNot(r => list.exists(_.plugin.path.name == r))
+      if (missing.nonEmpty) {
+        log.error(s"REQUIRED PLUGINS MISSING:\n${missing.sorted.mkString("\n")}")
+        context.system.shutdown()
+      } else {
+        log.info("All required plugins have been registered.")
+      }
   }
 }

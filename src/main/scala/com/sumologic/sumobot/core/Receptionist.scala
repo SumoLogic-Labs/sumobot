@@ -19,12 +19,14 @@
 package com.sumologic.sumobot.core
 
 import akka.actor._
-import com.sumologic.sumobot.core.Receptionist.{RtmStateResponse, RtmStateRequest}
+import com.sumologic.sumobot.core.PluginRegistry.EnsureRequiredPlugins
+import com.sumologic.sumobot.core.Receptionist.{BootstrapComplete, RtmStateResponse, RtmStateRequest}
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.models.{MessageWithSubtype, ImOpened, Message}
 import slack.rtm.{RtmState, SlackRtmClient}
 import slack.rtm.SlackRtmConnectionActor.SendMessage
+import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -33,6 +35,8 @@ object Receptionist {
   case class RtmStateRequest(sendTo: ActorRef)
 
   case class RtmStateResponse(rtmState: RtmState)
+
+  case object BootstrapComplete
 
   def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
     Props(classOf[Receptionist], rtmClient, brain)
@@ -103,6 +107,9 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
+
+    case BootstrapComplete =>
+      context.system.scheduler.scheduleOnce(30.seconds, pluginRegistry, EnsureRequiredPlugins)
   }
 
   protected def translateMessage(channelId: String, userId: String, text: String): IncomingMessage = {
