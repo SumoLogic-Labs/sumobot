@@ -19,7 +19,8 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestActorRef}
+import akka.testkit.{TestActorRef, TestKit}
+import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.test.{MatchTextUtil, SumoBotSpec}
 import org.scalatest.BeforeAndAfterAll
 
@@ -27,28 +28,35 @@ import org.scalatest.BeforeAndAfterAll
  * @author Chris (chris@sumologic.com)
  */
 class PagerDutyTest
-    extends TestKit(ActorSystem("PagerDutyTest"))
-    with SumoBotSpec
-    with BeforeAndAfterAll
-    with MatchTextUtil {
+  extends TestKit(ActorSystem("PagerDutyTest"))
+  with SumoBotSpec
+  with BeforeAndAfterAll
+  with MatchTextUtil {
 
   "PagerDuty.WhosOnCall" should {
     "match expected input" in {
-      val actorRef = TestActorRef(new PagerDuty(null, None))
-      val sut = actorRef.underlyingActor //new PagerDuty(null)
-
-      shouldMatch(sut.WhosOnCall, "who's on call?")
-      shouldMatch(sut.WhosOnCall, "who's on call")
-      shouldMatch(sut.WhosOnCall, "who's oncall?")
-      shouldMatch(sut.WhosOnCall, "who's oncall")
-      shouldMatch(sut.WhosOnCall, "whos oncall")
+      shouldMatch(PagerDuty.WhosOnCall, "who's on call?")
+      shouldMatch(PagerDuty.WhosOnCall, "who's on call")
+      shouldMatch(PagerDuty.WhosOnCall, "who's oncall?")
+      shouldMatch(PagerDuty.WhosOnCall, "who's oncall")
+      shouldMatch(PagerDuty.WhosOnCall, "whos oncall")
 
       "who's oncall for prod?" match {
-        case sut.WhosOnCall(filter) => filter should be("prod")
+        case PagerDuty.WhosOnCall(filter) => filter should be("prod")
         case _ => fail("Did not match filter case")
       }
 
-      shouldNotMatch(sut.WhosOnCall, "test")
+      shouldNotMatch(PagerDuty.WhosOnCall, "test")
+    }
+  }
+
+  "various regexes" should {
+
+    "page on-calls" in {
+      shouldMatch(PagerDuty.PageOnCalls, "page oncalls something")
+      shouldMatch(PagerDuty.PageOnCalls, "page on-calls something")
+      shouldMatch(PagerDuty.PageOnCalls, "page on-calls: something")
+      shouldMatch(PagerDuty.PageOnCalls, "page oncalls: something")
     }
   }
 

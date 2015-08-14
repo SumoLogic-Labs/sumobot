@@ -30,6 +30,11 @@ trait EscalationPolicyFilter {
   def filter(message: IncomingMessage, policies: Seq[PagerDutyEscalationPolicy]): Seq[PagerDutyEscalationPolicy]
 }
 
+object PagerDuty {
+  val PageOnCalls = BotPlugin.matchText("page on[\\-]?calls[\\:]? (.*)")
+  val WhosOnCall = BotPlugin.matchText("who'?s on\\s?call(?: for (.+?))?\\??")
+}
+
 /**
  * @author Chris (chris@sumologic.com)
  */
@@ -51,9 +56,7 @@ class PagerDuty(manager: PagerDutySchedulesManager,
 
   private val eventApi = new PagerDutyEventApi()
 
-  @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
-
-  private val PageOnCalls = matchText("page on[\\-]?calls[\\:]? (.*)")
+  import PagerDuty._
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
     case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
