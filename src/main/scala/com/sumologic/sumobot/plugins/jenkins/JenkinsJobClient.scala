@@ -19,12 +19,14 @@
 package com.sumologic.sumobot.plugins.jenkins
 
 import java.net.{URI, URLEncoder}
+import java.util.concurrent.TimeUnit
 
 import akka.event.Logging
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.core.Bootstrap
+import com.sumologic.sumobot.core.util.TimeHelpers
 import com.sumologic.sumobot.plugins.Emotions
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
@@ -35,11 +37,13 @@ import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 class JenkinsJobClient(val configuration: JenkinsConfiguration)
-  extends Emotions {
+  extends Emotions
+  with TimeHelpers {
 
   private val log = Logging.getLogger(Bootstrap.system, this)
   import configuration._
@@ -55,7 +59,7 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
 
   private val server = new JenkinsServer(basicAuthClient)
 
-  private val CacheExpiration = Bootstrap.system.settings.config.getInt(s"plugins.jenkins.cache.expiration.seconds") * 1000
+  private val CacheExpiration = Duration(Bootstrap.system.settings.config.getInt(s"plugins.jenkins.cache.expiration.seconds"), TimeUnit.SECONDS)
   private val cacheLock = new AnyRef
   private var cachedJobs: Option[Map[String, Job]] = None
   private var lastCacheTime = 0l
@@ -99,9 +103,9 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
 
   def jobs: Map[String, Job] = {
     cacheLock synchronized {
-      if (cachedJobs.isEmpty || System.currentTimeMillis() - lastCacheTime > CacheExpiration) {
+      if (cachedJobs.isEmpty || elapsedSince(lastCacheTime) > CacheExpiration) {
         cachedJobs = Some(server.getJobs.asScala.toMap)
-        lastCacheTime = System.currentTimeMillis()
+        lastCacheTime = now
       }
     }
 

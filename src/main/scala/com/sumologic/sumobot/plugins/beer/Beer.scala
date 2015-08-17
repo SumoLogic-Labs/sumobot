@@ -19,11 +19,12 @@
 package com.sumologic.sumobot.plugins.beer
 
 import com.sumologic.sumobot.core.model.IncomingMessage
+import com.sumologic.sumobot.core.util.TimeHelpers
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.util.Random
 
-class Beer extends BotPlugin {
+class Beer extends BotPlugin with TimeHelpers {
 
   override protected def help: String = "I'll voice my opinion about certain beverages when appropriate."
 
@@ -43,7 +44,6 @@ class Beer extends BotPlugin {
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
     case message@IncomingMessage(BeerMention(beer), _, _, _) =>
-      val now = System.currentTimeMillis()
       if (now - lastChimedIn > 60000 && Random.nextInt(10) < 8) {
         lastChimedIn = now
         message.say(chooseRandom(BeerPhrases: _*))
