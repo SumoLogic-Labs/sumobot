@@ -22,6 +22,7 @@ import akka.actor.ActorLogging
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.services.support.AWSSupportClient
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
+import com.sumologic.sumobot.core.aws.AWSAccounts
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
@@ -29,11 +30,14 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
-class AWSSupport(credentials: Map[String, AWSCredentials])
+class AWSSupport
   extends BotPlugin
   with ActorLogging {
 
   case class CaseInAccount(account: String, caseDetails: CaseDetails)
+
+  private val credentials: Map[String, AWSCredentials] =
+    AWSAccounts.load(context.system.settings.config)
 
   private val clients = credentials.map(tpl => tpl._1 -> new AWSSupportClient(tpl._2))
 
@@ -93,9 +97,10 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   private def details(cia: CaseInAccount): String = {
     val latest = cia.caseDetails.getRecentCommunications.getCommunications.asScala.head
-    summary(cia) + "\n\n" + s"""
-                               |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
-                                                                                       |${latest.getBody}
+    summary(cia) + "\n\n" +
+      s"""
+         |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
+         |${latest.getBody}
     """.stripMargin
   }
 }

@@ -19,8 +19,7 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
-import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.core.model.{PublicChannel, IncomingMessage, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, PublicChannel}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,8 +37,7 @@ object PagerDuty {
 /**
  * @author Chris (chris@sumologic.com)
  */
-class PagerDuty(manager: PagerDutySchedulesManager,
-                policyFilter: Option[EscalationPolicyFilter]) extends BotPlugin with ActorLogging {
+class PagerDuty extends BotPlugin with ActorLogging {
 
   override protected def help: String =
     """
@@ -54,7 +52,20 @@ class PagerDuty(manager: PagerDutySchedulesManager,
 
   private val ignoreTest = true // Ignore policies containing the word test
 
+  private val manager = new PagerDutySchedulesManager(
+    PagerDutySettings(config.getString("token"), config.getString("url")))
+
   private val eventApi = new PagerDutyEventApi()
+
+  private val policyFilter: Option[EscalationPolicyFilter] =
+    Try(config.getString("policy-filter")).toOption.
+      map {
+      n =>
+        println(s"CLASS NAME: $n")
+        val clazz = Class.forName(n)
+        println(s"INSTANTIATING ${clazz.getName}")
+        clazz.newInstance().asInstanceOf[EscalationPolicyFilter]
+    }
 
   import PagerDuty._
 
@@ -63,7 +74,7 @@ class PagerDuty(manager: PagerDutySchedulesManager,
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
 
     case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), _) =>
-      pagerDutyKeyFor(channel) match  {
+      pagerDutyKeyFor(channel) match {
         case Some(key) =>
           eventApi.page(channel, key, s"${message.sentByUser.name} on $channel: $text")
           message.say("Paged on-calls.")

@@ -28,12 +28,7 @@ import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Jenkins {
-  def props(client: JenkinsJobClient): Props =
-    Props(classOf[Jenkins], client)
-}
-
-class Jenkins(client: JenkinsJobClient)
+class Jenkins
   extends BotPlugin
   with JenkinsJobHelpers
   with ActorLogging {
@@ -56,6 +51,8 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
   private val MonitorJob = matchText(s"$name monitor (\\S+)")
   private val UnmonitorJob = matchText(s"$name unmonitor (\\S+)")
   private val Info = matchText(s"$name info")
+
+  private val client: JenkinsJobClient = new JenkinsJobClient(JenkinsConfiguration.load(config))
 
   private var monitoredJobs = Map.empty[String, ActorRef]
 

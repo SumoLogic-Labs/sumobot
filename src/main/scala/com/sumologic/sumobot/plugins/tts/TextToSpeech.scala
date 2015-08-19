@@ -25,16 +25,14 @@ import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.sys.process._
+import scala.util.Try
 
-object TextToSpeech {
-  def propsOption: Option[Props] =
-    Option(new File("/usr/bin/say")).
-      filter(_.isFile).
-      filter(_.canExecute).
-      map(Props(classOf[TextToSpeech], _))
-}
+class TextToSpeech extends BotPlugin {
 
-class TextToSpeech(executable: File) extends BotPlugin {
+  private val executable: Option[File] = Try(config.getString("executable")).
+    toOption.
+    map(e => new File(e)).
+    filter(_.canExecute)
 
   override protected def help: String =
     s"""I can say stuff over the loudspeaker.
@@ -42,17 +40,15 @@ class TextToSpeech(executable: File) extends BotPlugin {
        |speak "some text" - Will get me to say the text out loud.
      """.stripMargin
 
-  require(executable.canExecute, s"$executable is not executable by me.")
-
   private val SaySomething = matchText("(speak|say) \"(.*)\"")
   private val BadChars = "|\"".toCharArray.toSet
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(SaySomething(_, text), true, _, _) =>
+    case message@IncomingMessage(SaySomething(_, text), true, _, _) if executable.isDefined =>
       val cleanedText = text.toCharArray.filterNot(BadChars.contains).mkString
       // Deliberately blocking the actor thread here, so only one say action is happening at the same time.
       log.info(s"Speaking: $cleanedText")
-      val command = s"${executable.getAbsolutePath} " + "\"" + cleanedText + "\""
+      val command = s"${executable.get.getAbsolutePath} " + "\"" + cleanedText + "\""
       command.run().exitValue()
   }
 }

@@ -16,28 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.plugins.jenkins
+package com.sumologic.sumobot.plugins
 
+import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.core.config.ListOfConfigs
-import com.typesafe.config.Config
 
 import scala.util.Try
 
-case class JenkinsConfiguration(name: String,
-                                url: String,
-                                username: String,
-                                password: String,
-                                buildToken: Option[String])
+object PluginsFromConfig extends PluginCollection {
+  override def setup(implicit system: ActorSystem): Unit = {
 
-object JenkinsConfigurations {
-  def load(config: Config): Map[String, JenkinsConfiguration] = {
-    ListOfConfigs.parse(config, "plugins.jenkins.connections") {
-      (name, connectionConfig) =>
-        val url = connectionConfig.getString("url")
-        val username = connectionConfig.getString("username")
-        val password = connectionConfig.getString("password")
-        val buildToken = Try(connectionConfig.getString("build.token")).toOption
-        JenkinsConfiguration(name, url, username, password, buildToken)         
+    val plugins: Map[String, Option[Props]] = ListOfConfigs.parse(system.settings.config, "plugins") {
+      (name, pluginConfig) =>
+        Try(pluginConfig.getString("class")).toOption.map {
+          className =>
+            Props(Class.forName(className))
+        }
+    }
+
+    plugins.filter(_._2.isDefined).foreach {
+      tpl =>
+        addPlugin(tpl._1, tpl._2.get)
     }
   }
 }

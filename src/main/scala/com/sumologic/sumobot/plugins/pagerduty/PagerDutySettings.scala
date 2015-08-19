@@ -18,19 +18,4 @@
  */
 package com.sumologic.sumobot.plugins.pagerduty
 
-import com.typesafe.config.Config
-
-import scala.util.Try
-
-object PagerDutySettings {
-  def load(config: Config): Option[PagerDutySettings] = {
-    Try {
-      PagerDutySettings(
-        token = config.getString("plugins.pagerduty.token"),
-        url = config.getString("plugins.pagerduty.url")
-      )
-    }.toOption
-  }
-}
-
 case class PagerDutySettings(token: String, url: String)

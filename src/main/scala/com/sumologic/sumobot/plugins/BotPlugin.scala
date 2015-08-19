@@ -26,6 +26,7 @@ import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.quartz.QuartzExtension
+import com.typesafe.config.Config
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import org.apache.http.impl.client.DefaultHttpClient
@@ -151,9 +152,11 @@ abstract class BotPlugin
 
   protected def urlEncode(string: String): String = URLEncoder.encode(string, "utf-8")
 
-  def scheduleActorMessage(name: String, cronExpression: String, message: AnyRef): Unit = {
+  protected def scheduleActorMessage(name: String, cronExpression: String, message: AnyRef): Unit = {
     QuartzExtension(context.system).scheduleMessage(name, cronExpression, self, message)
   }
+
+  protected def config: Config = context.system.settings.config.getConfig(s"plugins.${self.path.name}")
 
   // Implementation. Most plugins should not override.
 

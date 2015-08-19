@@ -16,14 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot
+package com.sumologic.sumobot.plugins.jenkins
 
-import akka.actor.Props
-import com.sumologic.sumobot.brain.InMemoryBrain
-import com.sumologic.sumobot.core.Bootstrap
-import com.sumologic.sumobot.plugins.PluginsFromConfig
+import com.typesafe.config.Config
 
+import scala.util.Try
 
-object Main extends App {
-  Bootstrap.bootstrap(Props(classOf[InMemoryBrain]), PluginsFromConfig)
+case class JenkinsConfiguration(url: String,
+                                username: String,
+                                password: String,
+                                buildToken: Option[String])
+
+object JenkinsConfiguration {
+  def load(config: Config): JenkinsConfiguration = {
+    val url = config.getString("url")
+    val username = config.getString("username")
+    val password = config.getString("password")
+    val buildToken = Try(config.getString("build.token")).toOption
+    JenkinsConfiguration(url, username, password, buildToken)
+  }
 }

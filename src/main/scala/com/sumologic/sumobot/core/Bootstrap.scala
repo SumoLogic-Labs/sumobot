@@ -21,11 +21,11 @@ package com.sumologic.sumobot.core
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.sumologic.sumobot.core.Receptionist.BootstrapComplete
 import com.sumologic.sumobot.plugins.PluginCollection
 import com.typesafe.config.ConfigFactory
 import slack.rtm.SlackRtmClient
-import concurrent.duration._
+
+import scala.concurrent.duration._
 
 object Bootstrap {
 
@@ -46,8 +46,6 @@ object Bootstrap {
     receptionist = Some(system.actorOf(Receptionist.props(rtmClient, brain), "receptionist"))
 
     pluginCollections.par.foreach(_.setup)
-
-    receptionist.foreach(_ ! BootstrapComplete)
 
     sys.addShutdownHook(shutdownActorSystem())
   }
