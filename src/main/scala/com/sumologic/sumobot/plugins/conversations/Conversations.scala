@@ -18,6 +18,9 @@
  */
 package com.sumologic.sumobot.plugins.conversations
 
+import java.text.DateFormat
+import java.util.Date
+
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.core._
 import com.sumologic.sumobot.core.model._
@@ -48,6 +51,7 @@ class Conversations extends BotPlugin with ActorLogging {
   private val Sup = matchText("sup (\\S+).*")
   private val SupAtMention = matchText(s"sup $UserId.*")
   private val FuckYou = matchText("fuck you.*")
+  private val WhatTimeIsIt = matchText("what time is it.*")
 
   private val NumberStrings =
     Array("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten")
@@ -104,6 +108,11 @@ class Conversations extends BotPlugin with ActorLogging {
 
     case message@IncomingMessage(FuckYou(), _, _, _) =>
       message.respond("This is the worst kind of discrimination there is: the kind against me!")
+
+    case message@IncomingMessage(WhatTimeIsIt(), _, _, _) =>
+      val format = DateFormat.getDateTimeInstance
+      val formatted = format.format(new Date())
+      message.respond(s"Here, it is $formatted")
   }
 
   private def tell(message: IncomingMessage, recipientUserId: String, what: String): Unit = {
