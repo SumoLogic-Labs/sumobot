@@ -38,7 +38,7 @@ object Receptionist {
     Props(classOf[Receptionist], rtmClient, brain)
 }
 
-class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
+class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor with ActorLogging {
 
   private val slack = rtmClient.actor
   private val blockingClient = rtmClient.apiClient
@@ -75,6 +75,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       pluginRegistry ! message
 
     case OutgoingMessage(channel, text) =>
+      log.info(s"sending - ${channel.name}: $text")
       slack ! SendMessage(channel.id, text)
 
     case ImOpened(user, channel) =>
