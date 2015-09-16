@@ -41,7 +41,7 @@ object Receptionist {
 class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor with ActorLogging {
 
   private val slack = rtmClient.actor
-  private val blockingClient = rtmClient.apiClient
+  private val asyncClient = rtmClient.apiClient.client
   private val selfId = rtmClient.state.self.id
   private val selfName = rtmClient.state.self.name
   rtmClient.addEventListener(self)
@@ -86,7 +86,7 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor wit
       }
 
     case OpenIM(userId, doneRecipient, doneMessage) =>
-      blockingClient.openIm(userId)
+      asyncClient.openIm(userId)
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId ->(doneRecipient, doneMessage))
 
     case message: Message =>
@@ -96,10 +96,12 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor wit
       }
 
     case edit: MessageWithSubtype if edit.subtype == "message_changed" =>
-      val message = edit.message
-      val msgToBot = translateMessage(edit.channel, message.user, message.text)
-      if (message.user != selfId) {
-        context.system.eventStream.publish(msgToBot)
+      edit.message.foreach {
+        message =>
+          val msgToBot = translateMessage(edit.channel, message.user, message.text)
+          if (message.user != selfId) {
+            context.system.eventStream.publish(msgToBot)
+          }
       }
 
     case RtmStateRequest(sendTo) =>
