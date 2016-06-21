@@ -22,39 +22,61 @@ import net.liftweb.json._
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.DefaultHttpClient
 
+import scala.collection.mutable.ArrayBuffer
+
 class PagerDutySchedulesManager(settings: PagerDutySettings) {
+  private[this] val perPage = 100
 
   def getEscalationPolicies: Option[PagerDutyEscalationPolicies] = {
-
-    def liftJson(str: String): PagerDutyEscalationPolicies = {
-      val json = JsonParser.parse(str)
-
-      val policies = for {
-        JArray(policies) <- json \\ "escalation_policies"
-        JObject(policy) <- policies
-        JField("id", JString(id)) <- policy
-        JField("name", JString(name)) <- policy
-        JField("on_call", JArray(on_calls)) <- policy
-        calls: List[PagerDutyOnCall] = on_calls.map(call => {
-          implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCall],
-            classOf[PagerDutyOnCallUser])))
-
-          call.extract[PagerDutyOnCall]
-
-        })
-      } yield PagerDutyEscalationPolicy(id, name, calls)
-
-      PagerDutyEscalationPolicies(policies)
+    var page = 0
+    var total = Integer.MAX_VALUE
+    val policies = ArrayBuffer[PagerDutyEscalationPolicy]()
+    while (page * perPage < total) {
+      val (newPolicies, newTotal) = usersForPage(page)
+      total = newTotal
+      policies ++= newPolicies
+      page += 1
     }
 
-    getPagerDutyJson("escalation_policies/on_call").map(liftJson)
+    if (policies.isEmpty) {
+      None
+    } else {
+      Some(PagerDutyEscalationPolicies(policies.toList))
+    }
   }
 
-  private def getPagerDutyJson(command: String): Option[String] = {
+  private def usersForPage(page: Int): (Seq[PagerDutyEscalationPolicy], Int) = {
+    val str = getPagerDutyJson("escalation_policies/on_call", page * perPage).getOrElse {
+      return (Seq.empty, 0)
+    }
+
+    val json = JsonParser.parse(str)
+
+    val policies: Seq[PagerDutyEscalationPolicy] = for {
+      JArray(policies) <- json \\ "escalation_policies"
+      JObject(policy) <- policies
+      JField("id", JString(id)) <- policy
+      JField("name", JString(name)) <- policy
+      JField("on_call", JArray(on_calls)) <- policy
+      calls: List[PagerDutyOnCall] = on_calls.map(call => {
+        implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCall],
+          classOf[PagerDutyOnCallUser])))
+
+        call.extract[PagerDutyOnCall]
+
+      })
+    } yield PagerDutyEscalationPolicy(id, name, calls)
+
+    val JInt(total) = json \ "total"
+
+    (policies, total.intValue())
+  }
+
+  private def getPagerDutyJson(command: String, offset: Int): Option[String] = {
     val client = new DefaultHttpClient()
     try {
 
-      val url = s"${settings.url}/api/v1/$command"
+      val url = s"${settings.url}/api/v1/$command?offset=$offset&limit=$perPage"
       val getReq = new HttpGet(url)
 
       getReq.addHeader("content-type", "application/json")
