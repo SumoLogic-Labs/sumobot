@@ -46,7 +46,7 @@ class Conversations extends BotPlugin with ActorLogging {
   private val TellTo = matchText(s"tell $UserId to (.*)")
   private val TellHe = matchText(s"tell $UserId he (.*)")
   private val TellShe = matchText(s"tell $UserId she (.*)")
-  private val SayInChannel = matchText("say in <#(C\\w+)>[:]?(.*)")
+  private val SayInChannel = matchText(s"say in $ChannelId[:]?(.*)")
   private val FuckOff = matchText("fuck off.*")
   private val Sup = matchText("sup (\\S+).*")
   private val SupAtMention = matchText(s"sup $UserId.*")
