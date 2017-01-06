@@ -60,10 +60,10 @@ class JiraUserMappingTest(_system: ActorSystem)
 
   val ref = system.actorOf(Props(classOf[JiraUserMapping], jiraClient))
 
-  private val self = new SlackUser("U123", "bender", None, None, None, None, None, None, None, None, None, None)
-  private val slackUserObject = new SlackUser("U124", "firstlast", None, None, None, None, None, None, None, None, None, None)
-  private val team = new Team("T123", "testers", "example.com", 1, false, null, "no plan")
-  private val channel = new Channel("C123", "slack_test", 1, self.id, Some(false), Some(true), Some(false), None, None, None, None, None, None, None,None, None)
+  private val self = new SlackUser("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val slackUserObject = new SlackUser("U124", "firstlast", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val team = new Team("T123", "testers", "example.com", "example.com", 1, false, null, "no plan")
+  private val channel = new Channel("C123", "slack_test", 1, self.id, Some(false), Some(true), Some(false), None, None, None, None, None, None, None,None, None, None, None)
   private val im = new Im("I123", true, slackUserObject.id, 1, None)
   private val startState = new RtmStartState("http://nothing/", self, team, users = List(self, slackUserObject), channels = List(channel), List.empty, ims = List(im), List.empty)
 
