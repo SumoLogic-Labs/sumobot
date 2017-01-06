@@ -41,10 +41,10 @@ class ReceptionistTest
   with BeforeAndAfterEach
   with BeforeAndAfterAll {
 
-  private val self = new User("U123", "bender", None, None, None, None, None, None, None, None, None, None)
-  private val somebodyElse = new User("U124", "dude", None, None, None, None, None, None, None, None, None, None)
-  private val team = new Team("T123", "testers", "example.com", 1, false, null, "no plan")
-  private val channel = new Channel("C123", "slack_test", 1, self.id, Some(false), Some(true), Some(false), None, None, None, None, None, None, None, None, None)
+  private val self = new User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val somebodyElse = new User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val team = new Team("T123", "testers", "example.com", "example.com", 1, false, null, "no plan")
+  private val channel = new Channel("C123", "slack_test", 1, self.id, Some(false), Some(true), Some(false), None, None, None, None, None, None, None, None, None, None, None)
   private val im = new Im("I123", true, somebodyElse.id, 1, None)
   private val startState = new RtmStartState("http://nothing/", self, team, users = List(self, somebodyElse), channels = List(channel), List.empty, ims = List(im), List.empty)
 
