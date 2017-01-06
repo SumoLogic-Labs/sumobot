@@ -132,6 +132,8 @@ abstract class BotPlugin
 
   protected val UserId = "<@(\\w+)>"
 
+  protected val ChannelId = "<#(C\\w+)\\|\\w+>"
+
   protected def mention(user: User): String = s"<@${user.id}>"
 
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
