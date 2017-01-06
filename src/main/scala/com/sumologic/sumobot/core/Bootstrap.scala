@@ -25,6 +25,7 @@ import com.sumologic.sumobot.plugins.PluginCollection
 import com.typesafe.config.ConfigFactory
 import slack.rtm.SlackRtmClient
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object Bootstrap {
@@ -51,8 +52,7 @@ object Bootstrap {
   }
 
   private def shutdownActorSystem(): Unit = {
-    system.shutdown()
-    system.awaitTermination()
+    Await.result(system.terminate(), Duration.Inf)
   }
 
   def shutdown(): Unit = {
