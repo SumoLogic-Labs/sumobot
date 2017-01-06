@@ -22,7 +22,7 @@ import akka.actor._
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import slack.models.{ImOpened, Message, MessageWithSubtype}
+import slack.models.{ImOpened, Message, MessageChanged}
 import slack.rtm.SlackRtmConnectionActor.SendMessage
 import slack.rtm.{RtmState, SlackRtmClient}
 
@@ -95,13 +95,11 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor wit
         context.system.eventStream.publish(msgToBot)
       }
 
-    case edit: MessageWithSubtype if edit.subtype == "message_changed" =>
-      edit.message.foreach {
-        message =>
-          val msgToBot = translateMessage(edit.channel, message.user, message.text)
-          if (message.user != selfId) {
-            context.system.eventStream.publish(msgToBot)
-          }
+    case messageChanged: MessageChanged =>
+      val message = messageChanged.message
+      val msgToBot = translateMessage(messageChanged.channel, message.user, message.text)
+      if (message.user != selfId) {
+        context.system.eventStream.publish(msgToBot)
       }
 
     case RtmStateRequest(sendTo) =>

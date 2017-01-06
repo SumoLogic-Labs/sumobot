@@ -46,7 +46,7 @@ class BotPluginTestKit(_system: ActorSystem)
   }
 
   protected def mockUser(id: String, name: String): User = {
-    User(id, name, None, None, None, None, None, None, None, None, None, None)
+    User(id, name, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   }
 
   protected def send(message: IncomingMessage): Unit = {
