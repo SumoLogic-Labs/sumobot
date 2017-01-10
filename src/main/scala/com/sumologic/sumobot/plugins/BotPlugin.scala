@@ -132,7 +132,7 @@ abstract class BotPlugin
 
   protected val UserId = "<@(\\w+)>"
 
-  protected val ChannelId = "<#(C\\w+)\\|\\w+>"
+  protected val ChannelId = "<#(C\\w+)\\|.*>"
 
   protected def mention(user: User): String = s"<@${user.id}>"
 
