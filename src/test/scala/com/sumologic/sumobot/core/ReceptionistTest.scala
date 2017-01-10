@@ -101,6 +101,13 @@ class ReceptionistTest
       result.addressedToUs should be(false)
     }
 
+    "route message when timestamp cannot be parsed" in {
+      sut ! new Message("humbug", channel.id, somebodyElse.id, "just a message", None)
+      val result = probe.expectMsgClass(classOf[IncomingMessage])
+      result.canonicalText should be("just a message")
+      result.addressedToUs should be(false)
+    }
+
     "drop a message" when {
 
       "the time stamp is older than 60 seconds" in {
