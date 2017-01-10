@@ -49,6 +49,9 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor wit
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
   private val simpleNamePrefix = """(\w+)\:?\s(.*)""".r
+  private val tsPattern = "(\\d+)\\.(\\d+)".r
+
+  private val messageAgeLimitMillis = 60 * 1000
 
   private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
 
@@ -89,18 +92,12 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor wit
       asyncClient.openIm(userId)
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId ->(doneRecipient, doneMessage))
 
-    case message: Message =>
-      val msgToBot = translateMessage(message.channel, message.user, message.text)
-      if (message.user != selfId) {
-        context.system.eventStream.publish(msgToBot)
-      }
+    case message: Message if !tooOld(message.ts, message) =>
+      translateAndDispatch(message.channel, message.user, message.text)
 
-    case messageChanged: MessageChanged =>
+    case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) =>
       val message = messageChanged.message
-      val msgToBot = translateMessage(messageChanged.channel, message.user, message.text)
-      if (message.user != selfId) {
-        context.system.eventStream.publish(msgToBot)
-      }
+      translateAndDispatch(messageChanged.channel, message.user, message.text)
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
@@ -121,6 +118,31 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor wit
         IncomingMessage(text.trim, true, channel, sentByUser)
       case _ =>
         IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, sentByUser)
+    }
+  }
+
+  private def translateAndDispatch(channelId: String, userId: String, text: String): Unit = {
+    val msgToBot = translateMessage(channelId, userId, text)
+    if (userId != selfId) {
+      log.info(s"Dispatching message: $msgToBot")
+      context.system.eventStream.publish(msgToBot)
+    }
+  }
+
+  // NOTE(stefan, 2017-01-09): This check is required because I've seen the API send us some old messages
+  // at times that I can't explain to myself.
+  private def tooOld(ts: String, message: AnyRef): Boolean = {
+    ts match {
+      case tsPattern(timeOfMessage, _) =>
+        val oldestAllowableMessageTime = (System.currentTimeMillis() - messageAgeLimitMillis)/1000
+        val messageTooOld = timeOfMessage.toLong < oldestAllowableMessageTime
+        if (messageTooOld) {
+          log.warning(s"Discarding old message ($ts is too old, cutoff is $oldestAllowableMessageTime): $message")
+        }
+        messageTooOld
+      case other: String =>
+        log.warning(s"Could not parse ts: '$other'")
+        false
     }
   }
 }

@@ -62,21 +62,21 @@ class ReceptionistTest
   "Receptionist" should {
     "mark messages as addressed to us" when {
       "message starts with @mention" in {
-        sut ! new Message("", channel.id, somebodyElse.id, s"<@${self.id}> hello dude1", None)
+        sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, s"<@${self.id}> hello dude1", None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude1")
         result.addressedToUs should be(true)
       }
 
-      "message stars with our name" in {
-        sut ! new Message("", channel.id, somebodyElse.id, s"${self.name} hello dude2", None)
+      "message starts with our name" in {
+        sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, s"${self.name} hello dude2", None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude2")
         result.addressedToUs should be(true)
       }
 
       "message is an instant message" in {
-        sut ! new Message("", im.id, somebodyElse.id, "hello dude3", None)
+        sut ! new Message(currentTimeStamp, im.id, somebodyElse.id, "hello dude3", None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude3")
         result.addressedToUs should be(true)
@@ -84,22 +84,50 @@ class ReceptionistTest
     }
 
     "mark message as not addressed to us otherwise" in {
-      sut ! new Message("", im.id, somebodyElse.id, "just a message", None)
+      sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, "just a message", None)
       val result = probe.expectMsgClass(classOf[IncomingMessage])
       result.canonicalText should be("just a message")
-      result.addressedToUs should be(true)
+      result.addressedToUs should be(false)
     }
 
-    "drop the message if it originated from our user" in {
-      sut ! new Message("", channel.id, self.id, s"This is me!", None)
-      probe.expectNoMsg(1.second)
+    "re-interpret messages that were updated" in {
+
+      val previousMessage = new EditMessage(somebodyElse.id, "previous message", currentTimeStamp)
+      val newMessage = new EditMessage(somebodyElse.id, "hello dude4", currentTimeStamp)
+
+      sut ! MessageChanged(newMessage, previousMessage, currentTimeStamp, currentTimeStamp, channel.id)
+      val result = probe.expectMsgClass(classOf[IncomingMessage])
+      result.canonicalText should be("hello dude4")
+      result.addressedToUs should be(false)
+    }
+
+    "route message when timestamp cannot be parsed" in {
+      sut ! new Message("humbug", channel.id, somebodyElse.id, "just a message", None)
+      val result = probe.expectMsgClass(classOf[IncomingMessage])
+      result.canonicalText should be("just a message")
+      result.addressedToUs should be(false)
+    }
+
+    "drop a message" when {
+
+      "the time stamp is older than 60 seconds" in {
+        val now = System.currentTimeMillis()
+        val tooLongAgo = (now - (1000 * 61))/1000
+        sut ! new Message(s"$tooLongAgo.000005", im.id, somebodyElse.id, "just a message", None)
+        probe.expectNoMsg(1.second)
+      }
+
+      "it originated from our user" in {
+        sut ! new Message(currentTimeStamp, channel.id, self.id, s"This is me!", None)
+        probe.expectNoMsg(1.second)
+      }
     }
 
     "initialize plugins that are added" in {
       sut ! PluginAdded(probe.ref, "")
       val initMessage = probe.expectMsgClass(classOf[InitializePlugin])
-      initMessage.brain should be (brain)
-      initMessage.state should be (state)
+      initMessage.brain should be(brain)
+      initMessage.state should be(state)
       initMessage.pluginRegistry should not be (null)
     }
 
@@ -115,6 +143,8 @@ class ReceptionistTest
       probe.expectMsgClass(classOf[RtmStateResponse])
     }
   }
+
+  private def currentTimeStamp: String = s"${System.currentTimeMillis()/1000}.000001"
 
   override protected def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
