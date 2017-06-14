@@ -27,71 +27,46 @@ import scala.collection.mutable.ArrayBuffer
 class PagerDutySchedulesManager(settings: PagerDutySettings) {
   private[this] val perPage = 100
 
-  def getEscalationPolicies: Option[PagerDutyEscalationPolicies] = {
-    var page = 0
-    var total = Integer.MAX_VALUE
-    val policies = ArrayBuffer[PagerDutyEscalationPolicy]()
-    while (page * perPage < total) {
-      val (newPolicies, newTotal) = usersForPage(page)
-      total = newTotal
-      policies ++= newPolicies
-      page += 1
-    }
-
-    if (policies.isEmpty) {
-      None
-    } else {
-      Some(PagerDutyEscalationPolicies(policies.toList))
-    }
-  }
-
-  private def usersForPage(page: Int): (Seq[PagerDutyEscalationPolicy], Int) = {
-    val str = getPagerDutyJson("escalation_policies/on_call", page * perPage).getOrElse {
-      return (Seq.empty, 0)
-    }
-
-    val json = JsonParser.parse(str)
-
-    val policies: Seq[PagerDutyEscalationPolicy] = for {
-      JArray(policies) <- json \\ "escalation_policies"
-      JObject(policy) <- policies
-      JField("id", JString(id)) <- policy
-      JField("name", JString(name)) <- policy
-      JField("on_call", JArray(on_calls)) <- policy
-      calls: List[PagerDutyOnCall] = on_calls.map(call => {
-        implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCall],
-          classOf[PagerDutyOnCallUser])))
-
-        call.extract[PagerDutyOnCall]
-
-      })
-    } yield PagerDutyEscalationPolicy(id, name, calls)
-
-    val JInt(total) = json \ "total"
-
-    (policies, total.intValue())
-  }
-
-  private def getPagerDutyJson(command: String, offset: Int): Option[String] = {
+  def getAllOnCalls: Option[Seq[PagerDutyOnCall]] = {
     val client = new DefaultHttpClient()
     try {
+      var total = Integer.MAX_VALUE
+      var page = 0
+      var offset = 0
+      val onCallsList = ArrayBuffer[PagerDutyOnCall]()
+      while (page * perPage < total) {
+        val url = s"${settings.url}/oncalls?offset=$offset&limit=$perPage&total=true"
+        val getReq = new HttpGet(url)
 
-      val url = s"${settings.url}/api/v1/$command?offset=$offset&limit=$perPage"
-      val getReq = new HttpGet(url)
+        getReq.addHeader("Accept", "application/vnd.pagerduty+json;version=2")
+        getReq.addHeader("Authorization", s"Token token=${settings.token}")
 
-      getReq.addHeader("content-type", "application/json")
-      getReq.addHeader("Authorization", s"Token token=${settings.token}")
-
-      val response = client.execute(getReq)
-      val entity = response.getEntity
+        val response = client.execute(getReq)
+        val entity = response.getEntity
 
 
-      if (entity != null) {
-        val inputStream = entity.getContent
-        Some(scala.io.Source.fromInputStream(inputStream).mkString)
-      } else {
-        None
+        if (entity != null) {
+          val inputStream = entity.getContent
+          val str = Some(scala.io.Source.fromInputStream(inputStream).mkString).getOrElse {
+            return None
+          }
+
+          val json = JsonParser.parse(str)
+
+          val jsonOnCalls = json \\ "oncalls"
+          val JInt(jsonTotal) = json \\ "total"
+          total = jsonTotal.intValue()
+          page += 1
+          offset = page * perPage
+
+          implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCallUser], classOf[PagerDutyEscalationPolicy])))
+          val oncalls: List[PagerDutyOnCall] = jsonOnCalls.children.map(_.extract[PagerDutyOnCall])
+
+          onCallsList ++= oncalls
+        }
+
       }
+      Some(onCallsList.toList)
     } catch {
       case e: Exception =>
         println(e)
