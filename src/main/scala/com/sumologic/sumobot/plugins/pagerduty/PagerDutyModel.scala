@@ -21,10 +21,10 @@ package com.sumologic.sumobot.plugins.pagerduty
 case class PagerDutyEscalationPolicies(escalation_policies: List[PagerDutyEscalationPolicy])
 
 case class PagerDutyEscalationPolicy(id: String,
-                                     name: String,
-                                     on_call: List[PagerDutyOnCall])
+                                       summary: String)
 
-case class PagerDutyOnCall(level: Int,
-                           user: PagerDutyOnCallUser)
+case class PagerDutyOnCall(escalation_policy: PagerDutyEscalationPolicy,
+                             user: PagerDutyOnCallUser,
+                             escalation_level: Int)
 
-case class PagerDutyOnCallUser(name: String, email: String)
+case class PagerDutyOnCallUser(id: String, summary: String)
