@@ -24,7 +24,7 @@ import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 import org.apache.http.HttpResponse
 import org.apache.http.util.EntityUtils
-import play.libs.Json
+import play.api.libs.json.Json
 import slack.models.User
 
 class ChuckNorris extends BotPlugin {
@@ -58,8 +58,8 @@ class ChuckNorris extends BotPlugin {
   private def convertResponse(message: IncomingMessage, response: HttpResponse): OutgoingMessage = {
     if (response.getStatusLine.getStatusCode == 200) {
       val json = Json.parse(EntityUtils.toString(response.getEntity))
-      val joke = json.at("/value/joke")
-      val cleanJoke = joke.asText().
+      val joke = json \ "value" \ "joke"
+      val cleanJoke = joke.as[String].
         replaceAllLiterally("&quot;", "\"")
       message.message(cleanJoke)
     } else {

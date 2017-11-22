@@ -28,7 +28,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <scala.version.major>2.11</scala.version.major>
     <scala.version>${scala.version.major}.8</scala.version>
-    <akka.version>2.4.8</akka.version>
+    <akka.version>2.4.20</akka.version>
     <aws.sdk.version>1.10.3</aws.sdk.version>
   </properties>
 
@@ -37,7 +37,7 @@
     <dependency>
       <groupId>com.github.gilbertw1</groupId>
       <artifactId>slack-scala-client_2.11</artifactId>
-      <version>0.1.8</version>
+      <version>0.2.2</version>
     </dependency>
 
     <dependency>
@@ -99,6 +99,12 @@
       <artifactId>mockito-core</artifactId>
       <version>2.0.31-beta</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.joda</groupId>
+      <artifactId>joda-convert</artifactId>
+      <version>1.9.2</version>
     </dependency>
 
   </dependencies>
