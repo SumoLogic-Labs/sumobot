@@ -37,7 +37,7 @@
     <dependency>
       <groupId>com.github.gilbertw1</groupId>
       <artifactId>slack-scala-client_2.11</artifactId>
-      <version>0.1.8</version>
+      <version>0.2.2</version>
     </dependency>
 
     <dependency>
@@ -99,6 +99,12 @@
       <artifactId>mockito-core</artifactId>
       <version>2.0.31-beta</version>
       <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.joda</groupId>
+      <artifactId>joda-convert</artifactId>
+      <version>1.9.2</version>
     </dependency>
 
   </dependencies>

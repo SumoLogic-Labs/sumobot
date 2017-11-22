@@ -22,17 +22,15 @@ import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin
 import org.apache.http.HttpResponse
 import org.apache.http.util.EntityUtils
-import play.libs.Json
-
-import scala.collection.JavaConverters._
+import play.api.libs.json.Json
 
 object Advice {
   val AdviceAbout = BotPlugin.matchText("(what should I do about|what do you think about|how do you handle) (.*)")
   val RandomAdvice = BotPlugin.matchText("I need some advice")
 
   private[advice] def parseResponse(response: HttpResponse): Seq[String] = {
-    val json = Json.parse(EntityUtils.toString(response.getEntity))
-    json.findValues("advice").asScala.map(_.asText())
+    val json = Json.toJson(EntityUtils.toString(response.getEntity))
+    (json \\ "advice").map(_.as[String])
   }
 }
 
