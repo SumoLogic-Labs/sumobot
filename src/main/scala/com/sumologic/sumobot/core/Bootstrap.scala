@@ -23,6 +23,7 @@ import java.io.File
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.sumologic.sumobot.plugins.PluginCollection
 import com.typesafe.config.ConfigFactory
+import slack.api.{BlockingSlackApiClient, SlackApiClient}
 import slack.rtm.SlackRtmClient
 
 import scala.concurrent.Await
@@ -43,8 +44,14 @@ object Bootstrap {
       token = slackConfig.getString("api.token"),
       duration = slackConfig.getInt("connect.timeout.seconds").seconds)
 
+    val syncClient = BlockingSlackApiClient(
+      token = slackConfig.getString("api.token"),
+      duration = slackConfig.getInt("connect.timeout.seconds").seconds)
+    val asyncClient = SlackApiClient(
+      token = slackConfig.getString("api.token")
+    )
     val brain = system.actorOf(brainProps, "brain")
-    receptionist = Some(system.actorOf(Receptionist.props(rtmClient, brain), "receptionist"))
+    receptionist = Some(system.actorOf(Receptionist.props(rtmClient, syncClient, asyncClient, brain), "receptionist"))
 
     pluginCollections.par.foreach(_.setup)
 

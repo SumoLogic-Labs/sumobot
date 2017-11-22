@@ -21,14 +21,14 @@ package com.sumologic.sumobot.core
 import akka.actor.{ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
-import com.sumologic.sumobot.core.Receptionist.{RtmStateResponse, RtmStateRequest}
-import com.sumologic.sumobot.core.model.{OpenIM, IncomingMessage}
+import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.test.SumoBotSpec
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import slack.api.{BlockingSlackApiClient, RtmStartState}
+import slack.api.{BlockingSlackApiClient, RtmStartState, SlackApiClient}
 import slack.models._
 import slack.rtm.{RtmState, SlackRtmClient}
 
@@ -49,34 +49,34 @@ class ReceptionistTest
   private val startState = new RtmStartState("http://nothing/", self, team, users = List(self, somebodyElse), channels = List(channel), List.empty, ims = List(im), List.empty)
 
   val state = new RtmState(startState)
-  val client = mock[SlackRtmClient]
-  val blockingClient = mock[BlockingSlackApiClient]
-  when(client.state).thenReturn(state)
-  when(client.apiClient).thenReturn(blockingClient)
+  val rtmClient = mock[SlackRtmClient]
+  val syncClient = mock[BlockingSlackApiClient]
+  val asyncClient = mock[SlackApiClient]
+  when(rtmClient.state).thenReturn(state)
 
   private val probe = new TestProbe(system)
   system.eventStream.subscribe(probe.ref, classOf[IncomingMessage])
   private val brain = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
-  private val sut = system.actorOf(Props(classOf[Receptionist], client, brain))
+  private val sut = system.actorOf(Props(classOf[Receptionist], rtmClient, syncClient, asyncClient, brain))
 
   "Receptionist" should {
     "mark messages as addressed to us" when {
       "message starts with @mention" in {
-        sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, s"<@${self.id}> hello dude1", None)
+        sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, s"<@${self.id}> hello dude1", None, None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude1")
         result.addressedToUs should be(true)
       }
 
       "message starts with our name" in {
-        sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, s"${self.name} hello dude2", None)
+        sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, s"${self.name} hello dude2", None, None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude2")
         result.addressedToUs should be(true)
       }
 
       "message is an instant message" in {
-        sut ! new Message(currentTimeStamp, im.id, somebodyElse.id, "hello dude3", None)
+        sut ! new Message(currentTimeStamp, im.id, somebodyElse.id, "hello dude3", None, None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude3")
         result.addressedToUs should be(true)
@@ -84,7 +84,7 @@ class ReceptionistTest
     }
 
     "mark message as not addressed to us otherwise" in {
-      sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, "just a message", None)
+      sut ! new Message(currentTimeStamp, channel.id, somebodyElse.id, "just a message", None, None)
       val result = probe.expectMsgClass(classOf[IncomingMessage])
       result.canonicalText should be("just a message")
       result.addressedToUs should be(false)
@@ -102,7 +102,7 @@ class ReceptionistTest
     }
 
     "route message when timestamp cannot be parsed" in {
-      sut ! new Message("humbug", channel.id, somebodyElse.id, "just a message", None)
+      sut ! new Message("humbug", channel.id, somebodyElse.id, "just a message", None, None)
       val result = probe.expectMsgClass(classOf[IncomingMessage])
       result.canonicalText should be("just a message")
       result.addressedToUs should be(false)
@@ -113,12 +113,12 @@ class ReceptionistTest
       "the time stamp is older than 60 seconds" in {
         val now = System.currentTimeMillis()
         val tooLongAgo = (now - (1000 * 61))/1000
-        sut ! new Message(s"$tooLongAgo.000005", im.id, somebodyElse.id, "just a message", None)
+        sut ! new Message(s"$tooLongAgo.000005", im.id, somebodyElse.id, "just a message", None, None)
         probe.expectNoMsg(1.second)
       }
 
       "it originated from our user" in {
-        sut ! new Message(currentTimeStamp, channel.id, self.id, s"This is me!", None)
+        sut ! new Message(currentTimeStamp, channel.id, self.id, s"This is me!", None, None)
         probe.expectNoMsg(1.second)
       }
     }
@@ -131,16 +131,14 @@ class ReceptionistTest
       initMessage.pluginRegistry should not be (null)
     }
 
-    // TODO: Fix this test and reenable.
-    "open a new IM channel asynchronously when asked" ignore {
+    "open a new IM channel asynchronously when asked" in {
       case object DoneWithThat
       sut ! OpenIM(somebodyElse.id, probe.ref, DoneWithThat)
       sut ! ImOpened(somebodyElse.id, im.id)
       probe.expectMsgClass(DoneWithThat.getClass)
     }
 
-    // TODO: Fix this test and reenable.
-    "return the RTM state when asked" ignore {
+    "return the RTM state when asked" in {
       sut ! RtmStateRequest(probe.ref)
       probe.expectMsgClass(classOf[RtmStateResponse])
     }
