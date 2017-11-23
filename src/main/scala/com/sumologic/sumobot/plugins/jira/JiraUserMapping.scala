@@ -104,7 +104,7 @@ class JiraUserMapping(jiraClient: JiraRestClient) extends Actor {
     var nextJiraToSlackMap = Map[String, SlackUser]()
     var nextSlackToJiraMap = Map[String, JiraUser]()
 
-    val ignoredUsers = Try(context.system.settings.config.getStringList("jira.ignoreUsers").asScala).
+    val ignoredUsers = Try(context.system.settings.config.getStringList("plugins.jira.ignoreUsers").asScala).
       toOption.getOrElse(List.empty).toSet
 
     def isSumoUser(user: SlackUser): Boolean = {
@@ -149,6 +149,6 @@ class JiraUserMapping(jiraClient: JiraRestClient) extends Actor {
   }
 
   private def translatedUserName(userName: String): String = {
-    Try(context.system.settings.config.getString(s"jira.mapping.$userName")).toOption.getOrElse(userName)
+    Try(context.system.settings.config.getString(s"plugins.jira.mapping.$userName")).toOption.getOrElse(userName)
   }
 }
