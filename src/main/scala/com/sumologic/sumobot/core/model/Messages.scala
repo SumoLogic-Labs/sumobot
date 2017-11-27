@@ -28,4 +28,21 @@ case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
                            channel: Channel,
-                           sentByUser: User)
+                           sentBy: Sender,
+                           attachments: Seq[IncomingMessageAttachment] = Seq())
+case class IncomingMessageAttachment(text: String)
+
+sealed abstract class Sender {
+  def slackReference: String
+  def plainTextReference: String
+}
+
+case class UserSender(slackUser: slack.models.User) extends Sender {
+  override def slackReference: String = s"<@${slackUser.id}>"
+  override def plainTextReference: String = slackUser.id
+}
+case class BotSender(id: String) extends Sender {
+  override def slackReference: String = s"app: $id"
+  override def plainTextReference: String = slackReference
+}
+

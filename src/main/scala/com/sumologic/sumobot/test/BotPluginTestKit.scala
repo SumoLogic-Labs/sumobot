@@ -20,7 +20,7 @@ package com.sumologic.sumobot.test
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
-import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage, UserSender}
 import org.scalatest.BeforeAndAfterAll
 import slack.models.User
 
@@ -42,7 +42,7 @@ class BotPluginTestKit(_system: ActorSystem)
   }
 
   protected def instantMessage(text: String, user: User = mockUser("123", "jshmoe")): IncomingMessage = {
-    IncomingMessage(text, true, InstantMessageChannel("125", user), user)
+    IncomingMessage(text, true, InstantMessageChannel("125", user), UserSender(user))
   }
 
   protected def mockUser(id: String, name: String): User = {
