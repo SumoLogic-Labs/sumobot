@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins.help
 
 import akka.actor.{ActorSystem, Props}
-import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel}
+import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, UserSender}
 import com.sumologic.sumobot.core.PluginRegistry
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.plugins.conversations.Conversations
@@ -42,7 +42,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
 
   "help" should {
     "return list of plugins" in {
-      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), user)
+      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), UserSender(user), Seq())
       confirmOutgoingMessage {
         msg =>
           msg.text should be("help\nmock")
@@ -50,7 +50,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
     }
 
     "return help for known plugins" in {
-      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), user)
+      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), UserSender(user), Seq())
       confirmOutgoingMessage {
         msg =>
           msg.text should include("mock help")
@@ -58,7 +58,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
     }
 
     "return an error for unknown commands" in {
-      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), user)
+      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), UserSender(user), Seq())
       confirmOutgoingMessage {
         msg =>
           msg.text should include("Sorry, I don't know")

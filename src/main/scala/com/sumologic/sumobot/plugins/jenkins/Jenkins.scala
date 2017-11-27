@@ -22,9 +22,10 @@ import java.net.URLEncoder
 
 import akka.actor.{ActorLogging, ActorRef, PoisonPill, Props}
 import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, Channel}
+import com.sumologic.sumobot.core.model.{Channel, IncomingMessage, OutgoingMessage, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
+
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -58,10 +59,10 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
-    case message@IncomingMessage(Info(), _, _, _) =>
+    case message@IncomingMessage(Info(), _, _, _, _) =>
       message.respond(s"Connected to ${client.configuration.url}")
 
-    case message@IncomingMessage(JobStatus(givenName), _, _, _) =>
+    case message@IncomingMessage(JobStatus(givenName), _, _, _, _) =>
       message.respondInFuture {
         msg =>
           withKnownJob(msg, givenName) {
@@ -70,14 +71,14 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
           }
       }
 
-    case message@IncomingMessage(BuildJob(givenName), _, _, user) =>
+    case message@IncomingMessage(BuildJob(givenName), _, _, UserSender(user), _) =>
       val cause = URLEncoder.encode(s"Triggered via sumobot by ${user.name} in ${message.channel.name}", "UTF-8")
       message.respondInFuture {
         msg =>
           msg.response(client.buildJob(givenName, cause))
       }
 
-    case message@IncomingMessage(MonitorJob(givenName), _, _, _) =>
+    case message@IncomingMessage(MonitorJob(givenName), _, _, _, _) =>
       message.respondInFuture {
         msg =>
           withKnownJob(msg, givenName) {
@@ -97,7 +98,7 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
           }
       }
 
-    case message@IncomingMessage(UnmonitorJob(givenName), _, _, _) =>
+    case message@IncomingMessage(UnmonitorJob(givenName), _, _, _, _) =>
       monitoredJobs.find(_._1.equalsIgnoreCase(monitorKey(message.channel, givenName.trim))) match {
         case Some(monitoredJob) =>
           monitoredJobs -= monitoredJob._1

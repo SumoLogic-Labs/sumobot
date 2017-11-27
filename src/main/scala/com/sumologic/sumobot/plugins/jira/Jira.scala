@@ -80,8 +80,8 @@ class Jira extends BotPlugin with TimeHelpers with ActorLogging {
   }
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(Jira.JiraInfo(id), _, _, _) => message.respondInFuture(loadJiraInfo(_, id))
-    case message@IncomingMessage(Jira.InProgressJirasFor(username), _, _, _) => message.respondInFuture(loadInProgressJirasFor(_, username))
+    case message@IncomingMessage(Jira.JiraInfo(id), _, _, _, _) => message.respondInFuture(loadJiraInfo(_, id))
+    case message@IncomingMessage(Jira.InProgressJirasFor(username), _, _, _, _) => message.respondInFuture(loadInProgressJirasFor(_, username))
   }
 
   private def loadJiraInfo(msg: IncomingMessage, id: String): OutgoingMessage = {
@@ -93,8 +93,8 @@ class Jira extends BotPlugin with TimeHelpers with ActorLogging {
         val string =
           s"""
              |*Title:* ${issue.getSummary}\n
-                                            |*Assignee:* ${issue.getAssignee.getName}\n
-                                                                                       |*Description:* ${Option(issue.getDescription).map(_.take(MaxDescLength)).getOrElse("no description")}
+             |*Assignee:* ${issue.getAssignee.getName}\n
+             |*Description:* ${Option(issue.getDescription).map(_.take(MaxDescLength)).getOrElse("no description")}
           """.stripMargin
         msg.response(string)
       case Failure(e) =>

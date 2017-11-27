@@ -84,9 +84,8 @@ abstract class BotPlugin
 
     def respond(text: String) = sendMessage(response(text))
 
-    def senderId: String = s"<@${msg.sentByUser.id}>"
-
-    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"$senderId: "
+    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) ""
+                                       else s"${msg.sentBy.slackReference}: "
 
     def scheduleResponse(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, response(text))
 
@@ -194,7 +193,7 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _, _) =>
+    case message@IncomingMessage(text, _, _, _, _) =>
       receiveIncomingMessageInternal(message)
   }
 
