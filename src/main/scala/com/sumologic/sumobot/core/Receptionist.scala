@@ -67,6 +67,7 @@ class Receptionist(rtmClient: SlackRtmClient,
 
   override def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
+    context.system.eventStream.subscribe(self, classOf[OutgoingImage])
     context.system.eventStream.subscribe(self, classOf[OpenIM])
     context.system.eventStream.subscribe(self, classOf[RtmStateRequest])
   }
@@ -88,6 +89,14 @@ class Receptionist(rtmClient: SlackRtmClient,
     case OutgoingMessage(channel, text) =>
       log.info(s"sending - ${channel.name}: $text")
       rtmClient.sendMessage(channel.id, text)
+
+    case OutgoingImage(channel, imageFile, contentType, title) =>
+      log.info(s"Sending - ${channel.name} image worth of ${imageFile.length()} characters")
+      val fut = asyncClient.uploadFile(content = Left(imageFile), filetype = Some(contentType), title = Some(title),
+        filename = Some(imageFile.getName), channels = Some(Seq(channel.name)))
+      fut.onComplete {
+        f => log.info(s"Sending image ended with $f")
+      }
 
     case ImOpened(user, channel) =>
       pendingIMSessionsByUserId.get(user).foreach {
