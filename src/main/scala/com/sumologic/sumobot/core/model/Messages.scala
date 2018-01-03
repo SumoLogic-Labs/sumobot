@@ -18,6 +18,8 @@
  */
 package com.sumologic.sumobot.core.model
 
+import java.io.File
+
 import akka.actor.ActorRef
 import slack.models.User
 
@@ -31,6 +33,9 @@ case class IncomingMessage(canonicalText: String,
                            sentBy: Sender,
                            attachments: Seq[IncomingMessageAttachment] = Seq())
 case class IncomingMessageAttachment(text: String)
+
+case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String)
+
 
 sealed abstract class Sender {
   def slackReference: String

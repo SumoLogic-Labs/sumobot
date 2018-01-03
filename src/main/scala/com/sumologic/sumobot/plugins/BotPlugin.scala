@@ -74,6 +74,7 @@ abstract class BotPlugin
   // Helpers for plugins to use.
 
   protected def sendMessage(msg: OutgoingMessage): Unit = context.system.eventStream.publish(msg)
+  protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
 
   class RichIncomingMessage(msg: IncomingMessage) {
     def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
