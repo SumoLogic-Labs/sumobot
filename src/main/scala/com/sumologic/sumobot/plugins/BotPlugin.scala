@@ -85,8 +85,12 @@ abstract class BotPlugin
 
     def respond(text: String) = sendMessage(response(text))
 
-    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) ""
-                                       else s"${msg.sentBy.slackReference}: "
+    private def responsePrefix: String =
+      if (msg.channel.isInstanceOf[InstantMessageChannel]) {
+        ""
+      } else {
+        s"${msg.sentBy.slackReference}: "
+      }
 
     def scheduleResponse(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, response(text))
 
