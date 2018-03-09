@@ -91,7 +91,7 @@ class Receptionist(rtmClient: SlackRtmClient,
       rtmClient.sendMessage(channel.id, text)
 
     case OutgoingImage(channel, imageFile, contentType, title) =>
-      log.info(s"Sending - ${channel.name} image worth of ${imageFile.length()} characters")
+      log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")
       val fut = asyncClient.uploadFile(content = Left(imageFile), filetype = Some(contentType), title = Some(title),
         filename = Some(imageFile.getName), channels = Some(Seq(channel.name)))
       fut.onComplete {
