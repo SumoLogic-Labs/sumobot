@@ -74,6 +74,7 @@ abstract class BotPlugin
   // Helpers for plugins to use.
 
   protected def sendMessage(msg: OutgoingMessage): Unit = context.system.eventStream.publish(msg)
+  protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
 
   class RichIncomingMessage(msg: IncomingMessage) {
     def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
@@ -84,9 +85,12 @@ abstract class BotPlugin
 
     def respond(text: String) = sendMessage(response(text))
 
-    def senderId: String = s"<@${msg.sentByUser.id}>"
-
-    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"$senderId: "
+    private def responsePrefix: String =
+      if (msg.channel.isInstanceOf[InstantMessageChannel]) {
+        ""
+      } else {
+        s"${msg.sentBy.slackReference}: "
+      }
 
     def scheduleResponse(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, response(text))
 
@@ -194,7 +198,7 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _, _) =>
+    case message@IncomingMessage(text, _, _, _, _) =>
       receiveIncomingMessageInternal(message)
   }
 

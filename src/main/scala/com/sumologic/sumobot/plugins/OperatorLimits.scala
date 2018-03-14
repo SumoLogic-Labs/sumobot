@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins
 
 import com.sumologic.sumobot.core.Bootstrap
-import com.sumologic.sumobot.core.model.IncomingMessage
+import com.sumologic.sumobot.core.model.{IncomingMessage, Sender, UserSender}
 import slack.models.User
 
 import scala.collection.JavaConverters._
@@ -27,6 +27,12 @@ import scala.collection.JavaConverters._
 object OperatorLimits {
   private val config = Bootstrap.system.settings.config
   private lazy val operatorNames = config.getStringList("operators").asScala.toSet
+
+  def isOperator(sender: Sender): Boolean =
+    sender match {
+      case u: UserSender => isOperator(u.slackUser)
+      case _ => false
+    }
 
   def isOperator(user: User): Boolean =
     operatorNames.exists(_.trim.equalsIgnoreCase(user.name.trim))
@@ -36,5 +42,5 @@ trait OperatorLimits {
   this: BotPlugin => 
   
   protected def sentByOperator(message: IncomingMessage): Boolean =
-    OperatorLimits.isOperator(message.sentByUser)
+    OperatorLimits.isOperator(message.sentBy)
 }

@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, PublicChannel}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, PublicChannel, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -70,13 +70,13 @@ class PagerDuty extends BotPlugin with ActorLogging {
   import PagerDuty._
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
+    case message@IncomingMessage(WhosOnCall(filter), _, _, _, _) =>
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
 
-    case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), _) =>
+    case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), UserSender(sentByUser), _) =>
       pagerDutyKeyFor(channel) match {
         case Some(key) =>
-          eventApi.page(channel, key, s"${message.sentByUser.name} on $channel: $text")
+          eventApi.page(channel, key, s"${sentByUser.name} on $channel: $text")
           message.say("Paged on-calls.")
         case None =>
           message.respond("Don't know how to page people in this channel.")

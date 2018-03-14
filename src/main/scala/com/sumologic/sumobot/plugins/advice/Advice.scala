@@ -47,10 +47,10 @@ class Advice extends BotPlugin {
   import Advice._
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case msg@IncomingMessage(RandomAdvice(), _, _, _) =>
+    case msg@IncomingMessage(RandomAdvice(), _, _, _, _) =>
       msg.httpGet(s"http://api.adviceslip.com/advice")(respondWithAdvice)
 
-    case msg@IncomingMessage(AdviceAbout(_, something), true, _, _) =>
+    case msg@IncomingMessage(AdviceAbout(_, something), true, _, _, _) =>
       msg.httpGet(s"http://api.adviceslip.com/advice/search/${urlEncode(something.trim)}")(respondWithAdvice)
   }
 

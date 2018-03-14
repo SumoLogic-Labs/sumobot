@@ -38,13 +38,13 @@ class BrainSurgery extends BotPlugin {
   private val forget = matchText("forget about ([\\.\\w]+).*")
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(remember(key, value), true, _, _) =>
+    case message@IncomingMessage(remember(key, value), true, _, _, _) =>
       blockingBrain.store(key.trim, value.trim)
       message.respond(s"Got it, $key is $value")
-    case message@IncomingMessage(forget(key), true, _, _) =>
+    case message@IncomingMessage(forget(key), true, _, _, _) =>
       blockingBrain.remove(key.trim)
       message.respond(s"$key? I've forgotten all about it.")
-    case message@IncomingMessage(brainDump(), true, _, _) =>
+    case message@IncomingMessage(brainDump(), true, _, _, _) =>
       val map = blockingBrain.listValues()
       if (map.isEmpty) {
         message.say("My brain is empty.")
