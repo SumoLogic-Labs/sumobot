@@ -18,6 +18,8 @@
  */
 package com.sumologic.sumobot.core.model
 
+import java.io.File
+
 import akka.actor.ActorRef
 import slack.models.User
 
@@ -28,4 +30,24 @@ case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
                            channel: Channel,
-                           sentByUser: User)
+                           sentBy: Sender,
+                           attachments: Seq[IncomingMessageAttachment] = Seq())
+case class IncomingMessageAttachment(text: String)
+
+case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String)
+
+
+sealed abstract class Sender {
+  def slackReference: String
+  def plainTextReference: String
+}
+
+case class UserSender(slackUser: slack.models.User) extends Sender {
+  override def slackReference: String = s"<@${slackUser.id}>"
+  override def plainTextReference: String = slackUser.id
+}
+case class BotSender(id: String) extends Sender {
+  override def slackReference: String = s"app: $id"
+  override def plainTextReference: String = slackReference
+}
+

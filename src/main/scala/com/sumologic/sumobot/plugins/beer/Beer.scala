@@ -43,7 +43,7 @@ class Beer extends BotPlugin with TimeHelpers {
   private var lastChimedIn = 0l
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(BeerMention(beer), _, _, _) =>
+    case message@IncomingMessage(BeerMention(beer), _, _, _, _) =>
       if (now - lastChimedIn > 60000 && Random.nextInt(10) < 8) {
         lastChimedIn = now
         message.say(chooseRandom(BeerPhrases: _*))

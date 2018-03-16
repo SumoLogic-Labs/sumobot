@@ -114,12 +114,12 @@ class ReceptionistTest
         val now = System.currentTimeMillis()
         val tooLongAgo = (now - (1000 * 61))/1000
         sut ! new Message(s"$tooLongAgo.000005", im.id, somebodyElse.id, "just a message", None, None)
-        probe.expectNoMsg(1.second)
+        probe.expectNoMessage(1.second)
       }
 
       "it originated from our user" in {
         sut ! new Message(currentTimeStamp, channel.id, self.id, s"This is me!", None, None)
-        probe.expectNoMsg(1.second)
+        probe.expectNoMessage(1.second)
       }
     }
 

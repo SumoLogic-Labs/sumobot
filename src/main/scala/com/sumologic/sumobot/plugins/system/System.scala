@@ -47,17 +47,17 @@ class System
   private val startTime = new Date().toString
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(WhereAreYou(), true, _, _) =>
+    case message@IncomingMessage(WhereAreYou(), true, _, _, _) =>
       message.respond(s"I'm running at $hostname ($hostAddress)")
-    case message@IncomingMessage(WhenDidYouStart(_), true, _, _) =>
+    case message@IncomingMessage(WhenDidYouStart(_), true, _, _, _) =>
       message.respond(s"I started at $startTime")
-    case message@IncomingMessage(DieOn(host), true, _, _) =>
+    case message@IncomingMessage(DieOn(host), true, _, _, _) =>
 
       if (host.trim.equalsIgnoreCase(hostname)) {
         if (!sentByOperator(message)) {
-          message.respond(s"Sorry, ${message.senderId}, I can't do that.")
+          message.respond(s"Sorry, ${message.sentBy.slackReference}, I can't do that.")
         } else {
-          message.respond(s"Sayonara, ${message.senderId}!")
+          message.respond(s"Sayonara, ${message.sentBy.slackReference}!")
           context.system.scheduler.scheduleOnce(2.seconds, new Runnable {
             override def run() = {
               Bootstrap.shutdown()
