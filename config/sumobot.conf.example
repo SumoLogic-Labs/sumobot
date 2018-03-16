@@ -8,16 +8,6 @@ ldap {
   password = "..."
 }
 
-jira {
-  url = "https://jira.example.com/jira/"
-
-  mapping {
-    somebody= "else"
-  }
-
-  ignoreUsers = [ "flexo", "pingboard", "slackbot", "borg" ]
-}
-
 aws {
   infra {
     key.id = "..."
@@ -59,7 +49,6 @@ plugins {
     class = "com.sumologic.sumobot.plugins.chuck.ChuckNorris"
   }
 
-
   conversations {
     enabled = true
     class = "com.sumologic.sumobot.plugins.conversations.Conversations"
@@ -76,6 +65,21 @@ plugins {
     url = "https://jenkins.example.com/"
     username = ${ldap.username}
     password = ${ldap.password}
+  }
+
+  jira {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.jira.Jira"
+
+    username = ${ldap.username}
+    password = ${ldap.password}
+    url = ${jira.url}
+
+    mapping {
+      somebody= "else"
+    }
+
+    ignoreUsers = [ "flexo", "pingboard", "slackbot", "borg" ]
   }
 
   hudson {
