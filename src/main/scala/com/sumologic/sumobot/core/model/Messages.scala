@@ -34,7 +34,8 @@ case class IncomingMessage(canonicalText: String,
                            attachments: Seq[IncomingMessageAttachment] = Seq())
 case class IncomingMessageAttachment(text: String)
 
-case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String)
+case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String,
+                         comment: Option[String] = None)
 
 
 sealed abstract class Sender {
