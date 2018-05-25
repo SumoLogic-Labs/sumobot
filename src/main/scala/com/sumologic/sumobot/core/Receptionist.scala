@@ -110,35 +110,41 @@ class Receptionist(rtmClient: SlackRtmClient,
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId -> (doneRecipient, doneMessage))
 
     case message: Message if !tooOld(message.ts, message) =>
-      translateAndDispatch(message.channel, message.user, message.text)
+      translateAndDispatch(message.channel, message.user, message.text, message.ts)
 
     case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) =>
       val message = messageChanged.message
-      translateAndDispatch(messageChanged.channel, message.user, message.text)
+      translateAndDispatch(messageChanged.channel, message.user, message.text, message.ts)
 
     case botMessage: BotMessage if !tooOld(botMessage.ts, botMessage) && botMessage.username.isDefined =>
-        translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, fromBot = true, botMessage.attachments)
+        translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts,
+                             fromBot = true,
+                             botMessage.attachments)
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
   }
 
-  protected def translateMessage(channelId: String, from: Sender, text: String, attachments: Seq[IncomingMessageAttachment]): IncomingMessage = {
+  protected def translateMessage(channelId: String, idTimestamp: String, from: Sender, text: String,
+                                 attachments: Seq[IncomingMessageAttachment]): IncomingMessage = {
     val channel = Channel.forChannelId(rtmClient.state, channelId)
 
     text match {
       case atMention(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, from, attachments)
+        IncomingMessage(text.trim, true, channel, idTimestamp, from, attachments)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, from, attachments)
+        IncomingMessage(text.trim, true, channel, idTimestamp, from, attachments)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        IncomingMessage(text.trim, true, channel, from, attachments)
+        IncomingMessage(text.trim, true, channel, idTimestamp, from, attachments)
       case _ =>
-        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, from, attachments)
+        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, idTimestamp, from, attachments)
     }
   }
 
-  private def translateAndDispatch(channelId: String, userId: String, text: String, fromBot: Boolean = false, attachments: Seq[Attachment] = Seq()): Unit = {
+  private def translateAndDispatch(channelId: String, userId: String, text: String,
+                                   idTimestamp: String,
+                                   fromBot: Boolean = false,
+                                   attachments: Seq[Attachment] = Seq()): Unit = {
     val sentBy: Sender = if (!fromBot) {
       val slackUser: slack.models.User = rtmClient.state.users.find(_.id == userId).
         getOrElse(throw new IllegalStateException(s"Message from unknown user: $userId"))
@@ -146,7 +152,7 @@ class Receptionist(rtmClient: SlackRtmClient,
     } else {
       BotSender(userId)
     }
-    val msgToBot = translateMessage(channelId, sentBy, text, attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""))))
+    val msgToBot = translateMessage(channelId, idTimestamp, sentBy, text, attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""))))
     if (userId != selfId) {
       log.info(s"Dispatching message: $msgToBot")
       context.system.eventStream.publish(msgToBot)

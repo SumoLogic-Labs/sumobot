@@ -43,7 +43,7 @@ class Help extends BotPlugin with ActorLogging {
   import Help._
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(ListPlugins(_), true, _, _, _) =>
+    case message@IncomingMessage(ListPlugins(_), true, _, _, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
@@ -51,7 +51,7 @@ class Help extends BotPlugin with ActorLogging {
           msg.say(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
       }
 
-    case message@IncomingMessage(HelpForPlugin(_, pluginName), addressedToUs, _, _, _) =>
+    case message@IncomingMessage(HelpForPlugin(_, pluginName), addressedToUs, _, _, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
