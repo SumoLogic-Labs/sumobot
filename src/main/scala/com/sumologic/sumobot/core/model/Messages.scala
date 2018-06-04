@@ -30,8 +30,10 @@ case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
                            channel: Channel,
+                           idTimestamp: String,
                            sentBy: Sender,
                            attachments: Seq[IncomingMessageAttachment] = Seq())
+
 case class IncomingMessageAttachment(text: String)
 
 case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String,
@@ -52,3 +54,10 @@ case class BotSender(id: String) extends Sender {
   override def plainTextReference: String = slackReference
 }
 
+object PublicHttpsReference {
+  def forMessage(baseSlackUrl: String, msg: IncomingMessage) = {
+    val clearId = msg.idTimestamp.replace(".", "")
+    val channelId = msg.channel.id
+    s"$baseSlackUrl/archives/$channelId/p$clearId"
+  }
+}

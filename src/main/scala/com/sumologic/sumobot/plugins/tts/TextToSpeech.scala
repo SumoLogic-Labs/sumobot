@@ -44,7 +44,7 @@ class TextToSpeech extends BotPlugin {
   private val BadChars = "|\"".toCharArray.toSet
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(SaySomething(_, text), true, _, _, _) if executable.isDefined =>
+    case message@IncomingMessage(SaySomething(_, text), true, _, _, _, _) if executable.isDefined =>
       val cleanedText = text.toCharArray.filterNot(BadChars.contains).mkString
       // Deliberately blocking the actor thread here, so only one say action is happening at the same time.
       log.info(s"Speaking: $cleanedText")

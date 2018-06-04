@@ -70,10 +70,10 @@ class PagerDuty extends BotPlugin with ActorLogging {
   import PagerDuty._
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(WhosOnCall(filter), _, _, _, _) =>
+    case message@IncomingMessage(WhosOnCall(filter), _, _, _, _, _) =>
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
 
-    case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), UserSender(sentByUser), _) =>
+    case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), _, UserSender(sentByUser), _) =>
       pagerDutyKeyFor(channel) match {
         case Some(key) =>
           eventApi.page(channel, key, s"${sentByUser.name} on $channel: $text")
