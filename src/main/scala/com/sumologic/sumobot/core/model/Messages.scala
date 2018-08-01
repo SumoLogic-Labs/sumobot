@@ -23,7 +23,7 @@ import java.io.File
 import akka.actor.ActorRef
 import slack.models.User
 
-case class OutgoingMessage(channel: Channel, text: String)
+case class OutgoingMessage(channel: Channel, text: String, threadTs: Option[String] = None)
 
 case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 

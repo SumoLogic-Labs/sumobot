@@ -86,9 +86,9 @@ class Receptionist(rtmClient: SlackRtmClient,
     case message@PluginRemoved(_) =>
       pluginRegistry ! message
 
-    case OutgoingMessage(channel, text) =>
+    case OutgoingMessage(channel, text, threadTs) =>
       log.info(s"sending - ${channel.name}: $text")
-      rtmClient.sendMessage(channel.id, text)
+      rtmClient.sendMessage(channel.id, text, threadTs)
 
     case OutgoingImage(channel, imageFile, contentType, title, comment) =>
       log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")

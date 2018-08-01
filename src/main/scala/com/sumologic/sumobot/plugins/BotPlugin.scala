@@ -27,10 +27,11 @@ import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.quartz.QuartzExtension
 import com.typesafe.config.Config
+import org.apache.commons.lang.StringUtils
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import org.apache.http.impl.client.DefaultHttpClient
-import slack.models.{Channel => ClientChannel, Group, Im, User}
+import slack.models.{Group, Im, User, Channel => ClientChannel}
 import slack.rtm.RtmState
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -77,16 +78,19 @@ abstract class BotPlugin
   protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
 
   class RichIncomingMessage(msg: IncomingMessage) {
-    def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
+    def response(text: String, inThread: Boolean = false) = {
+      val threadTs = if (inThread) { Some(msg.idTimestamp) } else { None }
+      OutgoingMessage(msg.channel, responsePrefix(inThread) + text, threadTs)
+    }
 
     def message(text: String) = OutgoingMessage(msg.channel, text)
 
     def say(text: String) = sendMessage(message(text))
 
-    def respond(text: String) = sendMessage(response(text))
+    def respond(text: String, inThread: Boolean = false) = sendMessage(response(text, inThread))
 
-    private def responsePrefix: String =
-      if (msg.channel.isInstanceOf[InstantMessageChannel]) {
+    private def responsePrefix(inThread: Boolean): String =
+      if (msg.channel.isInstanceOf[InstantMessageChannel] || inThread) {
         ""
       } else {
         s"${msg.sentBy.slackReference}: "
