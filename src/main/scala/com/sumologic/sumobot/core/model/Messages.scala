@@ -32,7 +32,8 @@ case class IncomingMessage(canonicalText: String,
                            channel: Channel,
                            idTimestamp: String,
                            sentBy: Sender,
-                           attachments: Seq[IncomingMessageAttachment] = Seq())
+                           attachments: Seq[IncomingMessageAttachment] = Seq(),
+                           parentTimeStamp: Option[String] = None)
 
 case class IncomingMessageAttachment(text: String)
 
