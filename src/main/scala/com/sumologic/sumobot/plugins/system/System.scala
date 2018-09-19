@@ -47,11 +47,11 @@ class System
   private val startTime = new Date().toString
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(WhereAreYou(), true, _, _, _, _) =>
+    case message@IncomingMessage(WhereAreYou(), true, _, _, _, _, _) =>
       message.respond(s"I'm running at $hostname ($hostAddress)")
-    case message@IncomingMessage(WhenDidYouStart(_), true, _, _, _, _) =>
+    case message@IncomingMessage(WhenDidYouStart(_), true, _, _, _, _, _) =>
       message.respond(s"I started at $startTime")
-    case message@IncomingMessage(DieOn(host), true, _, _, _, _) =>
+    case message@IncomingMessage(DieOn(host), true, _, _, _, _, _) =>
 
       if (host.trim.equalsIgnoreCase(hostname)) {
         if (!sentByOperator(message)) {

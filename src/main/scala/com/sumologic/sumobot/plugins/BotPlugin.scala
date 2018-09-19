@@ -202,7 +202,7 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _, _, _, _) =>
+    case message@IncomingMessage(text, _, _, _, _, _, _) =>
       receiveIncomingMessageInternal(message)
   }
 

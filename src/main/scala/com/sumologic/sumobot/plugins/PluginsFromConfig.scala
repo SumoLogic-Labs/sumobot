@@ -29,8 +29,10 @@ object PluginsFromConfig extends PluginCollection {
     val plugins: Map[String, Option[Props]] = ListOfConfigs.parse(system.settings.config, "plugins") {
       (name, pluginConfig) =>
         Try(pluginConfig.getString("class")).toOption.map {
-          className =>
+          className => {
+            println("ClassName is: " + className)
             Props(Class.forName(className))
+          }
         }
     }
 
