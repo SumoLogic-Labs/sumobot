@@ -95,7 +95,7 @@ class Conversations extends BotPlugin with ActorLogging {
     case message@IncomingMessage(Sup(name), _, _, _, _, _, _) if name == state.self.name =>
       message.respond("What is up!!")
 
-    case message@IncomingMessage(SupAtMention(userId), _, _, _, UserSender(sentByUser), _, _) if userId == state.self.id =>
+    case message@IncomingMessage(SupAtMention(userId), _, _, _, _, _, UserSender(sentByUser)) if userId == state.self.id =>
       message.say(s"What is up, <@${sentByUser.id}>.")
 
     case message@IncomingMessage(SayInChannel(channelId, what), true, _, _, _, _, _) =>

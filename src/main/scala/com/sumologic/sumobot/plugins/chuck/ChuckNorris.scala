@@ -45,7 +45,7 @@ class ChuckNorris extends BotPlugin {
     case msg@IncomingMessage(ChuckNorris(), _, _, _, _, _, _) =>
       msg.httpGet(BaseUrl)(convertResponse)
 
-    case msg@IncomingMessage(ChuckNorrisMe(), _, _, _, sentByUser: UserSender, _, _) =>
+    case msg@IncomingMessage(ChuckNorrisMe(), _, _, _, _, _, sentByUser: UserSender) =>
       msg.httpGet(url(sentByUser.slackUser))(convertResponse)
 
     case msg@IncomingMessage(ChuckNorrisAtMention(userId), _, _, _, _, _, _) =>

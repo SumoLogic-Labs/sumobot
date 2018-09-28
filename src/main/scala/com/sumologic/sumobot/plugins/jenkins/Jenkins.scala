@@ -71,7 +71,7 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
           }
       }
 
-    case message@IncomingMessage(BuildJob(givenName), _, _, _, UserSender(user), _, _) =>
+    case message@IncomingMessage(BuildJob(givenName), _, _, _, _, _, UserSender(user)) =>
       val cause = URLEncoder.encode(s"Triggered via sumobot by ${user.name} in ${message.channel.name}", "UTF-8")
       message.respondInFuture {
         msg =>
