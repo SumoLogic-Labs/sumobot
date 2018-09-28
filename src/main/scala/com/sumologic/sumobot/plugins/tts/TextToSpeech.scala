@@ -20,7 +20,6 @@ package com.sumologic.sumobot.plugins.tts
 
 import java.io.File
 
-import akka.actor.Props
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
@@ -44,7 +43,7 @@ class TextToSpeech extends BotPlugin {
   private val BadChars = "|\"".toCharArray.toSet
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(SaySomething(_, text), true, _, _, _, _) if executable.isDefined =>
+    case message@IncomingMessage(SaySomething(_, text), true, _, _, _, _, _) if executable.isDefined =>
       val cleanedText = text.toCharArray.filterNot(BadChars.contains).mkString
       // Deliberately blocking the actor thread here, so only one say action is happening at the same time.
       log.info(s"Speaking: $cleanedText")
