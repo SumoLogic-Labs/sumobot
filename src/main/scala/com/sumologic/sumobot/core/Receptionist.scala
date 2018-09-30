@@ -18,14 +18,12 @@
  */
 package com.sumologic.sumobot.core
 
-import java.io.File
-
 import akka.actor._
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{ActionField, Attachment, BotMessage, ImOpened, Message, MessageChanged, User}
+import slack.models.{Attachment, BotMessage, ImOpened, Message, MessageChanged}
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -110,41 +108,46 @@ class Receptionist(rtmClient: SlackRtmClient,
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId -> (doneRecipient, doneMessage))
 
     case message: Message if !tooOld(message.ts, message) =>
-      translateAndDispatch(message.channel, message.user, message.text, message.ts)
+      translateAndDispatch(message.channel, message.user, message.text, message.ts, threadTimestamp = message.thread_ts)
 
     case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) =>
       val message = messageChanged.message
       translateAndDispatch(messageChanged.channel, message.user, message.text, message.ts)
 
     case botMessage: BotMessage if !tooOld(botMessage.ts, botMessage) && botMessage.username.isDefined =>
-        translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts,
-                             fromBot = true,
-                             botMessage.attachments)
+      translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts, attachments = botMessage.attachments, fromBot = true)
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
   }
 
-  protected def translateMessage(channelId: String, idTimestamp: String, from: Sender, text: String,
-                                 attachments: Seq[IncomingMessageAttachment]): IncomingMessage = {
+  protected def translateMessage(channelId: String,
+                                 idTimestamp: String,
+                                 threadTimestamp: Option[String] = None,
+                                 text: String,
+                                 attachments: Seq[IncomingMessageAttachment],
+                                 from: Sender): IncomingMessage = {
     val channel = Channel.forChannelId(rtmClient.state, channelId)
 
     text match {
       case atMention(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, idTimestamp, from, attachments)
+        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, idTimestamp, from, attachments)
+        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        IncomingMessage(text.trim, true, channel, idTimestamp, from, attachments)
+        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
       case _ =>
-        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, idTimestamp, from, attachments)
+        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, idTimestamp, threadTimestamp, attachments, from)
     }
   }
 
-  private def translateAndDispatch(channelId: String, userId: String, text: String,
+  private def translateAndDispatch(channelId: String,
+                                   userId: String,
+                                   text: String,
                                    idTimestamp: String,
-                                   fromBot: Boolean = false,
-                                   attachments: Seq[Attachment] = Seq()): Unit = {
+                                   threadTimestamp: Option[String] = None,
+                                   attachments: Seq[Attachment] = Seq(),
+                                   fromBot: Boolean = false): Unit = {
     val sentBy: Sender = if (!fromBot) {
       val slackUser: slack.models.User = rtmClient.state.users.find(_.id == userId).
         getOrElse(throw new IllegalStateException(s"Message from unknown user: $userId"))
@@ -152,7 +155,7 @@ class Receptionist(rtmClient: SlackRtmClient,
     } else {
       BotSender(userId)
     }
-    val msgToBot = translateMessage(channelId, idTimestamp, sentBy, text, attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""))))
+    val msgToBot = translateMessage(channelId, idTimestamp, threadTimestamp, text, attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""))), sentBy)
     if (userId != selfId) {
       log.info(s"Dispatching message: $msgToBot")
       context.system.eventStream.publish(msgToBot)
@@ -164,7 +167,7 @@ class Receptionist(rtmClient: SlackRtmClient,
   private def tooOld(ts: String, message: AnyRef): Boolean = {
     ts match {
       case tsPattern(timeOfMessage, _) =>
-        val oldestAllowableMessageTime = (System.currentTimeMillis() - messageAgeLimitMillis)/1000
+        val oldestAllowableMessageTime = (System.currentTimeMillis() - messageAgeLimitMillis) / 1000
         val messageTooOld = timeOfMessage.toLong < oldestAllowableMessageTime
         if (messageTooOld) {
           log.warning(s"Discarding old message ($ts is too old, cutoff is $oldestAllowableMessageTime): $message")

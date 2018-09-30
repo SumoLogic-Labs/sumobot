@@ -21,11 +21,12 @@ package com.sumologic.sumobot.plugins.help
 import akka.actor.ActorLogging
 import akka.pattern.ask
 import akka.util.Timeout
-import com.sumologic.sumobot.core.PluginRegistry.{RequestPluginList, PluginList}
+import com.sumologic.sumobot.core.PluginRegistry.{PluginList, RequestPluginList}
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
-import scala.concurrent.duration._
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 object Help {
   private[help] val ListPlugins = BotPlugin.matchText("(help|\\?)\\W*")
@@ -43,7 +44,7 @@ class Help extends BotPlugin with ActorLogging {
   import Help._
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(ListPlugins(_), true, _, _, _, _) =>
+    case message@IncomingMessage(ListPlugins(_), true, _, _, _, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {
@@ -51,7 +52,7 @@ class Help extends BotPlugin with ActorLogging {
           msg.say(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
       }
 
-    case message@IncomingMessage(HelpForPlugin(_, pluginName), addressedToUs, _, _, _, _) =>
+    case message@IncomingMessage(HelpForPlugin(_, pluginName), addressedToUs, _, _, _, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
       pluginRegistry ? RequestPluginList onSuccess {

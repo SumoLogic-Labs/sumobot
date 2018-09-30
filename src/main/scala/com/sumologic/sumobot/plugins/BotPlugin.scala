@@ -27,7 +27,6 @@ import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.quartz.QuartzExtension
 import com.typesafe.config.Config
-import org.apache.commons.lang.StringUtils
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import org.apache.http.impl.client.DefaultHttpClient
@@ -55,8 +54,8 @@ object BotPlugin {
 
 abstract class BotPlugin
   extends Actor
-  with ActorLogging
-  with Emotions {
+    with ActorLogging
+    with Emotions {
 
   type ReceiveIncomingMessage = PartialFunction[IncomingMessage, Unit]
 
@@ -75,11 +74,16 @@ abstract class BotPlugin
   // Helpers for plugins to use.
 
   protected def sendMessage(msg: OutgoingMessage): Unit = context.system.eventStream.publish(msg)
+
   protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
 
   class RichIncomingMessage(msg: IncomingMessage) {
     def response(text: String, inThread: Boolean = false) = {
-      val threadTs = if (inThread) { Some(msg.idTimestamp) } else { None }
+      val threadTs = if (inThread) {
+        Some(msg.idTimestamp)
+      } else {
+        None
+      }
       OutgoingMessage(msg.channel, responsePrefix(inThread) + text, threadTs)
     }
 
@@ -105,7 +109,7 @@ abstract class BotPlugin
         override def run(): Unit = sendMessage(outgoingMessage)
       })
     }
-    
+
     def respondInFuture(body: IncomingMessage => OutgoingMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
       Future {
         try {
@@ -202,7 +206,7 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _, _, _, _) =>
+    case message@IncomingMessage(text, _, _, _, _, _, _) =>
       receiveIncomingMessageInternal(message)
   }
 

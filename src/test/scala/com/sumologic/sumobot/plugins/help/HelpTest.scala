@@ -42,7 +42,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
 
   "help" should {
     "return list of plugins" in {
-      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), "1527239216000090", UserSender(user), Seq())
+      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should be("help\nmock")
@@ -50,7 +50,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
     }
 
     "return help for known plugins" in {
-      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), "1527239216000090", UserSender(user), Seq())
+      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should include("mock help")
@@ -58,7 +58,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
     }
 
     "return an error for unknown commands" in {
-      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), "1527239216000090", UserSender(user), Seq())
+      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should include("Sorry, I don't know")

@@ -22,7 +22,6 @@ import java.text.DateFormat
 import java.util.Date
 
 import akka.actor.ActorLogging
-import com.sumologic.sumobot.core._
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin
 
@@ -57,10 +56,10 @@ class Conversations extends BotPlugin with ActorLogging {
     Array("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage("sup", true, _, _, _, _)  =>
+    case message@IncomingMessage("sup", true, _, _, _, _, _) =>
       message.scheduleResponse(1.seconds, s"What's up homie! $cheerful")
 
-    case message@IncomingMessage(CountToN(number), true, _, _, _, _) =>
+    case message@IncomingMessage(CountToN(number), true, _, _, _, _, _) =>
       if (number.toInt > NumberStrings.length - 1) {
         message.respond(s"I can only count to ${NumberStrings.length - 1}!")
       } else {
@@ -70,7 +69,7 @@ class Conversations extends BotPlugin with ActorLogging {
         }
       }
 
-    case message@IncomingMessage(CountDownFromN(number), true, _, _, _ , _) =>
+    case message@IncomingMessage(CountDownFromN(number), true, _, _, _, _, _) =>
       val start = number.toInt + 1
       if (start > NumberStrings.length) {
         message.respond(s"I can only count down from ${NumberStrings.length - 1}!")
@@ -81,35 +80,35 @@ class Conversations extends BotPlugin with ActorLogging {
         }
       }
 
-    case message@IncomingMessage(TellColon(recipientUserId, what), true, _, _, _ , _) =>
+    case message@IncomingMessage(TellColon(recipientUserId, what), true, _, _, _, _, _) =>
       tell(message, recipientUserId, what)
 
-    case message@IncomingMessage(TellTo(recipientUserId, what), true, _, _, _ , _) =>
+    case message@IncomingMessage(TellTo(recipientUserId, what), true, _, _, _, _, _) =>
       tell(message, recipientUserId, what)
 
-    case message@IncomingMessage(TellHe(recipientUserId, what), true, _, _, _ , _) =>
+    case message@IncomingMessage(TellHe(recipientUserId, what), true, _, _, _, _, _) =>
       tell(message, recipientUserId, "you " + what)
 
-    case message@IncomingMessage(TellShe(recipientUserId, what), true, _, _, _ , _) =>
+    case message@IncomingMessage(TellShe(recipientUserId, what), true, _, _, _, _, _) =>
       tell(message, recipientUserId, "you " + what)
 
-    case message@IncomingMessage(Sup(name), _, _, _ , _, _) if name == state.self.name =>
+    case message@IncomingMessage(Sup(name), _, _, _, _, _, _) if name == state.self.name =>
       message.respond("What is up!!")
 
-    case message@IncomingMessage(SupAtMention(userId), _, _, _, UserSender(sentByUser), _) if userId == state.self.id =>
+    case message@IncomingMessage(SupAtMention(userId), _, _, _, _, _, UserSender(sentByUser)) if userId == state.self.id =>
       message.say(s"What is up, <@${sentByUser.id}>.")
 
-    case message@IncomingMessage(SayInChannel(channelId, what), true, _, _, _ , _) =>
+    case message@IncomingMessage(SayInChannel(channelId, what), true, _, _, _, _, _) =>
       sendMessage(OutgoingMessage(Channel.forChannelId(state, channelId), what))
       message.respond(s"Message sent.")
 
-    case message@IncomingMessage(FuckOff(), _, _, _ , _, _) =>
+    case message@IncomingMessage(FuckOff(), _, _, _, _, _, _) =>
       message.respond("Same to you.")
 
-    case message@IncomingMessage(FuckYou(), _, _, _ , _, _) =>
+    case message@IncomingMessage(FuckYou(), _, _, _, _, _, _) =>
       message.respond("This is the worst kind of discrimination there is: the kind against me!")
 
-    case message@IncomingMessage(WhatTimeIsIt(), _, _, _ , _, _) =>
+    case message@IncomingMessage(WhatTimeIsIt(), _, _, _, _, _, _) =>
       val format = DateFormat.getDateTimeInstance
       val formatted = format.format(new Date())
       message.respond(s"Here, it is $formatted")

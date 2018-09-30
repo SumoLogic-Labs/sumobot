@@ -21,7 +21,6 @@ package com.sumologic.sumobot.core.model
 import java.io.File
 
 import akka.actor.ActorRef
-import slack.models.User
 
 case class OutgoingMessage(channel: Channel, text: String, threadTs: Option[String] = None)
 
@@ -31,8 +30,9 @@ case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
                            channel: Channel,
                            idTimestamp: String,
-                           sentBy: Sender,
-                           attachments: Seq[IncomingMessageAttachment] = Seq())
+                           threadTimestamp: Option[String] = None,
+                           attachments: Seq[IncomingMessageAttachment] = Seq(),
+                           sentBy: Sender)
 
 case class IncomingMessageAttachment(text: String)
 
