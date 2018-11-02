@@ -90,9 +90,9 @@ class Receptionist(rtmClient: SlackRtmClient,
       log.info(s"sending - ${channel.name}: $text")
       rtmClient.sendMessage(channel.id, text, threadTs)
 
-    case OutgoingMessageWithAttachments(channel, text, attachments) =>
+    case OutgoingMessageWithAttachments(channel, text, threadTs, attachments) =>
       log.info(s"sending - ${channel.name}: $text")
-      asyncClient.postChatMessage(channel.id, text, attachments = Some(attachments))
+      asyncClient.postChatMessage(channel.id, text, attachments = Some(attachments), threadTs = threadTs)
 
     case OutgoingImage(channel, imageFile, contentType, title, comment) =>
       log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")
