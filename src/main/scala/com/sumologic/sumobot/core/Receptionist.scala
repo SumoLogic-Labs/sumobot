@@ -64,10 +64,12 @@ class Receptionist(rtmClient: SlackRtmClient,
   private val pluginRegistry = context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
-    context.system.eventStream.subscribe(self, classOf[OutgoingImage])
-    context.system.eventStream.subscribe(self, classOf[OpenIM])
-    context.system.eventStream.subscribe(self, classOf[RtmStateRequest])
+    Seq(classOf[OutgoingMessage],
+      classOf[OutgoingMessageWithAttachments],
+      classOf[OutgoingImage],
+      classOf[OpenIM],
+      classOf[RtmStateRequest]
+    ).foreach(context.system.eventStream.subscribe(self, _))
   }
 
 
@@ -87,6 +89,10 @@ class Receptionist(rtmClient: SlackRtmClient,
     case OutgoingMessage(channel, text, threadTs) =>
       log.info(s"sending - ${channel.name}: $text")
       rtmClient.sendMessage(channel.id, text, threadTs)
+
+    case OutgoingMessageWithAttachments(channel, text, attachments) =>
+      log.info(s"sending - ${channel.name}: $text")
+      asyncClient.postChatMessage(channel.id, text, attachments = Some(attachments))
 
     case OutgoingImage(channel, imageFile, contentType, title, comment) =>
       log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")
