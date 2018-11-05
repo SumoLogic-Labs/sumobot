@@ -22,6 +22,8 @@ import java.io.File
 
 import akka.actor.ActorRef
 
+import slack.models.{ActionField => SActionField, Attachment => SAttachment, AttachmentField => SAttachmentField, ConfirmField => SConfirmField}
+
 case class OutgoingMessage(channel: Channel, text: String, threadTs: Option[String] = None)
 
 // NOTE(mccartney, 2018-11-02): Slack API doesn't allow sending messages with attachments using the RTM client,
@@ -49,7 +51,7 @@ case class AttachmentField(title: String, value: String, short: Boolean)
 
 case class ActionField(name: String,
                        text: String,
-                       `type`: String,
+                       actionType: String,
                        style: Option[String] = None,
                        value: Option[String] = None,
                        confirm: Option[ConfirmField] = None)
@@ -99,9 +101,6 @@ object PublicHttpsReference {
 
 object Messages {
 
-  import slack.models.{ActionField => SActionField, Attachment => SAttachment, AttachmentField => SAttachmentField, ConfirmField => SConfirmField}
-
-
   def convertToSlackModel(attachments: Seq[Attachment]): Option[Seq[SAttachment]] = {
     Some(
       attachments.map {
@@ -134,7 +133,7 @@ object Messages {
   private def convertActionsToSlackModel(actions: Seq[ActionField]): Seq[SActionField] = {
     actions.map {
       a =>
-        SActionField(name = a.name, text = a.text, `type` = a.`type`, style = a.style, value = a.value,
+        SActionField(name = a.name, text = a.text, `type` = a.actionType, style = a.style, value = a.value,
           confirm = a.confirm.map(convertConfirmFieldToSlackModel(_)))
     }
   }
