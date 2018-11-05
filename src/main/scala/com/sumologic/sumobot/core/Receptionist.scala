@@ -23,7 +23,7 @@ import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateRespons
 import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{Attachment, BotMessage, ImOpened, Message, MessageChanged}
+import slack.models.{Attachment => SAttachment, BotMessage, ImOpened, Message, MessageChanged}
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -64,10 +64,12 @@ class Receptionist(rtmClient: SlackRtmClient,
   private val pluginRegistry = context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
-    context.system.eventStream.subscribe(self, classOf[OutgoingImage])
-    context.system.eventStream.subscribe(self, classOf[OpenIM])
-    context.system.eventStream.subscribe(self, classOf[RtmStateRequest])
+    Seq(classOf[OutgoingMessage],
+      classOf[OutgoingMessageWithAttachments],
+      classOf[OutgoingImage],
+      classOf[OpenIM],
+      classOf[RtmStateRequest]
+    ).foreach(context.system.eventStream.subscribe(self, _))
   }
 
 
@@ -87,6 +89,11 @@ class Receptionist(rtmClient: SlackRtmClient,
     case OutgoingMessage(channel, text, threadTs) =>
       log.info(s"sending - ${channel.name}: $text")
       rtmClient.sendMessage(channel.id, text, threadTs)
+
+    case OutgoingMessageWithAttachments(channel, text, threadTs, attachments) =>
+      log.info(s"sending - ${channel.name}: $text")
+      val attachmentsAsSlackModel = Messages.convertToSlackModel(attachments)
+      asyncClient.postChatMessage(channel.id, text, attachments = attachmentsAsSlackModel, threadTs = threadTs)
 
     case OutgoingImage(channel, imageFile, contentType, title, comment) =>
       log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")
@@ -115,7 +122,8 @@ class Receptionist(rtmClient: SlackRtmClient,
       translateAndDispatch(messageChanged.channel, message.user, message.text, message.ts)
 
     case botMessage: BotMessage if !tooOld(botMessage.ts, botMessage) && botMessage.username.isDefined =>
-      translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts, attachments = botMessage.attachments, fromBot = true)
+      translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts,
+        attachments = botMessage.attachments, fromBot = true)
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
@@ -146,7 +154,7 @@ class Receptionist(rtmClient: SlackRtmClient,
                                    text: String,
                                    idTimestamp: String,
                                    threadTimestamp: Option[String] = None,
-                                   attachments: Seq[Attachment] = Seq(),
+                                   attachments: Seq[SAttachment] = Seq(),
                                    fromBot: Boolean = false): Unit = {
     val sentBy: Sender = if (!fromBot) {
       val slackUser: slack.models.User = rtmClient.state.users.find(_.id == userId).
@@ -178,4 +186,7 @@ class Receptionist(rtmClient: SlackRtmClient,
         false
     }
   }
+
+
+
 }
