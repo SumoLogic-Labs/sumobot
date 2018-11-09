@@ -118,24 +118,24 @@ object Messages {
             image_url = a.imageUrl,
             thumb_url = a.thumbUrl,
             actions = convertActionsToSlackModel(a.actions),
-            mrkdwn_in = a.mrkdwnIn)
+            mrkdwn_in = Some(a.mrkdwnIn))
       }
     )
   }
 
-  private def convertFieldsToSlackModel(fields: Seq[AttachmentField]): Seq[SAttachmentField] = {
-    fields.map {
+  private def convertFieldsToSlackModel(fields: Seq[AttachmentField]): Option[Seq[SAttachmentField]] = {
+    Some(fields.map {
       f =>
         SAttachmentField(title = f.title, value = f.value, short = f.short)
-    }
+    })
   }
 
-  private def convertActionsToSlackModel(actions: Seq[ActionField]): Seq[SActionField] = {
-    actions.map {
+  private def convertActionsToSlackModel(actions: Seq[ActionField]): Option[Seq[SActionField]] = {
+    Some(actions.map {
       a =>
         SActionField(name = a.name, text = a.text, `type` = a.actionType, style = a.style, value = a.value,
           confirm = a.confirm.map(convertConfirmFieldToSlackModel(_)))
-    }
+    })
   }
 
   private def convertConfirmFieldToSlackModel(confirm: ConfirmField): SConfirmField = {
