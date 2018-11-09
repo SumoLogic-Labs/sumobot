@@ -123,7 +123,7 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case botMessage: BotMessage if !tooOld(botMessage.ts, botMessage) && botMessage.username.isDefined =>
       translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts,
-        attachments = botMessage.attachments, fromBot = true)
+        attachments = botMessage.attachments.getOrElse(Seq()), fromBot = true)
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
