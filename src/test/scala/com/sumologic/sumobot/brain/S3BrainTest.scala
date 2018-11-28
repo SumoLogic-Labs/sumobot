@@ -22,8 +22,8 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.TestKit
 import akka.util.Timeout
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
+import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
 import com.sumologic.sumobot.brain.Brain.ValueRetrieved
 import com.sumologic.sumobot.core.aws.AWSAccounts
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -95,7 +95,7 @@ class S3BrainTest
   }
 
   def cleanupBuckets(creds: AWSCredentials): Unit = {
-    val s3 = new AmazonS3Client(creds)
+    val s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).build()
     s3.listBuckets().asScala.filter(_.getName.startsWith(bucketPrefix)).foreach {
       bucket =>
         println(s"Deleting S3 bucket ${bucket.getName}")

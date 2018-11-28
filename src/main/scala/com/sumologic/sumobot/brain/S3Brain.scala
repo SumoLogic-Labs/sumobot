@@ -21,9 +21,9 @@ package com.sumologic.sumobot.brain
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.Properties
 
-import akka.actor.{Props, Actor}
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.s3.AmazonS3Client
+import akka.actor.{Actor, Props}
+import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
+import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.sumologic.sumobot.brain.Brain._
 
@@ -40,7 +40,8 @@ class S3Brain(credentials: AWSCredentials,
               bucket: String,
               s3Key: String) extends Actor {
 
-  private val s3Client = new AmazonS3Client(credentials)
+  private val s3Client = AmazonS3ClientBuilder.standard()
+    .withCredentials(new AWSStaticCredentialsProvider(credentials)).build
 
   private var brainContents: Map[String, String] = loadFromS3()
 
@@ -64,7 +65,7 @@ class S3Brain(credentials: AWSCredentials,
   }
 
   private def loadFromS3(): Map[String, String] = {
-    if (s3Client.doesBucketExist(bucket)) {
+    if (s3Client.doesBucketExistV2(bucket)) {
       val props = new Properties()
       props.load(s3Client.getObject(bucket, s3Key).getObjectContent)
       immutable.Map(props.asScala.toSeq: _*)
@@ -74,8 +75,7 @@ class S3Brain(credentials: AWSCredentials,
   }
 
   private def saveToS3(contents: Map[String, String]): Unit = {
-
-    if (!s3Client.doesBucketExist(bucket)) {
+    if (!s3Client.doesBucketExistV2(bucket)) {
       s3Client.createBucket(bucket)
     }
 
