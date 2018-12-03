@@ -19,8 +19,8 @@
 package com.sumologic.sumobot.plugins.awssupport
 
 import akka.actor.ActorLogging
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.support.AWSSupportClient
+import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
+import com.amazonaws.services.support.AWSSupportClientBuilder
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
 import com.sumologic.sumobot.core.aws.AWSAccounts
 import com.sumologic.sumobot.core.model.IncomingMessage
@@ -39,7 +39,9 @@ class AWSSupport
   private val credentials: Map[String, AWSCredentials] =
     AWSAccounts.load(context.system.settings.config)
 
-  private val clients = credentials.map(tpl => tpl._1 -> new AWSSupportClient(tpl._2))
+  private val clients = credentials.map{case (id, credentials) =>
+    id ->
+      AWSSupportClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).build()}
 
   override protected def help: String =
     s"""

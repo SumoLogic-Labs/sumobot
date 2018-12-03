@@ -29,7 +29,7 @@
     <scala.version.major>2.11</scala.version.major>
     <scala.version>${scala.version.major}.12</scala.version>
     <akka.version>2.5.11</akka.version>
-    <aws.sdk.version>1.10.3</aws.sdk.version>
+    <aws.sdk.version>1.11.393</aws.sdk.version>
   </properties>
 
   <dependencies>
