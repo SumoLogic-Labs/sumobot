@@ -91,6 +91,8 @@ case class BotSender(id: String) extends Sender {
   override def plainTextReference: String = slackReference
 }
 
+case class ResponseInProgress(channel: Channel)
+
 object PublicHttpsReference {
   def forMessage(baseSlackUrl: String, msg: IncomingMessage) = {
     val clearId = msg.idTimestamp.replace(".", "")

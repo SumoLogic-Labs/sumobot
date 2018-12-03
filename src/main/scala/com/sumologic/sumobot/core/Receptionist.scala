@@ -68,7 +68,8 @@ class Receptionist(rtmClient: SlackRtmClient,
       classOf[OutgoingMessageWithAttachments],
       classOf[OutgoingImage],
       classOf[OpenIM],
-      classOf[RtmStateRequest]
+      classOf[RtmStateRequest],
+      classOf[ResponseInProgress]
     ).foreach(context.system.eventStream.subscribe(self, _))
   }
 
@@ -127,6 +128,9 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
+
+    case ResponseInProgress(channel) =>
+      rtmClient.indicateTyping(channel.id)
   }
 
   protected def translateMessage(channelId: String,
