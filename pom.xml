@@ -37,7 +37,7 @@
     <dependency>
       <groupId>com.github.slack-scala-client</groupId>
       <artifactId>slack-scala-client_2.11</artifactId>
-      <version>0.2.4</version>
+      <version>0.2.5</version>
     </dependency>
 
     <dependency>
