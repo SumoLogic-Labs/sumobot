@@ -17,7 +17,7 @@
  * under the License.
  */
 package com.sumologic.sumobot.plugins.pagerduty
-import com.sumologic.sumobot.HttpClientWithTimeOut
+import com.sumologic.sumobot.plugins.HttpClientWithTimeOut
 import net.liftweb.json._
 import org.apache.http.client.methods.HttpGet
 

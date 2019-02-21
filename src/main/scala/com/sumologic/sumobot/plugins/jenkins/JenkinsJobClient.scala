@@ -25,10 +25,9 @@ import akka.event.Logging
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.HttpClientWithTimeOut
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.util.TimeHelpers
-import com.sumologic.sumobot.plugins.Emotions
+import com.sumologic.sumobot.plugins.{Emotions, HttpClientWithTimeOut}
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost}
 import org.apache.http.client.config.{CookieSpecs, RequestConfig}

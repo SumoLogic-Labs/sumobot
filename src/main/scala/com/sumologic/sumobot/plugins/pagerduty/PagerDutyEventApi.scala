@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.pagerduty
 
-import com.sumologic.sumobot.HttpClientWithTimeOut
+import com.sumologic.sumobot.plugins.HttpClientWithTimeOut
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.{ContentType, StringEntity}
 import play.api.libs.json.Json

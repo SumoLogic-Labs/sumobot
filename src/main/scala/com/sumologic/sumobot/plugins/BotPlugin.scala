@@ -21,7 +21,6 @@ package com.sumologic.sumobot.plugins
 import java.net.URLEncoder
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import com.sumologic.sumobot.HttpClientWithTimeOut
 import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model._
