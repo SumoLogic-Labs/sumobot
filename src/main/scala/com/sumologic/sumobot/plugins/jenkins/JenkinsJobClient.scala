@@ -25,13 +25,13 @@ import akka.event.Logging
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
+import com.sumologic.sumobot.HttpClientWithTimeOut
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.util.TimeHelpers
 import com.sumologic.sumobot.plugins.Emotions
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpGet, HttpPost}
 import org.apache.http.client.config.{CookieSpecs, RequestConfig}
-import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
@@ -53,8 +53,12 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
   rawConMan.setMaxTotal(200)
   rawConMan.setDefaultMaxPerRoute(20)
 
-  val requestConfig = RequestConfig.custom.setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY).build
-  private val rawHttpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()
+  val requestConfig = RequestConfig.custom.setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+    .setConnectionRequestTimeout(60000)
+    .setConnectTimeout(60000)
+    .build
+
+  private val rawHttpClient = HttpClientWithTimeOut.client(requestConfig)
 
   private val basicAuthClient = new JenkinsHttpClient(uri, username, password)
 
