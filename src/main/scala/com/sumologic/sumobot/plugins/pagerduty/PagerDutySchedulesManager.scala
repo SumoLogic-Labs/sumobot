@@ -17,10 +17,9 @@
  * under the License.
  */
 package com.sumologic.sumobot.plugins.pagerduty
-
+import com.sumologic.sumobot.plugins.HttpClientWithTimeOut
 import net.liftweb.json._
 import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.DefaultHttpClient
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -28,7 +27,7 @@ class PagerDutySchedulesManager(settings: PagerDutySettings) {
   private[this] val perPage = 100
 
   def getAllOnCalls: Option[Seq[PagerDutyOnCall]] = {
-    val client = new DefaultHttpClient()
+    val client = HttpClientWithTimeOut.client()
     try {
       var total = Integer.MAX_VALUE
       var page = 0
@@ -72,7 +71,7 @@ class PagerDutySchedulesManager(settings: PagerDutySettings) {
         println(e)
         None
     } finally {
-      client.getConnectionManager.shutdown()
+      client.close()
     }
   }
 }

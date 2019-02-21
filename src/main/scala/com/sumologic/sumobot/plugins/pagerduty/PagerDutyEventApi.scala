@@ -18,9 +18,9 @@
  */
 package com.sumologic.sumobot.plugins.pagerduty
 
+import com.sumologic.sumobot.plugins.HttpClientWithTimeOut
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.{ContentType, StringEntity}
-import org.apache.http.impl.client.DefaultHttpClient
 import play.api.libs.json.Json
 
 
@@ -32,7 +32,7 @@ class PagerDutyEventApi {
 
   private val SubmitUrl = "https://events.pagerduty.com/generic/2010-04-15/create_event.json"
 
-  private val client = new DefaultHttpClient()
+  private val client = HttpClientWithTimeOut.client()
 
   def page(channel: String,
            serviceKey: String,

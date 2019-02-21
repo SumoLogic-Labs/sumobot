@@ -29,7 +29,6 @@ import com.sumologic.sumobot.quartz.QuartzExtension
 import com.typesafe.config.Config
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
-import org.apache.http.impl.client.DefaultHttpClient
 import slack.models.{Group, Im, User, Channel => ClientChannel}
 import slack.rtm.RtmState
 
@@ -127,7 +126,7 @@ abstract class BotPlugin
     def http(request: HttpUriRequest)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = {
       respondInFuture {
         incoming =>
-          val client = new DefaultHttpClient()
+          val client = HttpClientWithTimeOut.client()
           func(incoming, client.execute(request))
       }
     }

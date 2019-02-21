@@ -27,12 +27,11 @@ import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.util.TimeHelpers
-import com.sumologic.sumobot.plugins.Emotions
+import com.sumologic.sumobot.plugins.{Emotions, HttpClientWithTimeOut}
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.params.{ClientPNames, CookiePolicy}
-import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.impl.conn.PoolingClientConnectionManager
+import org.apache.http.client.methods.{HttpGet, HttpPost}
+import org.apache.http.client.config.{CookieSpecs, RequestConfig}
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 
@@ -49,11 +48,16 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
   import configuration._
   private val uri = new URI(url)
 
-  private val rawConMan = new PoolingClientConnectionManager()
+  private val rawConMan = new PoolingHttpClientConnectionManager()
   rawConMan.setMaxTotal(200)
   rawConMan.setDefaultMaxPerRoute(20)
-  private val rawHttpClient = new DefaultHttpClient()
-  rawHttpClient.getParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY)
+
+  val requestConfig = RequestConfig.custom.setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+    .setConnectionRequestTimeout(60000)
+    .setConnectTimeout(60000)
+    .build
+
+  private val rawHttpClient = HttpClientWithTimeOut.client(requestConfig)
 
   private val basicAuthClient = new JenkinsHttpClient(uri, username, password)
 
@@ -89,12 +93,12 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
             s"job $jobName has been triggered!"
           } catch {
             case NonFatal(e) =>
-              log.error(s"Could not trigger job $jobName", e)
+              log.error(s"Could not trigger job $jobName {}", e)
               "Unable to trigger job. Got an exception"
           }
         }
       case Failure(e) =>
-        log.error(s"Error triggering job $givenName on $url", e)
+        log.error(s"Error triggering job $givenName on $url {}", e)
         unknownJobMessage(givenName)
       case _ =>
         unknownJobMessage(givenName)
