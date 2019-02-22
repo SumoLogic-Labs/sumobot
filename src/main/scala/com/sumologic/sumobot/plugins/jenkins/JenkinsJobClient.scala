@@ -39,6 +39,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import java.util.HashMap
 
 class JenkinsJobClient(val configuration: JenkinsConfiguration)
   extends Emotions
@@ -104,6 +105,38 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
         unknownJobMessage(givenName)
     }
   }
+
+  def buildJobWithParamter(givenName: String, cause: String,data: HashMap[String, String]): String = {
+    Try(server.getJob(givenName)) match {
+      case Success(jobWithDetails) if jobWithDetails != null =>
+        val jobName = jobWithDetails.getName
+        val jobUrl = jobWithDetails.getUrl
+        val isBuildable = jobWithDetails.isBuildable
+        if (!isBuildable) {
+          s"$jobName is not buildable."
+        } else {
+          try {
+            val encodedJobName = URLEncoder.
+              encode(jobWithDetails.getName, "UTF-8").
+              replaceAll("\\+", "%20")
+            log.info(s"Triggering job $encodedJobName on $url")
+            basicAuthClient.post_form(s"/job/$encodedJobName/buildWithParameters?delay=0sec&cause=$cause",data,true)
+            cachedJobs = None
+            s"job $jobUrl has been triggered!"
+          } catch {
+            case NonFatal(e) =>
+              log.error(s"Could not trigger job $jobName {}", e)
+              "Unable to trigger job. Got an exception"
+          }
+        }
+      case Failure(e) =>
+        log.error(s"Error triggering job $givenName on $url {}", e)
+        unknownJobMessage(givenName)
+      case _ =>
+        unknownJobMessage(givenName)
+    }
+  }
+
 
   def jobs: Map[String, Job] = {
     cacheLock synchronized {

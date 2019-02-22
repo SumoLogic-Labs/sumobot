@@ -28,6 +28,7 @@ import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import java.util.HashMap
 
 class Jenkins
   extends BotPlugin
@@ -45,17 +46,27 @@ $name info - I'll tell you which $name instance I'm talking to.
 $name status <jobname> - Check the status of the given job.
 $name build <jobname> - Build the given job.
 $name monitor <jobname> - I'll let you know when something changes about the job.
-$name unmonitor <jobname> - I'll stop bugging you about that job."""
+$name unmonitor <jobname> - I'll stop bugging you about that job.
+dep start <deployname> -I'll start that deploy
+dep stop <deployname> -I'll stop that deploy"""
 
   private val JobStatus = matchText(s"$name status (\\S+)")
   private val BuildJob = matchText(s"$name build (\\S+)")
   private val MonitorJob = matchText(s"$name monitor (\\S+)")
   private val UnmonitorJob = matchText(s"$name unmonitor (\\S+)")
+  private val StartDeploy = matchText(s"dep start (\\S+)")
+  private val StoptDeploy = matchText(s"dep stop (\\S+)")
   private val Info = matchText(s"$name info")
 
   private val client: JenkinsJobClient = new JenkinsJobClient(JenkinsConfiguration.load(config))
 
   private var monitoredJobs = Map.empty[String, ActorRef]
+
+  val data = new HashMap[String, String]()
+  data.put("statusCode", "303")
+  data.put("redirectTo", ".")
+  data.put("Submit", "Build")
+  data.put("deploymentOptions", "-v")
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
@@ -76,6 +87,48 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
       message.respondInFuture {
         msg =>
           msg.response(client.buildJob(givenName, cause))
+      }
+
+    case message@IncomingMessage(StartDeploy(givenName), _, _, _, _, _, UserSender(user)) =>
+      data.put("deployment", givenName)
+      data.put("destroy", "false")
+      data.put("shutdown", "false")
+      data.put("destroyAndLaunch", "true")
+      data.put("k8s", "false")
+
+      val cause = URLEncoder.encode(s"Triggered via sumobot by ${user.name} in ${message.channel.name}", "UTF-8")
+      message.respondInFuture {
+        msg =>
+          msg.response(client.buildJobWithParamter("gaurav-hackathon-test", cause,data),false)
+      }
+
+    case message@IncomingMessage(StoptDeploy(givenName), _, _, _, _, _, UserSender(user)) =>
+      data.put("deployment", givenName)
+      data.put("destroy", "false")
+      data.put("shutdown", "true")
+      data.put("destroyAndLaunch", "false")
+      data.put("k8s", "false")
+
+      val cause = URLEncoder.encode(s"Triggered via sumobot by ${user.name} in ${message.channel.name}", "UTF-8")
+      message.respondInFuture {
+        msg =>
+          client.buildJobWithParamter("gaurav-hackathon-test", cause,data)
+          withKnownJob(msg, "gaurav-hackathon-test") {
+            job =>
+              val key = monitorKey(message.channel, job.getName)
+              if (!monitoredJobs.contains(key)) {
+                val monitor = context.actorOf(Props(classOf[JenkinsJobMonitor], msg.channel, job.getName), s"monitor-$key")
+                val firstMonitoredJob = monitoredJobs.isEmpty
+                monitoredJobs += (key -> monitor)
+                if (firstMonitoredJob) {
+                  scheduleNextPoll()
+                }
+                msg.response(s"Okie, will update you when ${job.getUrl} changes. Current: ${summarizeJob(job)}")
+              } else {
+                msg.response(s"Already monitoring ${job.getUrl}")
+              }
+          }
+
       }
 
     case message@IncomingMessage(MonitorJob(givenName), _, _, _, _, _, _) =>
