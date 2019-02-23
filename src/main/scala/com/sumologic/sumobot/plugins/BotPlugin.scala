@@ -79,7 +79,7 @@ abstract class BotPlugin
   class RichIncomingMessage(msg: IncomingMessage) {
     def response(text: String, inThread: Boolean = false) = {
       val threadTs = if (inThread) {
-        Some(msg.idTimestamp)
+        msg.threadTimestamp.orElse(Some(msg.idTimestamp))
       } else {
         None
       }
