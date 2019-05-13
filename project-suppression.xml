@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, we don't use software mentioned in CVE.
+   file name: commons-collections-3.2.1.jar
+   ]]></notes>
+        <gav regex="true">^commons-collections:commons-collections:.*$</gav>
+        <cve>CVE-2015-6420</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, we don't use Apache Synapse
+   file name: commons-collections-3.2.1.jar
+   ]]></notes>
+        <gav regex="true">^commons-collections:commons-collections:.*$</gav>
+        <cve>CVE-2017-15708</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this CVE is for Jenkins Git plugin
+   file name: jenkins-client-0.3.8.jar
+   ]]></notes>
+        <gav regex="true">^com\.offbytwo\.jenkins:jenkins-client:.*$</gav>
+        <cve>CVE-2017-1000242</cve>
+    </suppress>
+</suppressions>
