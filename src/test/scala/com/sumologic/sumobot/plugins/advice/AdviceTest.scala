@@ -36,8 +36,7 @@ class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest")) with SumoBo
       "how do you handle cocktails" should fullyMatch regex Advice.AdviceAbout
     }
 
-    // TODO: Fix this test and reenable.
-    "retrieve advice" ignore {
+    "retrieve advice" in {
       adviceRef ! instantMessage("I need some advice")
       confirmOutgoingMessage {
         msg =>
