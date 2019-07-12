@@ -19,7 +19,9 @@
   </licenses>
 
   <scm>
+    <url>https://github.com/SumoLogic/sumobot</url>
     <connection>scm:git:git@github.com:SumoLogic/sumobot.git</connection>
+    <developerConnection>scm:git:git@github.com:SumoLogic/sumobot.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -206,6 +208,7 @@
             <goals>
               <goal>add-source</goal>
               <goal>compile</goal>
+              <goal>doc-jar</goal>
             </goals>
           </execution>
         </executions>
@@ -302,6 +305,20 @@
             <phase>test</phase>
             <goals>
               <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
             </goals>
           </execution>
         </executions>
