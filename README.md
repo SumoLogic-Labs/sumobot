@@ -8,7 +8,7 @@ Very early work on a Slack ChatOps bot, written in Akka/Scala.
 
 Released under Apache 2.0 License.
 
-# [Dev] How to release new version
+### [Dev] How to release new version
 1. Make sure you have all credentials.
   * Can login as `sumoapi` https://oss.sonatype.org/index.html
   * Have nexus credentials ~/.m2/settings.xml
