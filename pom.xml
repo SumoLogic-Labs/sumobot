@@ -18,6 +18,14 @@
     </license>
   </licenses>
 
+  <developers>
+     <developer>
+       <id>goledzki</id>
+       <name>Greg Oledzki</name>
+       <organization>Sumo Logic</organization>
+     </developer>
+  </developers>
+
   <scm>
     <url>https://github.com/SumoLogic/sumobot</url>
     <connection>scm:git:git@github.com:SumoLogic/sumobot.git</connection>
