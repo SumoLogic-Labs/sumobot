@@ -4,7 +4,7 @@
   <groupId>com.sumologic.sumobot</groupId>
   <artifactId>sumobot</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
 
   <name>sumobot</name>
   <description>A Slack bot implemented in Akka</description>
@@ -20,7 +20,7 @@
 
   <scm>
     <connection>scm:git:git@github.com:SumoLogic/sumobot.git</connection>
-    <tag>sumobot-1.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
