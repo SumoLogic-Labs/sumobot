@@ -56,6 +56,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-stream_${scala.version.major}</artifactId>
+      <version>${akka.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.version.major}</artifactId>
       <version>2.2.5</version>
