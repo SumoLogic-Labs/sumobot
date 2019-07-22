@@ -278,6 +278,7 @@
             <exclude>target/**</exclude>
             <exclude>.clover/**</exclude>
             <exclude>src/main/assembly.xml</exclude>
+            <exclude>**/*.html</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
           <useDefaultMapping>true</useDefaultMapping>
