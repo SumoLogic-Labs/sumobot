@@ -20,7 +20,7 @@ package com.sumologic.sumobot.http_frontend
 
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.model.ws.TextMessage
-import akka.testkit.{TestActors, TestKit, TestProbe}
+import akka.testkit.{TestActorRef, TestActors, TestKit, TestProbe}
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.test.SumoBotSpec
@@ -34,7 +34,7 @@ class HttpOutcomingSenderTest
   private val probe = new TestProbe(system)
   system.eventStream.subscribe(probe.ref, classOf[TextMessage.Strict])
 
-  private val httpOutcomingSender = system.actorOf(Props(classOf[HttpOutcomingSender], probe.ref))
+  private val httpOutcomingSender = TestActorRef(new HttpOutcomingSender(probe.ref))
 
   "HttpOutcomingSender" should {
     "send TextMessage" when {
@@ -50,11 +50,11 @@ class HttpOutcomingSenderTest
 
     "stop publisher" when {
       "it is stopped" in {
-        val dummyActor = system.actorOf(TestActors.blackholeProps)
+        val dummyActor = TestActorRef(TestActors.blackholeProps)
         val testProbe = TestProbe()
         testProbe.watch(dummyActor)
 
-        val stoppedSender = system.actorOf(Props(classOf[HttpOutcomingSender], dummyActor))
+        val stoppedSender = TestActorRef(new HttpOutcomingSender(dummyActor))
         system.stop(stoppedSender)
 
         testProbe.expectTerminated(dummyActor)

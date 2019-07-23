@@ -23,7 +23,7 @@ import java.time.Instant
 import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.model.ws.TextMessage
 import akka.stream.scaladsl.Source
-import akka.testkit.{TestActors, TestKit, TestProbe}
+import akka.testkit.{TestActorRef, TestActors, TestKit, TestProbe}
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.test.SumoBotSpec
@@ -37,8 +37,8 @@ class HttpIncomingReceiverTest
   private val probe = new TestProbe(system)
   system.eventStream.subscribe(probe.ref, classOf[IncomingMessage])
 
-  private val dummyActor = system.actorOf(TestActors.blackholeProps)
-  private val httpIncomingReceiver = system.actorOf(Props(classOf[HttpIncomingReceiver], dummyActor))
+  private val dummyActor = TestActorRef(TestActors.blackholeProps)
+  private val httpIncomingReceiver = TestActorRef(new HttpIncomingReceiver(dummyActor))
 
   "HttpIncomingReceiver" should {
     "publish IncomingMessage" when {
@@ -85,11 +85,11 @@ class HttpIncomingReceiverTest
 
     "stop itself and outcoming actor" when {
       "stream ended" in {
-        val outcomingActor = system.actorOf(TestActors.blackholeProps)
+        val outcomingActor = TestActorRef(TestActors.blackholeProps)
         val testProbeOutcoming = TestProbe()
         testProbeOutcoming.watch(outcomingActor)
 
-        val shutdownReceiver = system.actorOf(Props(classOf[HttpIncomingReceiver], outcomingActor))
+        val shutdownReceiver = TestActorRef(new HttpIncomingReceiver(outcomingActor))
         val testProbeShutdown = TestProbe()
         testProbeShutdown.watch(shutdownReceiver)
 

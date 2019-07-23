@@ -26,7 +26,7 @@ import akka.http.scaladsl.model.{ContentTypes, HttpRequest, HttpResponse, Status
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.testkit.{TestKit, TestProbe}
+import akka.testkit.{TestActorRef, TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.{Bootstrap, HttpReceptionist}
 import com.sumologic.sumobot.plugins.PluginsFromProps
@@ -34,6 +34,7 @@ import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.test.SumoBotSpec
 import org.scalatest.BeforeAndAfterAll
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.ContentTypes._
@@ -49,8 +50,8 @@ class SumoBotHttpServerTest
   private val port = 9999
   private val httpServer = new SumoBotHttpServer(host, port)
 
-  private val brain = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
-  private val httpReceptionist = system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist")
+  private val brain = TestActorRef(Props[InMemoryBrain])
+  private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))
   Bootstrap.receptionist = Some(httpReceptionist)
 
   private val pluginCollection = PluginsFromProps(Array(Props(classOf[Help]), Props(classOf[System])))
@@ -89,29 +90,37 @@ class SumoBotHttpServerTest
         val probe = TestProbe()
         sendWebSocketMessage("help", probe.ref)
 
-        val response = probe.expectMsgClass(classOf[TextMessage.Strict])
-        response.getStrictText should include("Help")
-        response.getStrictText should include("System")
+        eventually {
+          val response = probe.expectMsgClass(classOf[TextMessage.Strict])
+          response.getStrictText should include("Help")
+          response.getStrictText should include("System")
+        }
       }
 
       "sending message to System plugin" in {
         val probe = TestProbe()
         sendWebSocketMessage("when did you start?", probe.ref)
 
-        val response = probe.expectMsgClass(classOf[TextMessage.Strict])
-        response.getStrictText should include("I started at ")
+        eventually {
+          val response = probe.expectMsgClass(classOf[TextMessage.Strict])
+          response.getStrictText should include("I started at ")
+        }
       }
 
       "sending multiple messages" in {
         val probe = TestProbe()
 
-        sendWebSocketMessages(Array("help", "blahblah invalid command", "when did you start?"), probe.ref)
+        sendWebSocketMessages(Array("help", "blahblah invalid command", "help"), probe.ref)
 
-        val helpResponse = probe.expectMsgClass(classOf[TextMessage.Strict])
-        helpResponse.getStrictText should include("Help")
+        eventually {
+          val firstResponse = probe.expectMsgClass(classOf[TextMessage.Strict])
+          firstResponse.getStrictText should include("Help")
+        }
 
-        val systemResponse = probe.expectMsgClass(classOf[TextMessage.Strict])
-        systemResponse.getStrictText should include("I started at ")
+        eventually {
+          val secondResponse = probe.expectMsgClass(classOf[TextMessage.Strict])
+          secondResponse.getStrictText should include("Help")
+        }
       }
     }
   }
