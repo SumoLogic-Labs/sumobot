@@ -86,16 +86,17 @@ class HttpIncomingReceiverTest
     "stop itself and outcoming actor" when {
       "stream ended" in {
         val outcomingActor = system.actorOf(TestActors.blackholeProps)
-        val testProbe = TestProbe()
-        testProbe.watch(outcomingActor)
+        val testProbeOutcoming = TestProbe()
+        testProbeOutcoming.watch(outcomingActor)
 
         val shutdownReceiver = system.actorOf(Props(classOf[HttpIncomingReceiver], outcomingActor))
-        testProbe.watch(shutdownReceiver)
+        val testProbeShutdown = TestProbe()
+        testProbeShutdown.watch(shutdownReceiver)
 
         shutdownReceiver ! HttpIncomingReceiver.StreamEnded
 
-        testProbe.expectTerminated(outcomingActor)
-        testProbe.expectTerminated(shutdownReceiver)
+        testProbeOutcoming.expectTerminated(outcomingActor)
+        testProbeShutdown.expectTerminated(shutdownReceiver)
       }
     }
   }
