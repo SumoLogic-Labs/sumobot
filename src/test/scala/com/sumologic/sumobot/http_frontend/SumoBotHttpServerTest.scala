@@ -21,7 +21,7 @@ package com.sumologic.sumobot.http_frontend
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.headers.`Content-Type`
-import akka.http.scaladsl.model.ws.{TextMessage, WebSocketRequest}
+import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
 import akka.http.scaladsl.model.{ContentTypes, HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
@@ -35,7 +35,7 @@ import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.test.SumoBotSpec
 import org.scalatest.BeforeAndAfterAll
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._
 import akka.http.scaladsl.model.ContentTypes._
 
@@ -88,29 +88,34 @@ class SumoBotHttpServerTest
     "handle WebSocket requests" when {
       "sending message to Help plugin" in {
         val probe = TestProbe()
-        sendWebSocketMessage("help", probe.ref)
+        val disconnectPromise = sendWebSocketMessage("help", probe.ref)
 
         eventually {
           val response = probe.expectMsgClass(classOf[TextMessage.Strict])
           response.getStrictText should include("Help")
           response.getStrictText should include("System")
         }
+
+        disconnectPromise.success(None)
       }
 
       "sending message to System plugin" in {
         val probe = TestProbe()
-        sendWebSocketMessage("when did you start?", probe.ref)
+        val disconnectPromise = sendWebSocketMessage("when did you start?", probe.ref)
 
         eventually {
           val response = probe.expectMsgClass(classOf[TextMessage.Strict])
           response.getStrictText should include("I started at ")
         }
+
+        disconnectPromise.success(None)
       }
 
       "sending multiple messages" in {
         val probe = TestProbe()
 
-        sendWebSocketMessages(Array("help", "blahblah invalid command", "help"), probe.ref)
+        val disconnectPromise = sendWebSocketMessages(Array("help", "blahblah invalid command", "help"),
+          probe.ref)
 
         eventually {
           val firstResponse = probe.expectMsgClass(classOf[TextMessage.Strict])
@@ -121,6 +126,8 @@ class SumoBotHttpServerTest
           val secondResponse = probe.expectMsgClass(classOf[TextMessage.Strict])
           secondResponse.getStrictText should include("Help")
         }
+
+        disconnectPromise.success(None)
       }
     }
   }
@@ -137,14 +144,19 @@ class SumoBotHttpServerTest
     }
   }
 
-  private def sendWebSocketMessages(msgs: Seq[String], listenerRef: ActorRef): Unit = {
+  private def sendWebSocketMessages(msgs: Seq[String], listenerRef: ActorRef): Promise[Option[Message]] = {
     val sink = Sink.actorRef(listenerRef, "ended")
-    val source = Source(msgs.map(msg => TextMessage(msg)).toList)
+    val source = Source(msgs.map(msg => TextMessage(msg)).toList).concatMat(Source.maybe[Message])(Keep.right)
 
-    Http().singleWebSocketRequest(webSocketRequest, Flow.fromSinkAndSourceMat(sink, source)(Keep.left))
+    // NOTE(pgrabowski, 2019-07-23): Using promise to signal when to close WebSocket.
+    // https://doc.akka.io/docs/akka-http/current/client-side/websocket-support.html#half-closed-websockets
+    val (_, disconnectPromise) = Http().singleWebSocketRequest(webSocketRequest,
+      Flow.fromSinkAndSourceMat(sink, source)(Keep.right))
+
+    disconnectPromise
   }
 
-  private def sendWebSocketMessage(msg: String, listenerRef: ActorRef): Unit = {
+  private def sendWebSocketMessage(msg: String, listenerRef: ActorRef): Promise[Option[Message]] = {
     sendWebSocketMessages(Array(msg), listenerRef)
   }
 
