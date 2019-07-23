@@ -17,7 +17,9 @@
  * under the License.
  */
 window.onload = function() {
-    var endpoint = "ws://" + window.location.host + "/websocket";
+    var websocketProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+
+    var endpoint = websocketProtocol + window.location.host + window.location.pathname + "websocket";
 
     var socket = new WebSocket(endpoint);
     var messageBox = document.getElementById("messages");
@@ -31,7 +33,7 @@ window.onload = function() {
     socket.onmessage = function(event) {
         var messageItem = document.createElement("p");
         messageItem.textContent = event.data;
-        messageItem.setAttribute("style", "background: gray; padding: 20px; white-space: pre-line;")
+        messageItem.setAttribute("style", "background: gray; padding: 20px; white-space: pre-line;");
         messageBox.appendChild(messageItem);
     };
 };

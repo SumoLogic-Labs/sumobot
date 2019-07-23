@@ -27,6 +27,8 @@ import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import org.reactivestreams.Publisher
 
+import SumoBotHttpServer._
+
 object SumoBotHttpServer {
   private[http_frontend] val UrlSeparator = "/"
 
@@ -40,8 +42,6 @@ object SumoBotHttpServer {
 }
 
 class SumoBotHttpServer(httpHost: String, httpPort: Int)(implicit system: ActorSystem) {
-  import SumoBotHttpServer._
-
   private implicit val materializer: Materializer = ActorMaterializer()
 
   private val serverSource = Http().bind(httpHost, httpPort)

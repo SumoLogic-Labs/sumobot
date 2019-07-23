@@ -33,16 +33,15 @@ import scala.concurrent.duration.Duration
 
 object HttpIncomingReceiver {
   case class StreamEnded()
+  private val StrictTimeout = Duration.create(5, TimeUnit.SECONDS)
 }
 
 class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLogging {
-  private val StrictTimeout = Duration.create(5, TimeUnit.SECONDS)
-
   private implicit val materializer = ActorMaterializer()
 
   override def receive: Receive = {
     case streamedMsg: TextMessage.Streamed =>
-      streamedMsg.toStrict(StrictTimeout).pipeTo(self)(sender())
+      streamedMsg.toStrict(HttpIncomingReceiver.StrictTimeout).pipeTo(self)(sender())
 
     case strictMsg: TextMessage.Strict =>
       val contents = strictMsg.getStrictText

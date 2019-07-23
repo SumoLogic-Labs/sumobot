@@ -24,10 +24,13 @@ import org.apache.commons.io.IOUtils
 object StaticResource {
   private[http_frontend] val DefaultContentType = ContentTypes.`text/html(UTF-8)`
 
+  case class ContentTypePair(extension: String, contentType: ContentType)
+
   private[http_frontend] val KnownContentTypes = Array(
-    (".html", ContentTypes.`text/html(UTF-8)`),
-    (".css", ContentType(MediaTypes.`text/css`, HttpCharsets.`UTF-8`)),
-    (".js", ContentType(MediaTypes.`application/javascript`, HttpCharsets.`UTF-8`)))
+    ContentTypePair(".html", ContentTypes.`text/html(UTF-8)`),
+    ContentTypePair(".css", ContentType(MediaTypes.`text/css`, HttpCharsets.`UTF-8`)),
+    ContentTypePair(".js", ContentType(MediaTypes.`application/javascript`, HttpCharsets.`UTF-8`))
+  )
 }
 
 case class StaticResource(filename: String) {
@@ -37,7 +40,8 @@ case class StaticResource(filename: String) {
   stream.close()
 
   def contentType: ContentType = {
-    val contentType = StaticResource.KnownContentTypes.find(contentType => filename.endsWith(contentType._1)).map(_._2)
+    val contentType = StaticResource.KnownContentTypes.find(contentType => filename.endsWith(contentType.extension))
+      .map(contentTypePair => contentTypePair.contentType)
     contentType.getOrElse(StaticResource.DefaultContentType)
   }
 }
