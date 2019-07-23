@@ -31,6 +31,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object Bootstrap {
+  sealed trait SumobotFrontend
+  case object SlackFrontend extends SumobotFrontend
+  case object HttpFrontend extends SumobotFrontend
 
   private val pluginConfig = ConfigFactory.parseFile(new File("config/sumobot.conf"))
 
@@ -43,9 +46,9 @@ object Bootstrap {
     val frontend = selectedFrontend()
 
     frontend match {
-      case "slack" =>
+      case SlackFrontend =>
         bootstrapSlack(brainProps, pluginCollections)
-      case "http" =>
+      case HttpFrontend =>
         bootstrapHttp(brainProps, pluginCollections)
     }
   }
@@ -86,14 +89,14 @@ object Bootstrap {
     sys.addShutdownHook(shutdownActorSystem())
   }
 
-  private def selectedFrontend(): String = {
+  private def selectedFrontend(): SumobotFrontend = {
     val isSlackSelected = system.settings.config.hasPath("slack.api.token")
     val isHttpSelected = system.settings.config.hasPath("http")
 
-    if (isHttpSelected && isSlackSelected) throw new RuntimeException("Only one frontend can be selected")
-    if (!isHttpSelected && !isSlackSelected) throw new RuntimeException("No frontend selected")
+    if (isHttpSelected && isSlackSelected) throw new IllegalArgumentException("Only one frontend can be selected")
+    if (!isHttpSelected && !isSlackSelected) throw new IllegalArgumentException("No frontend selected")
 
-    if (isSlackSelected) "slack" else "http"
+    if (isSlackSelected) SlackFrontend else HttpFrontend
   }
 
   private def shutdownActorSystem(): Unit = {
