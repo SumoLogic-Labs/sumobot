@@ -34,10 +34,13 @@ object StaticResource {
 }
 
 case class StaticResource(filename: String) {
-  private val stream = getClass.getResourceAsStream(filename)
+  def contents: Array[Byte] = {
+    val stream = getClass.getResourceAsStream(filename)
+    val result = IOUtils.toByteArray(stream)
 
-  val contents: Array[Byte] = IOUtils.toByteArray(stream)
-  stream.close()
+    stream.close()
+    result
+  }
 
   def contentType: ContentType = {
     val contentType = StaticResource.KnownContentTypes.find(contentType => filename.endsWith(contentType.extension))
