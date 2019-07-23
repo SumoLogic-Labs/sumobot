@@ -19,25 +19,33 @@
 package com.sumologic.sumobot.http_frontend
 
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import akka.http.javadsl.model.ws.TextMessage
+import akka.pattern.pipe
+import scala.concurrent.ExecutionContext.Implicits.global
+import akka.http.scaladsl.model.ws.TextMessage
 import akka.stream.ActorMaterializer
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
+
+import scala.concurrent.duration.Duration
 
 object HttpIncomingReceiver {
   case class StreamEnded()
 }
 
 class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLogging {
-  private val StrictTimeout = 10000
+  private val StrictTimeout = Duration.create(5, TimeUnit.SECONDS)
 
-  private val materializer = ActorMaterializer()
+  private implicit val materializer = ActorMaterializer()
 
   override def receive: Receive = {
-    case msg: TextMessage =>
-      val contents = messageContents(msg).trim
+    case streamedMsg: TextMessage.Streamed =>
+      streamedMsg.toStrict(StrictTimeout).pipeTo(self)(sender())
+
+    case strictMsg: TextMessage.Strict =>
+      val contents = strictMsg.getStrictText
       val incomingMessage = IncomingMessage(contents, true, HttpReceptionist.DefaultSumoBotChannel,
         formatDateNow(), None, Seq.empty, UserSender(HttpReceptionist.DefaultClientUser))
       context.system.eventStream.publish(incomingMessage)
@@ -45,10 +53,6 @@ class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLoggi
     case HttpIncomingReceiver.StreamEnded =>
       context.stop(outcomingRef)
       context.stop(self)
-  }
-
-  private def messageContents(msg: TextMessage): String = {
-    msg.toStrict(StrictTimeout, materializer).toCompletableFuture.get().getStrictText
   }
 
   private def formatDateNow(): String = {
