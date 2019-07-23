@@ -8,6 +8,32 @@ Very early work on a Slack ChatOps bot, written in Akka/Scala.
 
 Released under Apache 2.0 License.
 
+### Starting Sumo Bot
+Sumo Bot supports running on Slack or on a debug HTTP server (but only one at a time). All configuration is stored in `config/sumobot.conf`. You can see sample `sumobot.conf` in [`config/sumobot.conf.example`](https://github.com/SumoLogic/sumobot/blob/master/config/sumobot.conf.example).
+
+#### Running on Slack
+You will need a Slack API token. You need to add following lines to your `config/sumobot.conf`:
+
+```
+slack {
+  api.token = "..."
+}
+```
+
+#### Running on HTTP server
+To run server locally, add following lines to your `config/sumobot.conf`:
+
+```
+http {
+  host = "localhost"
+  port = 8080
+}
+```
+
+After starting Sumo Bot, you can visit started server at `http://localhost:8080/`.
+
+To run server exposed to external world, change `host` to `0.0.0.0`.
+
 ### [Dev] How to release new version
 1. Make sure you have all credentials.
   * Can login as `sumoapi` https://oss.sonatype.org/index.html

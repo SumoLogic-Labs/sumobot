@@ -1,5 +1,12 @@
+# only one frontend (slack, http) can be active at the same time
+
 slack {
   api.token = "..."
+}
+
+http {
+  host = "localhost"
+  port = 8080
 }
 
 # Not read by the code, just used in the config.
