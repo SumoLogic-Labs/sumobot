@@ -86,6 +86,7 @@ object Bootstrap {
 
     pluginCollections.par.foreach(_.setup)
 
+    sys.addShutdownHook(httpServer.terminate())
     sys.addShutdownHook(shutdownActorSystem())
   }
 

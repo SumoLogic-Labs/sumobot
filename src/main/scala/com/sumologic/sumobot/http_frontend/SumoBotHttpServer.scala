@@ -29,6 +29,9 @@ import org.reactivestreams.Publisher
 
 import SumoBotHttpServer._
 
+import scala.concurrent.duration._
+import scala.concurrent.Await
+
 object SumoBotHttpServer {
   private[http_frontend] val UrlSeparator = "/"
 
@@ -45,6 +48,12 @@ class SumoBotHttpServer(httpHost: String, httpPort: Int)(implicit system: ActorS
   private implicit val materializer: Materializer = ActorMaterializer()
 
   private val serverSource = Http().bind(httpHost, httpPort)
+
+  private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler(requestHandler))).run()
+
+  def terminate(): Unit = {
+    Await.result(binding, 10.seconds).terminate(5.seconds)
+  }
 
   private val requestHandler: HttpRequest => HttpResponse = {
     case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
@@ -90,6 +99,4 @@ class SumoBotHttpServer(httpHost: String, httpPort: Int)(implicit system: ActorS
 
     upgrade.handleMessagesWithSinkSource(sink, publisherSource)
   }
-
-  serverSource.to(Sink.foreach(_.handleWithSyncHandler(requestHandler))).run()
 }

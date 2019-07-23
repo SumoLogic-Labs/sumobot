@@ -36,4 +36,8 @@ window.onload = function() {
         messageItem.setAttribute("style", "background: gray; padding: 20px; white-space: pre-line;");
         messageBox.appendChild(messageItem);
     };
+
+    window.onbeforeunload = function() {
+        socket.close();
+    };
 };
