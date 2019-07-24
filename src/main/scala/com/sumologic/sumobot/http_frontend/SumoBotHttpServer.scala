@@ -38,7 +38,8 @@ object SumoBotHttpServer {
   private[http_frontend] val RootPage = "index.html"
   private[http_frontend] val WebSocketEndpoint = UrlSeparator + "websocket"
 
-  private[http_frontend] val Resources = Set(UrlSeparator + RootPage, UrlSeparator + "script.js")
+  private[http_frontend] val Resources = Set(
+    UrlSeparator + RootPage, UrlSeparator + "script.js", UrlSeparator + "style.css")
 
   private[http_frontend] val BufferSize = 128
   private[http_frontend] val SocketOverflowStrategy = OverflowStrategy.fail

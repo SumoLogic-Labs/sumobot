@@ -24,12 +24,16 @@
     <meta name="description" content="Sumobot-over-HTTP">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="script.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-    <input title="message" id="message" name="message" type="text" />
-    <input type="submit" id="submit" value="Send" />
-    <div id="messages">
-        Messages:
+    <div class="page-container">
+        <div id="messages"></div>
+        <div class="inputs">
+            <input title="message" id="message-input" type="text" />
+            <input type="submit" id="submit" value="Send" />
+        </div>
     </div>
 </body>
 </html>
