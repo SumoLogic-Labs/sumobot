@@ -21,7 +21,7 @@ package com.sumologic.sumobot.http_frontend
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ContentTypes._
-import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS, HEAD}
+import akka.http.scaladsl.model.HttpMethods.{GET, HEAD, OPTIONS}
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
 import akka.http.scaladsl.model._
@@ -31,6 +31,7 @@ import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
 import akka.testkit.{TestActorRef, TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.{Bootstrap, HttpReceptionist}
+import com.sumologic.sumobot.http_frontend.authentication.NoAuthentication
 import com.sumologic.sumobot.plugins.PluginsFromProps
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
@@ -50,7 +51,8 @@ class SumoBotHttpServerTest
   private val host = "localhost"
   private val port = 9999
   private val origin = "https://sumologic.com"
-  private val httpServer = new SumoBotHttpServer(host, port, origin)
+  private val httpServerOptions = SumoBotHttpServerOptions(host, port, origin, new NoAuthentication())
+  private val httpServer = new SumoBotHttpServer(httpServerOptions)
 
   private val brain = TestActorRef(Props[InMemoryBrain])
   private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))

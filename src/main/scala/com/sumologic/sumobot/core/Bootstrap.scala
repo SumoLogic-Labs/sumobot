@@ -21,7 +21,8 @@ package com.sumologic.sumobot.core
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.sumologic.sumobot.http_frontend.SumoBotHttpServer
+import com.sumologic.sumobot.http_frontend.authentication.{BasicAuthentication, NoAuthentication}
+import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServerOptions}
 import com.sumologic.sumobot.plugins.PluginCollection
 import com.typesafe.config.ConfigFactory
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
@@ -83,7 +84,8 @@ object Bootstrap {
     } else SumoBotHttpServer.DefaultOrigin
 
     val brain = system.actorOf(brainProps, "brain")
-    val httpServer = new SumoBotHttpServer(httpHost, httpPort, origin)
+    val httpServerOptions = SumoBotHttpServerOptions(httpHost, httpPort, origin, new NoAuthentication())
+    val httpServer = new SumoBotHttpServer(httpServerOptions)
 
     receptionist = Some(system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist"))
 

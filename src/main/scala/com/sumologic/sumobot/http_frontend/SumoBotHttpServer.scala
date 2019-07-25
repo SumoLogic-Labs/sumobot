@@ -19,18 +19,19 @@
 package com.sumologic.sumobot.http_frontend
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.http.scaladsl.{Http, model}
+import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS}
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{Message, UpgradeToWebSocket}
-import akka.http.scaladsl.model.{HttpEntity, HttpHeader, HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
+import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
+import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded, HttpAuthentication}
 import org.reactivestreams.Publisher
-import SumoBotHttpServer._
-import akka.http.scaladsl.model.headers._
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 object SumoBotHttpServer {
   val DefaultOrigin = "*"
@@ -46,12 +47,14 @@ object SumoBotHttpServer {
   private[http_frontend] val SocketOverflowStrategy = OverflowStrategy.fail
 }
 
-class SumoBotHttpServer(httpHost: String, httpPort: Int, origin: String)(implicit system: ActorSystem) {
+case class SumoBotHttpServerOptions(httpHost: String, httpPort: Int, origin: String, authentication: HttpAuthentication)
+
+class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: ActorSystem) {
   private implicit val materializer: Materializer = ActorMaterializer()
 
-  private val routingHelper = RoutingHelper(origin)
+  private val routingHelper = RoutingHelper(options.origin)
 
-  private val serverSource = Http().bind(httpHost, httpPort)
+  private val serverSource = Http().bind(options.httpHost, options.httpPort)
 
   private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler(
     routingHelper.withAllowOriginHeader(
@@ -68,16 +71,20 @@ class SumoBotHttpServer(httpHost: String, httpPort: Int, origin: String)(implici
   }
 
   private val requestHandler: PartialFunction[HttpRequest, HttpResponse] = {
-    case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
-      staticResource(RootPage)
+    case req@HttpRequest(GET, Uri.Path("/"), _, _, _) =>
+      authenticate(req) {
+        _ => staticResource(RootPage)
+      }
 
     case HttpRequest(OPTIONS, Uri.Path("/"), _, _, _) =>
       staticResourceOptions(RootPage)
 
-    case HttpRequest(GET, Uri.Path(path), _, _, _)
+    case req@HttpRequest(GET, Uri.Path(path), _, _, _)
       if Resources.contains(path) =>
       val filename = path.replaceFirst(UrlSeparator, "")
-      staticResource(filename)
+      authenticate(req) {
+        _ => staticResource(filename)
+      }
 
     case HttpRequest(OPTIONS, Uri.Path(path), _, _, _)
       if Resources.contains(path) =>
@@ -85,10 +92,21 @@ class SumoBotHttpServer(httpHost: String, httpPort: Int, origin: String)(implici
       staticResourceOptions(filename)
 
     case req@HttpRequest(GET, Uri.Path(WebSocketEndpoint), _, _, _) =>
-      webSocketRequestHandler(req)
+      authenticate(req) {
+        _ => webSocketRequestHandler(req)
+      }
 
     case req@HttpRequest(OPTIONS, Uri.Path(WebSocketEndpoint), _, _, _) =>
       webSocketOptions(req)
+  }
+
+  private def authenticate(request: HttpRequest)(succeededHandler: AuthenticationInfo => HttpResponse): HttpResponse = {
+    options.authentication.authentication(request) match {
+      case AuthenticationSucceeded(info) =>
+        succeededHandler(info)
+      case AuthenticationForbidden(response) =>
+        response
+    }
   }
 
   private def staticResource(filename: String): HttpResponse = {
