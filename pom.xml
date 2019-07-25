@@ -56,6 +56,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.typesafe.akka</groupId>
+      <artifactId>akka-stream_${scala.version.major}</artifactId>
+      <version>${akka.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.version.major}</artifactId>
       <version>2.2.5</version>
@@ -272,6 +278,7 @@
             <exclude>target/**</exclude>
             <exclude>.clover/**</exclude>
             <exclude>src/main/assembly.xml</exclude>
+            <exclude>**/*.html</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
           <useDefaultMapping>true</useDefaultMapping>

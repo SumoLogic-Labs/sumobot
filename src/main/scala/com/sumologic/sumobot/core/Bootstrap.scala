@@ -21,6 +21,7 @@ package com.sumologic.sumobot.core
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
+import com.sumologic.sumobot.http_frontend.SumoBotHttpServer
 import com.sumologic.sumobot.plugins.PluginCollection
 import com.typesafe.config.ConfigFactory
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
@@ -30,6 +31,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object Bootstrap {
+  sealed trait SumobotFrontend
+  case object SlackFrontend extends SumobotFrontend
+  case object HttpFrontend extends SumobotFrontend
 
   private val pluginConfig = ConfigFactory.parseFile(new File("config/sumobot.conf"))
 
@@ -39,6 +43,18 @@ object Bootstrap {
 
   def bootstrap(brainProps: Props,
                 pluginCollections: PluginCollection*): Unit = {
+    val frontend = selectedFrontend()
+
+    frontend match {
+      case SlackFrontend =>
+        bootstrapSlack(brainProps, pluginCollections)
+      case HttpFrontend =>
+        bootstrapHttp(brainProps, pluginCollections)
+    }
+  }
+
+  private def bootstrapSlack(brainProps: Props,
+                             pluginCollections: Seq[PluginCollection]): Unit = {
     val slackConfig = system.settings.config.getConfig("slack")
     val rtmClient = SlackRtmClient(
       token = slackConfig.getString("api.token"),
@@ -56,6 +72,32 @@ object Bootstrap {
     pluginCollections.par.foreach(_.setup)
 
     sys.addShutdownHook(shutdownActorSystem())
+  }
+
+  private def bootstrapHttp(brainProps: Props, pluginCollections: Seq[PluginCollection]): Unit = {
+    val httpConfig = system.settings.config.getConfig("http")
+    val httpHost = httpConfig.getString("host")
+    val httpPort = httpConfig.getInt("port")
+
+    val brain = system.actorOf(brainProps, "brain")
+    val httpServer = new SumoBotHttpServer(httpHost, httpPort)
+
+    receptionist = Some(system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist"))
+
+    pluginCollections.par.foreach(_.setup)
+
+    sys.addShutdownHook(httpServer.terminate())
+    sys.addShutdownHook(shutdownActorSystem())
+  }
+
+  private def selectedFrontend(): SumobotFrontend = {
+    val isSlackSelected = system.settings.config.hasPath("slack.api.token")
+    val isHttpSelected = system.settings.config.hasPath("http")
+
+    if (isHttpSelected && isSlackSelected) throw new IllegalArgumentException("Only one frontend can be selected")
+    if (!isHttpSelected && !isSlackSelected) throw new IllegalArgumentException("No frontend selected")
+
+    if (isSlackSelected) SlackFrontend else HttpFrontend
   }
 
   private def shutdownActorSystem(): Unit = {
