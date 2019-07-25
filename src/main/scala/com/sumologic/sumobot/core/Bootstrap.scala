@@ -78,9 +78,12 @@ object Bootstrap {
     val httpConfig = system.settings.config.getConfig("http")
     val httpHost = httpConfig.getString("host")
     val httpPort = httpConfig.getInt("port")
+    val origin = if (httpConfig.hasPath("origin")) {
+      httpConfig.getString("origin")
+    } else SumoBotHttpServer.DefaultOrigin
 
     val brain = system.actorOf(brainProps, "brain")
-    val httpServer = new SumoBotHttpServer(httpHost, httpPort)
+    val httpServer = new SumoBotHttpServer(httpHost, httpPort, origin)
 
     receptionist = Some(system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist"))
 

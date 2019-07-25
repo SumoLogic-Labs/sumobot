@@ -20,9 +20,11 @@ package com.sumologic.sumobot.http_frontend
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.headers.`Content-Type`
+import akka.http.scaladsl.model.ContentTypes._
+import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS, HEAD}
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
-import akka.http.scaladsl.model.{ContentTypes, HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
@@ -35,9 +37,8 @@ import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.test.SumoBotSpec
 import org.scalatest.BeforeAndAfterAll
 
-import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._
-import akka.http.scaladsl.model.ContentTypes._
+import scala.concurrent.{Await, Promise}
 
 class SumoBotHttpServerTest
   extends TestKit(ActorSystem("SumoBotHttpServerTest"))
@@ -48,7 +49,8 @@ class SumoBotHttpServerTest
 
   private val host = "localhost"
   private val port = 9999
-  private val httpServer = new SumoBotHttpServer(host, port)
+  private val origin = "https://sumologic.com"
+  private val httpServer = new SumoBotHttpServer(host, port, origin)
 
   private val brain = TestActorRef(Props[InMemoryBrain])
   private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))
@@ -68,12 +70,12 @@ class SumoBotHttpServerTest
         }
       }
 
-      "accessing /index.html" in {
-        sendHttpRequest("/index.html") {
+      "accessing /script.js" in {
+        sendHttpRequest("/script.js") {
           (response, responseString) =>
             response.status should be (StatusCodes.OK)
-            response.header[`Content-Type`] should be(Some(`Content-Type`(`text/html(UTF-8)`)))
-            responseString should include("<!doctype html>")
+            response.header[`Content-Type`] should be(Some(`Content-Type`(ContentType(MediaTypes.`application/javascript`, HttpCharsets.`UTF-8`))))
+            responseString should include("window.onload")
         }
       }
 
@@ -130,10 +132,60 @@ class SumoBotHttpServerTest
         disconnectPromise.success(None)
       }
     }
+
+    "send proper AllowOrigin header" when {
+      "sending HTTP request" in {
+        sendHttpRequest("/") {
+          (response, _) =>
+            response.header[`Access-Control-Allow-Origin`] should be (Some(`Access-Control-Allow-Origin`(origin)))
+        }
+      }
+
+      "sending WebSocket request" in {
+        val sink = Sink.ignore
+        val source = Source.maybe[Message]
+
+        val (upgradeResponse, disconnectPromise) = Http().singleWebSocketRequest(webSocketRequest,
+          Flow.fromSinkAndSourceMat(sink, source)(Keep.right))
+
+        val httpResponse = Await.result(upgradeResponse, 5.seconds).response
+
+        httpResponse.header[`Access-Control-Allow-Origin`] should be (Some(`Access-Control-Allow-Origin`(origin)))
+
+        disconnectPromise.success(None)
+      }
+    }
+
+    "handle OPTIONS requests" when {
+      "accessing root page" in {
+        sendHttpRequest("/", method = OPTIONS) {
+          (response, _) =>
+            response.status should be (StatusCodes.OK)
+            response.header[`Access-Control-Allow-Methods`] should be (Some(`Access-Control-Allow-Methods`(List(GET))))
+        }
+      }
+
+      "accessing WebSocket endpoint" in {
+        sendHttpRequest("/websocket", method = OPTIONS) {
+          (response, _) =>
+            response.status should be (StatusCodes.OK)
+            response.header[`Access-Control-Allow-Methods`] should be (Some(`Access-Control-Allow-Methods`(List(GET))))
+        }
+      }
+    }
+
+    "handle HEAD requests" in {
+      sendHttpRequest("/", method = HEAD) {
+        (response, _) =>
+          response.status should be (StatusCodes.OK)
+          response.header[`Content-Type`] should be(Some(`Content-Type`(`text/html(UTF-8)`)))
+          entityToString(response.entity).isEmpty should be (true)
+      }
+    }
   }
 
-  private def sendHttpRequest(path: String)(handler: (HttpResponse, String) => Unit): Unit = {
-    val responseFuture = Http().singleRequest(httpRequest(path))
+  private def sendHttpRequest(path: String, method: HttpMethod = GET)(handler: (HttpResponse, String) => Unit): Unit = {
+    val responseFuture = Http().singleRequest(httpRequest(path, method))
     Await.result(responseFuture, 5.seconds) match {
       case response: HttpResponse =>
         val responseStringFuture = Unmarshal(response.entity).to[String]
@@ -160,8 +212,12 @@ class SumoBotHttpServerTest
     sendWebSocketMessages(Array(msg), listenerRef)
   }
 
-  private def httpRequest(path: String): HttpRequest = {
-    HttpRequest(uri = s"http://$host:$port$path")
+  private def httpRequest(path: String, method: HttpMethod): HttpRequest = {
+    HttpRequest(uri = s"http://$host:$port$path", method = method)
+  }
+
+  private def entityToString(httpEntity: HttpEntity): String = {
+    Await.result(Unmarshal(httpEntity).to[String], 5.seconds)
   }
 
   private val webSocketRequest = WebSocketRequest(s"ws://$host:$port/websocket")
