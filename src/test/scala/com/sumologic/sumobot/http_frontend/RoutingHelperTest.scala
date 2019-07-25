@@ -39,6 +39,8 @@ class RoutingHelperTest extends TestKit(ActorSystem("RoutingHelperTest"))
   private val origin = "https://www.sumologic.com"
   private val routingHelper = new RoutingHelper(origin)
 
+  private val wildcardRoutingHelper = new RoutingHelper("*")
+
   private val singleResponseRoute: PartialFunction[HttpRequest, HttpResponse] = {
     case _: HttpRequest =>
       HttpResponse(entity = "hello!", headers = List(RawHeader("test", "testing")))
@@ -76,6 +78,13 @@ class RoutingHelperTest extends TestKit(ActorSystem("RoutingHelperTest"))
         val headers = routingHelper.withAllowOriginHeader(singleResponseRouteWithAllowOrigin)(emptyRequest).headers
 
         headers should contain(`Access-Control-Allow-Origin`(origin))
+        headers should contain(RawHeader("test", "testing"))
+      }
+
+      "handle wildcard origin" in {
+        val headers = wildcardRoutingHelper.withAllowOriginHeader(singleResponseRoute)(emptyRequest).headers
+
+        headers should contain(`Access-Control-Allow-Origin`.*)
         headers should contain(RawHeader("test", "testing"))
       }
     }

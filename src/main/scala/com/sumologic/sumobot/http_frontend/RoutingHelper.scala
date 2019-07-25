@@ -28,7 +28,10 @@ case class RoutingHelper(origin: String)(implicit materializer: Materializer) {
     routing.andThen {
       response: HttpResponse =>
         val oldHeaders = response.headers.filter(header => header.isNot(`Access-Control-Allow-Origin`.lowercaseName)).toList
-        val newHeaders = oldHeaders :+ `Access-Control-Allow-Origin`(origin)
+        val accessOrigin = if (origin == "*") {
+          `Access-Control-Allow-Origin`.*
+        } else `Access-Control-Allow-Origin`(origin)
+        val newHeaders = oldHeaders :+ accessOrigin
 
         response.withHeaders(newHeaders)
     }
