@@ -16,44 +16,45 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-window.onload = function() {
-    var websocketProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-    var endpoint = websocketProtocol + window.location.host + window.location.pathname + "websocket";
-    var socket = new WebSocket(endpoint);
+window.addEventListener("load", function() {
+    const websocketProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const endpoint = websocketProtocol + window.location.host + window.location.pathname + "websocket";
+    const socket = new WebSocket(endpoint);
 
-    var messageBox = document.getElementById("messages");
-    var messageInput = document.getElementById("message-input");
-    var submitButton = document.getElementById("submit");
+    const messageBox = document.getElementById("messages");
+    const messageInput = document.getElementById("message-input");
+    const submitButton = document.getElementById("submit");
 
-    function appendMessage(msg, styles) {
-        var messageItem = document.createElement("div");
+    function appendMessage(msg, classes) {
+        const messageItem = document.createElement("div");
         messageItem.textContent = msg;
-        messageItem.setAttribute("class", styles);
+        classes.forEach((addedClass) => { messageItem.classList.add(addedClass); });
         messageBox.appendChild(messageItem);
         messageItem.scrollIntoView({block: "end", inline: "nearest", behavior: "smooth"});
     }
 
     function sendMessage() {
         socket.send(messageInput.value);
-        appendMessage(messageInput.value, "message outcoming");
+        appendMessage(messageInput.value, ["message", "outcoming"]);
         messageInput.value = "";
     }
 
-    submitButton.onclick = function() {
+    submitButton.addEventListener("click", () => {
         sendMessage();
-    };
+    });
 
-    messageInput.onkeydown = function(event) {
+    messageInput.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             sendMessage();
+            event.preventDefault();
         }
-    };
+    });
 
-    socket.onmessage = function(event) {
-        appendMessage(event.data, "message incoming");
-    };
+    socket.addEventListener("message", (event) => {
+        appendMessage(event.data, ["message", "incoming"]);
+    });
 
-    window.onbeforeunload = function() {
+    window.addEventListener("beforeunload", () => {
         socket.close();
-    };
-};
+    });
+});
