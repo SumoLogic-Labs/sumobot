@@ -16,6 +16,8 @@
     specific language governing permissions and limitations
     under the License.
 -->
+<%@ var authMessage:Option[String] %>
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -25,10 +27,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="script.js"></script>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="page-container">
+        <div class="header">
+           <h1>Sumobot-over-HTTP</h1> <p>${authMessage.get}</p>
+        </div>
         <div id="messages"></div>
         <div class="inputs">
             <input title="message" id="message-input" type="text" />
@@ -37,4 +42,3 @@
     </div>
 </body>
 </html>
-        

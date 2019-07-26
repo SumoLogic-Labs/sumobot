@@ -39,7 +39,7 @@ object SumoBotHttpServer {
 
   private[http_frontend] val UrlSeparator = "/"
 
-  private[http_frontend] val RootPage = "index.html"
+  private[http_frontend] val RootPage = "index.ssp"
   private[http_frontend] val WebSocketEndpoint = UrlSeparator + "websocket"
 
   private[http_frontend] val Resources = Set(UrlSeparator + "script.js", UrlSeparator + "style.css")
@@ -74,11 +74,11 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   private val requestHandler: PartialFunction[HttpRequest, HttpResponse] = {
     case req@HttpRequest(GET, Uri.Path("/"), _, _, _) =>
       authenticate(req) {
-        _ => staticResource(RootPage)
+        authInfo => dynamicResource(RootPage, authInfo)
       }
 
     case HttpRequest(OPTIONS, Uri.Path("/"), _, _, _) =>
-      staticResourceOptions(RootPage)
+      dynamicResourceOptions(RootPage)
 
     case req@HttpRequest(GET, Uri.Path(path), _, _, _)
       if Resources.contains(path) =>
@@ -116,6 +116,16 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   }
 
   private def staticResourceOptions(filename: String): HttpResponse = {
+    HttpResponse()
+      .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
+  }
+
+  private def dynamicResource(filename: String, authInfo: AuthenticationInfo): HttpResponse = {
+    val resource = DynamicResource(filename, authInfo.toMap)
+    HttpResponse(entity = HttpEntity(resource.contentType, resource.contents))
+  }
+
+  private def dynamicResourceOptions(filename: String): HttpResponse = {
     HttpResponse()
       .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }

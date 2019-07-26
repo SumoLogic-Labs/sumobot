@@ -80,6 +80,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.scalatra.scalate</groupId>
+      <artifactId>scalate-core_2.11</artifactId>
+      <version>1.9.4</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
       <version>1.7.12</version>
@@ -278,7 +284,7 @@
             <exclude>target/**</exclude>
             <exclude>.clover/**</exclude>
             <exclude>src/main/assembly.xml</exclude>
-            <exclude>**/*.html</exclude>
+            <exclude>**/*.ssp</exclude>
             <exclude>**/*.css</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>

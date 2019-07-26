@@ -16,24 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.http_frontend.authentication
+package com.sumologic.sumobot.http_frontend
 
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.{ContentType, ContentTypes}
+import org.apache.commons.io.IOUtils
+import org.fusesource.scalate.{TemplateEngine, TemplateSource}
 
-case class Link(name: String, href: String)
+case class DynamicResource(templateFile: String, templateVariables: Map[String, Any]) {
+  private val engine = new TemplateEngine
 
-case class AuthenticationInfo(authMessage: Option[String], authLinks: Seq[Link]) {
-  def toMap: Map[String, Any] = {
-    Map("authMessage" -> authMessage, "authLinks" -> authLinks)
+  def contents: String = {
+    val resourceUri = getClass.getResource(templateFile).toURI.toString
+
+    val stream = getClass.getResourceAsStream(templateFile)
+    val templateString = IOUtils.toString(stream)
+    stream.close()
+
+    val source = TemplateSource.fromText(resourceUri, templateString)
+    engine.layout(source, templateVariables)
   }
-}
 
-sealed trait AuthenticationResult
-
-case class AuthenticationForbidden(response: HttpResponse) extends AuthenticationResult
-case class AuthenticationSucceeded(info: AuthenticationInfo) extends AuthenticationResult
-
-trait HttpAuthentication {
-  def routes: PartialFunction[HttpRequest, HttpResponse] = PartialFunction.empty
-  def authentication(request: HttpRequest): AuthenticationResult
+  val contentType: ContentType.NonBinary = ContentTypes.`text/html(UTF-8)`
 }
