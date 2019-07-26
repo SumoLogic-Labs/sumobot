@@ -34,7 +34,7 @@ class BasicAuthenticationTest extends SumoBotSpec {
 
   "BasicAuthentication" should {
       "return 401 Unauthorized" when {
-        "unauthorized" in {
+        "unauthenticated" in {
           val result = basicAuthentication.authentication(rootRequest)
           result match {
             case AuthenticationForbidden(response) =>
@@ -46,7 +46,7 @@ class BasicAuthenticationTest extends SumoBotSpec {
         }
       }
 
-    "successfuly authorize" when {
+    "successfuly authenticate" when {
       "provided correct Authorization header" in {
         val result = basicAuthentication.authentication(authorizedRootRequest)
         result match {
