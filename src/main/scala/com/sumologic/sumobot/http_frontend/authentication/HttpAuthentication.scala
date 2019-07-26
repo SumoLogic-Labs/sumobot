@@ -30,6 +30,6 @@ case class AuthenticationForbidden(response: HttpResponse) extends Authenticatio
 case class AuthenticationSucceeded(info: AuthenticationInfo) extends AuthenticationResult
 
 trait HttpAuthentication {
-  def routes: PartialFunction[HttpRequest, HttpResponse]
+  def routes: PartialFunction[HttpRequest, HttpResponse] = PartialFunction.empty
   def authentication(request: HttpRequest): AuthenticationResult
 }

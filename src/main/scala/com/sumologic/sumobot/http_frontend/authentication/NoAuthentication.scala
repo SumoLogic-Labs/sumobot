@@ -17,11 +17,9 @@
  * under the License.
  */
 package com.sumologic.sumobot.http_frontend.authentication
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.HttpRequest
 
 class NoAuthentication extends HttpAuthentication {
-  override def routes: PartialFunction[HttpRequest, HttpResponse] = PartialFunction.empty
-
   override def authentication(request: HttpRequest): AuthenticationResult = {
     AuthenticationSucceeded(AuthenticationInfo(None, Seq.empty))
   }

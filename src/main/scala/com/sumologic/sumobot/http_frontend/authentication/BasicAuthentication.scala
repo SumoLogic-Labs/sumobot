@@ -21,8 +21,6 @@ import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 class BasicAuthentication(username: String, password: String) extends HttpAuthentication {
-  override def routes: PartialFunction[HttpRequest, HttpResponse] = PartialFunction.empty
-
   override def authentication(request: HttpRequest): AuthenticationResult = {
     request.header[`Authorization`] match {
       case Some(header) =>

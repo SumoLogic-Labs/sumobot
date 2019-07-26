@@ -56,10 +56,13 @@ class SumoBotHttpServerTest
 
   private val brain = TestActorRef(Props[InMemoryBrain])
   private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))
-  Bootstrap.receptionist = Some(httpReceptionist)
 
   private val pluginCollection = PluginsFromProps(Array(Props(classOf[Help]), Props(classOf[System])))
-  pluginCollection.setup
+
+  override def beforeAll: Unit = {
+    Bootstrap.receptionist = Some(httpReceptionist)
+    pluginCollection.setup
+  }
 
   "SumoBotHttpServer" should {
     "handle static pages requests" when {
@@ -226,7 +229,7 @@ class SumoBotHttpServerTest
 
   override def afterAll: Unit = {
     httpServer.terminate()
-    TestKit.shutdownActorSystem(system)
     Bootstrap.receptionist = None
+    TestKit.shutdownActorSystem(system, 10.seconds, true)
   }
 }

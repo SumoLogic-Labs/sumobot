@@ -57,13 +57,15 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   private val serverSource = Http().bind(options.httpHost, options.httpPort)
 
   private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler(
-    routingHelper.withAllowOriginHeader(
-      routingHelper.withForbiddenFallback(
-        routingHelper.withHeadRequests(
-          requestHandler
-        )
-      )
-    )
+    routingHelper.withAllowOriginHeader {
+      routingHelper.withForbiddenFallback {
+        options.authentication.routes.orElse {
+          routingHelper.withHeadRequests {
+            requestHandler
+          }
+        }
+      }
+    }
   ))).run()
 
   def terminate(): Unit = {
