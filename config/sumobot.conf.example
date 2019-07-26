@@ -1,12 +1,29 @@
-# only one frontend (slack, http) can be active at the same time
+# Only one frontend (slack, http) can be active at the same time.
 
 slack {
   api.token = "..."
 }
 
 http {
+  # Required parameters:
   host = "localhost"
   port = 8080
+
+  # Optional parameters:
+
+  # Origin (Access-Control-Allow-Origin header, default: *):
+  # origin = "..."
+
+  # Authentication (at most one active at the same time):
+
+  # No authentication (default)
+  # no-authentication {}
+
+  # HTTP Basic Authentication
+  # basic-authentication {
+  #   username = "..."
+  #   password = "..."
+  # }
 }
 
 # Not read by the code, just used in the config.
