@@ -16,28 +16,45 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-window.onload = function() {
-    var websocketProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+window.addEventListener("load", function() {
+    const websocketProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+    const endpoint = websocketProtocol + window.location.host + window.location.pathname + "websocket";
+    const socket = new WebSocket(endpoint);
 
-    var endpoint = websocketProtocol + window.location.host + window.location.pathname + "websocket";
+    const messageBox = document.getElementById("messages");
+    const messageInput = document.getElementById("message-input");
+    const submitButton = document.getElementById("submit");
 
-    var socket = new WebSocket(endpoint);
-    var messageBox = document.getElementById("messages");
-
-    var submitButton = document.getElementById("submit");
-    submitButton.onclick = function() {
-        var messageBox = document.getElementById("message");
-        socket.send(messageBox.value);
-    };
-
-    socket.onmessage = function(event) {
-        var messageItem = document.createElement("p");
-        messageItem.textContent = event.data;
-        messageItem.setAttribute("style", "background: gray; padding: 20px; white-space: pre-line;");
+    function appendMessage(msg, classes) {
+        const messageItem = document.createElement("div");
+        messageItem.textContent = msg;
+        classes.forEach((addedClass) => { messageItem.classList.add(addedClass); });
         messageBox.appendChild(messageItem);
-    };
+        messageItem.scrollIntoView({block: "end", inline: "nearest", behavior: "smooth"});
+    }
 
-    window.onbeforeunload = function() {
+    function sendMessage() {
+        socket.send(messageInput.value);
+        appendMessage(messageInput.value, ["message", "outcoming"]);
+        messageInput.value = "";
+    }
+
+    submitButton.addEventListener("click", () => {
+        sendMessage();
+    });
+
+    messageInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            sendMessage();
+            event.preventDefault();
+        }
+    });
+
+    socket.addEventListener("message", (event) => {
+        appendMessage(event.data, ["message", "incoming"]);
+    });
+
+    window.addEventListener("beforeunload", () => {
         socket.close();
-    };
-};
+    });
+});
