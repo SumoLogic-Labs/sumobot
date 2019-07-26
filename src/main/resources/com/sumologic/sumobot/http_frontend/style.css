@@ -126,6 +126,7 @@ body {
     height: 40px;
     outline: none;
     font-size: 0.95rem;
+    font-weight: 700;
     background-color: #5780f6;
     color: white;
 }

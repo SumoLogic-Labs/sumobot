@@ -51,7 +51,7 @@ class BasicAuthenticationTest extends SumoBotSpec {
         val result = basicAuthentication.authentication(authorizedRootRequest)
         result match {
           case AuthenticationSucceeded(info) =>
-            info.message.get should include("admin")
+            info.authMessage.get should include("admin")
           case _ =>
             fail("expected AuthenticationSucceeded")
         }

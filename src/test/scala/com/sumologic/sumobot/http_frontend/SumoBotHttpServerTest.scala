@@ -80,7 +80,7 @@ class SumoBotHttpServerTest
           (response, responseString) =>
             response.status should be (StatusCodes.OK)
             response.header[`Content-Type`] should be(Some(`Content-Type`(ContentType(MediaTypes.`application/javascript`, HttpCharsets.`UTF-8`))))
-            responseString should include("window.onload")
+            responseString should include("window.addEventListener")
         }
       }
 

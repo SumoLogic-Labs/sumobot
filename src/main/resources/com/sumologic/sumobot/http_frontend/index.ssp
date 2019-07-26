@@ -32,7 +32,7 @@
 <body>
     <div class="page-container">
         <div class="header">
-            <h1>Sumobot-over-HTTP</h1> <p>${authMessage.get}</p>
+            <h1>Sumobot-over-HTTP</h1> <p>${authMessage.getOrElse("")}</p>
         </div>
         <div id="messages" class="messages"></div>
         <form class="inputs">
