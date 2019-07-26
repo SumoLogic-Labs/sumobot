@@ -32,13 +32,13 @@
 <body>
     <div class="page-container">
         <div class="header">
-           <h1>Sumobot-over-HTTP</h1> <p>${authMessage.get}</p>
+            <h1>Sumobot-over-HTTP</h1> <p>${authMessage.get}</p>
         </div>
-        <div id="messages"></div>
-        <div class="inputs">
-            <input title="message" id="message-input" type="text" />
-            <input type="submit" id="submit" value="Send" />
-        </div>
+        <div id="messages" class="messages"></div>
+        <form class="inputs">
+            <input title="message" class="message-input" id="message-input" type="text">
+            <button type="button" class="send-button" id="submit">Send</button>
+        </form>
     </div>
 </body>
 </html>
