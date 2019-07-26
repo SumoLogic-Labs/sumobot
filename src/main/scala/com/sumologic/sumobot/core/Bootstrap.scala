@@ -77,14 +77,9 @@ object Bootstrap {
 
   private def bootstrapHttp(brainProps: Props, pluginCollections: Seq[PluginCollection]): Unit = {
     val httpConfig = system.settings.config.getConfig("http")
-    val httpHost = httpConfig.getString("host")
-    val httpPort = httpConfig.getInt("port")
-    val origin = if (httpConfig.hasPath("origin")) {
-      httpConfig.getString("origin")
-    } else SumoBotHttpServer.DefaultOrigin
 
     val brain = system.actorOf(brainProps, "brain")
-    val httpServerOptions = SumoBotHttpServerOptions(httpHost, httpPort, origin, new NoAuthentication())
+    val httpServerOptions = SumoBotHttpServerOptions.fromConfig(httpConfig)
     val httpServer = new SumoBotHttpServer(httpServerOptions)
 
     receptionist = Some(system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist"))

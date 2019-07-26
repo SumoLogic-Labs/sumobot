@@ -27,7 +27,7 @@ import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
-import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded, HttpAuthentication}
+import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded, NoAuthentication}
 import org.reactivestreams.Publisher
 
 import scala.concurrent.Await
@@ -35,6 +35,7 @@ import scala.concurrent.duration._
 
 object SumoBotHttpServer {
   val DefaultOrigin = "*"
+  val DefaultAuthentication = new NoAuthentication()
 
   private[http_frontend] val UrlSeparator = "/"
 
@@ -46,8 +47,6 @@ object SumoBotHttpServer {
   private[http_frontend] val BufferSize = 128
   private[http_frontend] val SocketOverflowStrategy = OverflowStrategy.fail
 }
-
-case class SumoBotHttpServerOptions(httpHost: String, httpPort: Int, origin: String, authentication: HttpAuthentication)
 
 class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: ActorSystem) {
   private implicit val materializer: Materializer = ActorMaterializer()
