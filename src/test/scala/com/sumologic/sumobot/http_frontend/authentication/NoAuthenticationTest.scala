@@ -21,13 +21,14 @@ package com.sumologic.sumobot.http_frontend.authentication
 import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.model.{HttpRequest, Uri}
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.typesafe.config.ConfigFactory
 
 class NoAuthenticationTest extends SumoBotSpec {
   val emptyRequest = HttpRequest()
   val rootRequest = HttpRequest(GET, Uri("/"))
   val postRequest = HttpRequest(POST, Uri("/endpoint"))
 
-  val noAuthentication = new NoAuthentication()
+  val noAuthentication = new NoAuthentication(ConfigFactory.empty())
 
   "NoAuthentication" should {
     "allow all requests" in {

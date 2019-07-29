@@ -36,6 +36,7 @@ import com.sumologic.sumobot.plugins.PluginsFromProps
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.duration._
@@ -51,7 +52,8 @@ class SumoBotHttpServerTest
   private val host = "localhost"
   private val port = 9999
   private val origin = "https://sumologic.com"
-  private val httpServerOptions = SumoBotHttpServerOptions(host, port, origin, new NoAuthentication())
+  private val httpServerOptions = SumoBotHttpServerOptions(host, port, origin,
+    new NoAuthentication(ConfigFactory.empty()), "", None, Seq.empty)
   private val httpServer = new SumoBotHttpServer(httpServerOptions)
 
   private val brain = TestActorRef(Props[InMemoryBrain])

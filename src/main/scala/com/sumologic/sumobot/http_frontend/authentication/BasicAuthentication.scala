@@ -19,8 +19,12 @@
 package com.sumologic.sumobot.http_frontend.authentication
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import com.typesafe.config.Config
 
-class BasicAuthentication(username: String, password: String) extends HttpAuthentication {
+class BasicAuthentication(config: Config) extends HttpAuthentication {
+  private val username = config.getString("username")
+  private val password = config.getString("password")
+
   override def authentication(request: HttpRequest): AuthenticationResult = {
     request.header[`Authorization`] match {
       case Some(header) =>

@@ -18,60 +18,67 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import com.sumologic.sumobot.http_frontend.authentication.{BasicAuthentication, HttpAuthentication, NoAuthentication}
-import com.typesafe.config.Config
+import com.sumologic.sumobot.http_frontend.authentication.{HttpAuthentication, Link, NoAuthentication}
+import com.typesafe.config.{Config, ConfigFactory}
+
+import scala.collection.JavaConverters._
+import scala.util.{Success, Try}
 
 case class SumoBotHttpServerOptions(httpHost: String, httpPort: Int,
-                                    origin: String, authentication: HttpAuthentication)
-
-sealed trait AuthenticationConfig {
-  def configKey: String
-}
-
-case object NoAuthenticationConfig extends AuthenticationConfig {
-  override val configKey: String = "no-authentication"
-}
-
-case object BasicAuthenticationConfig extends AuthenticationConfig {
-  override val configKey: String = "basic-authentication"
-}
+                                    origin: String, authentication: HttpAuthentication,
+                                    title: String, description: Option[String],
+                                    links: Seq[Link])
 
 object SumoBotHttpServerOptions {
-  private val AuthenticationConfigs = Array(NoAuthenticationConfig, BasicAuthenticationConfig)
+  val DefaultOrigin = "*"
+  val DefaultAuthentication = new NoAuthentication(ConfigFactory.empty())
+  val DefaultTitle = "Sumobot-over-HTTP"
 
   def fromConfig(config: Config): SumoBotHttpServerOptions = {
     val httpHost = config.getString("host")
     val httpPort = config.getInt("port")
     val origin = if (config.hasPath("origin")) {
       config.getString("origin")
-    } else SumoBotHttpServer.DefaultOrigin
+    } else DefaultOrigin
 
     val authentication = authenticationFromConfig(config)
 
-    SumoBotHttpServerOptions(httpHost, httpPort, origin, authentication)
+    val title = if (config.hasPath("title")) {
+      config.getString("title")
+    } else DefaultTitle
+
+    val description = if (config.hasPath("description")) {
+      Some(config.getString("description"))
+    } else None
+
+    val links = linksFromConfig(config)
+
+    SumoBotHttpServerOptions(httpHost, httpPort, origin,
+      authentication, title, description, links)
   }
 
   private def authenticationFromConfig(config: Config): HttpAuthentication = {
-    selectedAuthentication(config) match {
-      case Some(NoAuthenticationConfig) =>
-        new NoAuthentication()
+    Try(config.getConfig("authentication")) match {
+      case Success(authenticationConfig)
+      if authenticationConfig.getBoolean("enabled") =>
+        val clazz = Class.forName(authenticationConfig.getString("class"))
+        val constructor = clazz.getConstructor(classOf[Config])
+        constructor.newInstance(authenticationConfig).asInstanceOf[HttpAuthentication]
 
-      case Some(BasicAuthenticationConfig) =>
-        val username = config.getString(s"${BasicAuthenticationConfig.configKey}.username")
-        val password = config.getString(s"${BasicAuthenticationConfig.configKey}.password")
-
-        new BasicAuthentication(username, password)
-
-      case None =>
-        SumoBotHttpServer.DefaultAuthentication
+      case _ => DefaultAuthentication
     }
   }
 
-  private def selectedAuthentication(config: Config): Option[AuthenticationConfig] = {
-    val selectedAuthConfigs = AuthenticationConfigs.filter(authConfig => config.hasPath(authConfig.configKey))
-
-    if (selectedAuthConfigs.length > 1) throw new IllegalArgumentException("Only one authentication method can be selected")
-
-    selectedAuthConfigs.headOption
+  private def linksFromConfig(config: Config): Seq[Link] = {
+    Try(config.getObject("links").asScala) match {
+      case Success(links) =>
+        links.map {
+          case (link, _) =>
+            val linkName = config.getString(s"links.$link.name")
+            val linkHref = config.getString(s"links.$link.href")
+            Link(linkName, linkHref)
+        }.toSeq
+      case _ => Seq.empty
+    }
   }
 }

@@ -91,13 +91,19 @@ object Bootstrap {
   }
 
   private def selectedFrontend(): SumobotFrontend = {
-    val isSlackSelected = system.settings.config.hasPath("slack.api.token")
-    val isHttpSelected = system.settings.config.hasPath("http")
+    val isSlackSelected =
+      system.settings.config.hasPath("slack.api.token") && isFrontendEnabled("slack")
+    val isHttpSelected = system.settings.config.hasPath("http") && isFrontendEnabled("http")
 
     if (isHttpSelected && isSlackSelected) throw new IllegalArgumentException("Only one frontend can be selected")
     if (!isHttpSelected && !isSlackSelected) throw new IllegalArgumentException("No frontend selected")
 
     if (isSlackSelected) SlackFrontend else HttpFrontend
+  }
+
+  private def isFrontendEnabled(frontendName: String): Boolean = {
+    !system.settings.config.hasPath(s"$frontendName.enabled") ||
+      system.settings.config.getBoolean(s"$frontendName.enabled")
   }
 
   private def shutdownActorSystem(): Unit = {

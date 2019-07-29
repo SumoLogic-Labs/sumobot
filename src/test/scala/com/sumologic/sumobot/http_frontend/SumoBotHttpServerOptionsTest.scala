@@ -20,6 +20,7 @@ package com.sumologic.sumobot.http_frontend
 
 import java.util.Properties
 
+import com.sumologic.sumobot.http_frontend.SumoBotHttpServerOptions._
 import com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication
 import com.sumologic.sumobot.test.SumoBotSpec
 import com.typesafe.config.ConfigFactory
@@ -33,12 +34,15 @@ class SumoBotHttpServerOptionsTest extends SumoBotSpec {
 
       val config = ConfigFactory.parseProperties(props)
 
-      val options = SumoBotHttpServerOptions.fromConfig(config)
+      val options = fromConfig(config)
 
       options.httpHost should be ("localhost")
       options.httpPort should be (9999)
-      options.origin should be (SumoBotHttpServer.DefaultOrigin)
-      options.authentication should be (SumoBotHttpServer.DefaultAuthentication)
+      options.origin should be (DefaultOrigin)
+      options.authentication should be (DefaultAuthentication)
+      options.title should be (DefaultTitle)
+      options.description should be (None)
+      options.links.isEmpty should be (true)
     }
 
     "parse config with host, port, origin" in {
@@ -49,12 +53,15 @@ class SumoBotHttpServerOptionsTest extends SumoBotSpec {
 
       val config = ConfigFactory.parseProperties(props)
 
-      val options = SumoBotHttpServerOptions.fromConfig(config)
+      val options = fromConfig(config)
 
       options.httpHost should be ("localhost")
       options.httpPort should be (9999)
       options.origin should be ("*")
-      options.authentication should be (SumoBotHttpServer.DefaultAuthentication)
+      options.authentication should be (DefaultAuthentication)
+      options.title should be (DefaultTitle)
+      options.description should be (None)
+      options.links.isEmpty should be (true)
     }
 
     "parse config with host, port, origin, basic-authentication" in {
@@ -62,17 +69,69 @@ class SumoBotHttpServerOptionsTest extends SumoBotSpec {
       props.setProperty("host", "localhost")
       props.setProperty("port", "9999")
       props.setProperty("origin", "https://sumologic.com")
-      props.setProperty("basic-authentication.username", "admin")
-      props.setProperty("basic-authentication.password", "hunter2")
+      props.setProperty("authentication.enabled", "true")
+      props.setProperty("authentication.class", "com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication")
+      props.setProperty("authentication.username", "admin")
+      props.setProperty("authentication.password", "hunter2")
 
       val config = ConfigFactory.parseProperties(props)
 
-      val options = SumoBotHttpServerOptions.fromConfig(config)
+      val options = fromConfig(config)
 
       options.httpHost should be ("localhost")
       options.httpPort should be (9999)
       options.origin should be ("https://sumologic.com")
       options.authentication shouldBe a[BasicAuthentication]
+      options.title should be (DefaultTitle)
+      options.description should be (None)
+      options.links.isEmpty should be (true)
+    }
+
+    "parse config with host, port, origin, basic-authentication disabled" in {
+      val props = new Properties()
+      props.setProperty("host", "localhost")
+      props.setProperty("port", "9999")
+      props.setProperty("origin", "https://sumologic.com")
+      props.setProperty("authentication.enabled", "false")
+      props.setProperty("authentication.class", "com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication")
+      props.setProperty("authentication.username", "admin")
+      props.setProperty("authentication.password", "hunter2")
+
+      val config = ConfigFactory.parseProperties(props)
+
+      val options = fromConfig(config)
+
+      options.httpHost should be ("localhost")
+      options.httpPort should be (9999)
+      options.origin should be ("https://sumologic.com")
+      options.authentication should be (DefaultAuthentication)
+      options.title should be (DefaultTitle)
+      options.description should be (None)
+      options.links.isEmpty should be (true)
+    }
+
+    "parse config with host, port, title, description, links" in {
+      val props = new Properties()
+      props.setProperty("host", "localhost")
+      props.setProperty("port", "9999")
+      props.setProperty("title", "My Title")
+      props.setProperty("description", "My Description")
+      props.setProperty("links.link1.name", "Sumo Logic")
+      props.setProperty("links.link1.href", "https://sumologic.com")
+
+      val config = ConfigFactory.parseProperties(props)
+
+      val options = fromConfig(config)
+
+      options.httpHost should be ("localhost")
+      options.httpPort should be (9999)
+      options.origin should be (DefaultOrigin)
+      options.authentication should be (DefaultAuthentication)
+      options.title should be ("My Title")
+      options.description should be (Some("My Description"))
+      options.links.length should be (1)
+      options.links.head.name should be ("Sumo Logic")
+      options.links.head.href should be ("https://sumologic.com")
     }
   }
 }

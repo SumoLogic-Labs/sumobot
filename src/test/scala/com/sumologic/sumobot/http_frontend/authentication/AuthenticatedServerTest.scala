@@ -36,11 +36,13 @@ import com.sumologic.sumobot.plugins.PluginsFromProps
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
 import scala.collection.immutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 
 class AuthenticatedServerTest
   extends TestKit(ActorSystem("AuthenticatedServerTest"))
@@ -52,7 +54,10 @@ class AuthenticatedServerTest
   private val port = 10000
   private val origin = "https://sumologic.com"
 
-  private val basicAuthentication = new BasicAuthentication("admin", "hunter2")
+  private val authConfig = ConfigFactory.parseMap(
+    Map("username" -> "admin", "password" -> "hunter2").asJava)
+
+  private val basicAuthentication = new BasicAuthentication(authConfig)
   private val base64Credentials = "YWRtaW46aHVudGVyMg=="
   private val base64InvalidCredentials = "YWRtaW46aHVpdGVyMg=="
 
@@ -65,7 +70,7 @@ class AuthenticatedServerTest
   private val authWebSocketRequest = WebSocketRequest(s"ws://$host:$port/websocket",
     extraHeaders = List(`Authorization`(GenericHttpCredentials("basic", base64Credentials))))
 
-  private val httpServerOptions = SumoBotHttpServerOptions(host, port, origin, basicAuthentication)
+  private val httpServerOptions = SumoBotHttpServerOptions(host, port, origin, basicAuthentication, "", None, Seq.empty)
   private val httpServer = new SumoBotHttpServer(httpServerOptions)
 
   private val brain = TestActorRef(Props[InMemoryBrain])

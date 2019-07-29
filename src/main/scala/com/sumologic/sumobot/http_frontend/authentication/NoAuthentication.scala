@@ -18,8 +18,9 @@
  */
 package com.sumologic.sumobot.http_frontend.authentication
 import akka.http.scaladsl.model.HttpRequest
+import com.typesafe.config.Config
 
-class NoAuthentication extends HttpAuthentication {
+class NoAuthentication(config: Config) extends HttpAuthentication {
   override def authentication(request: HttpRequest): AuthenticationResult = {
     AuthenticationSucceeded(AuthenticationInfo(None, Seq.empty))
   }

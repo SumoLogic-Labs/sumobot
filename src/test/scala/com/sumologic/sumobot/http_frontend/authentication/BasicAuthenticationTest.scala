@@ -22,9 +22,13 @@ import akka.http.scaladsl.model.HttpMethods.{GET, POST}
 import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
 import com.sumologic.sumobot.test.SumoBotSpec
 import akka.http.scaladsl.model.headers._
+import com.typesafe.config.ConfigFactory
+import scala.collection.JavaConverters._
 
 class BasicAuthenticationTest extends SumoBotSpec {
-  val basicAuthentication = new BasicAuthentication("admin", "hunter2")
+  private val authConfig = ConfigFactory.parseMap(
+    Map("username" -> "admin", "password" -> "hunter2").asJava)
+  val basicAuthentication = new BasicAuthentication(authConfig)
   val base64Credentials = "YWRtaW46aHVudGVyMg=="
   val base64InvalidCredentials = "YWRtaW46aHVpdGVyMg=="
 

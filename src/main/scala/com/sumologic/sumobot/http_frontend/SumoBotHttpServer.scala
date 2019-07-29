@@ -34,12 +34,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 object SumoBotHttpServer {
-  val DefaultOrigin = "*"
-  val DefaultAuthentication = new NoAuthentication()
-
   private[http_frontend] val UrlSeparator = "/"
 
-  private[http_frontend] val RootPage = "index.ssp"
+  private[http_frontend] val RootPageName = "index.ssp"
   private[http_frontend] val WebSocketEndpoint = UrlSeparator + "websocket"
 
   private[http_frontend] val Resources = Set(UrlSeparator + "script.js", UrlSeparator + "style.css")
@@ -52,10 +49,11 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   private implicit val materializer: Materializer = ActorMaterializer()
 
   private val routingHelper = RoutingHelper(options.origin)
+  private val rootPage = DynamicResource(RootPageName)
 
   private val serverSource = Http().bind(options.httpHost, options.httpPort)
 
-  private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler(
+  private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler {
     routingHelper.withAllowOriginHeader {
       routingHelper.withForbiddenFallback {
         options.authentication.routes.orElse {
@@ -65,7 +63,7 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
         }
       }
     }
-  ))).run()
+  })).run()
 
   def terminate(): Unit = {
     Await.result(binding, 10.seconds).terminate(5.seconds)
@@ -74,11 +72,11 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   private val requestHandler: PartialFunction[HttpRequest, HttpResponse] = {
     case req@HttpRequest(GET, Uri.Path("/"), _, _, _) =>
       authenticate(req) {
-        authInfo => dynamicResource(RootPage, authInfo)
+        authInfo => renderRootPage(authInfo)
       }
 
     case HttpRequest(OPTIONS, Uri.Path("/"), _, _, _) =>
-      dynamicResourceOptions(RootPage)
+      rootPageOptions
 
     case req@HttpRequest(GET, Uri.Path(path), _, _, _)
       if Resources.contains(path) =>
@@ -120,12 +118,15 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
       .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }
 
-  private def dynamicResource(filename: String, authInfo: AuthenticationInfo): HttpResponse = {
-    val resource = DynamicResource(filename, authInfo.toMap)
-    HttpResponse(entity = HttpEntity(resource.contentType, resource.contents))
+  private def renderRootPage(authInfo: AuthenticationInfo): HttpResponse = {
+    val contents = rootPage.contents(Map(
+      "authInfo" -> authInfo,
+      "serverOptions" -> options
+    ))
+    HttpResponse(entity = HttpEntity(rootPage.contentType, contents))
   }
 
-  private def dynamicResourceOptions(filename: String): HttpResponse = {
+  private val rootPageOptions: HttpResponse = {
     HttpResponse()
       .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }

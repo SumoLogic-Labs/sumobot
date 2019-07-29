@@ -20,20 +20,31 @@ package com.sumologic.sumobot.http_frontend
 
 import akka.http.scaladsl.model.{ContentType, ContentTypes}
 import org.apache.commons.io.IOUtils
-import org.fusesource.scalate.{TemplateEngine, TemplateSource}
+import org.fusesource.scalate.TemplateEngine
+import org.fusesource.scalate.util.{FileResourceLoader, Resource}
 
-case class DynamicResource(templateFile: String, templateVariables: Map[String, Any]) {
-  private val engine = new TemplateEngine
+object DynamicResource {
+  private val Engine = new TemplateEngine
 
-  def contents: String = {
-    val resourceUri = getClass.getResource(templateFile).toURI.toString
+  Engine.allowReload = false
+  Engine.allowCaching = true
+  Engine.resourceLoader = new FileResourceLoader {
+    override def resource(filename: String): Option[Resource] = {
+      val uri = getClass.getResource(filename).toURI.toString
+      val stream = getClass.getResourceAsStream(filename)
+      val templateText = IOUtils.toString(stream)
+      stream.close()
 
-    val stream = getClass.getResourceAsStream(templateFile)
-    val templateString = IOUtils.toString(stream)
-    stream.close()
+      Some(Resource.fromText(uri, templateText))
+    }
+  }
+}
 
-    val source = TemplateSource.fromText(resourceUri, templateString)
-    engine.layout(source, templateVariables)
+case class DynamicResource(templateFile: String) {
+  DynamicResource.Engine.load(templateFile)
+
+  def contents(templateVariables: Map[String, Any]): String = {
+    DynamicResource.Engine.layout(templateFile, templateVariables)
   }
 
   val contentType: ContentType.NonBinary = ContentTypes.`text/html(UTF-8)`

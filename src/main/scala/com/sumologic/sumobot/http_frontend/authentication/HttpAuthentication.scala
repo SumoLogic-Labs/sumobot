@@ -22,11 +22,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 case class Link(name: String, href: String)
 
-case class AuthenticationInfo(authMessage: Option[String], authLinks: Seq[Link]) {
-  def toMap: Map[String, Any] = {
-    Map("authMessage" -> authMessage, "authLinks" -> authLinks)
-  }
-}
+case class AuthenticationInfo(authMessage: Option[String], authLinks: Seq[Link])
 
 sealed trait AuthenticationResult
 
