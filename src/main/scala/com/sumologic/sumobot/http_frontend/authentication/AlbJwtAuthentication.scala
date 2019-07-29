@@ -24,13 +24,15 @@ import java.util.Base64
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS, HEAD}
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import com.sumologic.sumobot.http_frontend.authentication.AlbJwtAuthentication._
 import com.typesafe.config.Config
 import pdi.jwt.{JwtAlgorithm, JwtHeader, JwtJson, JwtOptions}
 import play.api.libs.json.Json
+import akka.http.scaladsl.model.headers.{`Location`, RawHeader, `Access-Control-Allow-Methods`}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -43,6 +45,9 @@ object AlbJwtAuthentication {
 
   private val KeyHeaderBegin = "-----BEGIN PUBLIC KEY-----"
   private val KeyHeaderEnd = "-----END PUBLIC KEY-----"
+
+  private val LogoutEndpoint = "/logout"
+  private val LogoutEndpointLink = "logout"
 }
 
 class AlbJwtAuthentication(config: Config) extends HttpAuthentication {
@@ -50,12 +55,29 @@ class AlbJwtAuthentication(config: Config) extends HttpAuthentication {
   implicit val materializer = ActorMaterializer()
 
   private val keyEndpoint = config.getString("key-endpoint")
+  private val cookieName = config.getString("cookie-name")
+  private val logoutRedirect = config.getString("logout-redirect")
 
   override def authentication(request: HttpRequest): AuthenticationResult = {
     request.headers.find(header => header.is(HeaderName)) match {
       case Some(header) => parseJwtString(header.value())
       case _ => FailureResponse
     }
+  }
+
+  private val redirectResponse = HttpResponse(StatusCodes.TemporaryRedirect, headers = List(`Location`(logoutRedirect),
+    RawHeader("Set-Cookie", s"$cookieName=; Expires=-1; Path=/; Secure; HttpOnly")))
+
+  override def routes: PartialFunction[HttpRequest, HttpResponse] = {
+    case req@HttpRequest(GET, Uri.Path(LogoutEndpoint), _, _, _) =>
+      redirectResponse
+
+    case req@HttpRequest(HEAD, Uri.Path(LogoutEndpoint), _, _, _) =>
+      redirectResponse
+
+    case req@HttpRequest(OPTIONS, Uri.Path(LogoutEndpoint), _, _, _) =>
+      HttpResponse()
+        .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }
 
   private def parseJwtString(jwtString: String): AuthenticationResult = {
@@ -70,7 +92,9 @@ class AlbJwtAuthentication(config: Config) extends HttpAuthentication {
               val nameOption = (parsedClaim \\ "name").headOption
               nameOption match {
                 case Some(name) =>
-                  AuthenticationSucceeded(AuthenticationInfo(Some(s"Logged in as: ${name.as[String]}"), Seq.empty))
+                  val authMessage = Some(s"Logged in as: ${name.as[String]}")
+                  val links = Seq(Link("Log out", LogoutEndpointLink))
+                  AuthenticationSucceeded(AuthenticationInfo(authMessage, links))
                 case None => FailureResponse
               }
             } else {

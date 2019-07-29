@@ -44,6 +44,8 @@ http {
   #   enabled = true
   #   class = "com.sumologic.sumobot.http_frontend.authentication.AlbJwtAuthentication"
   #   key-endpoint = "..."
+  #   cookie-name = "..."
+  #   logout-redirect = "..."
   # }
 
   # UI customization (shown in top bar):
