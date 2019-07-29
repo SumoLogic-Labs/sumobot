@@ -130,8 +130,8 @@ class SumoBotHttpServerOptionsTest extends SumoBotSpec {
       options.title should be ("My Title")
       options.description should be (Some("My Description"))
       options.links.length should be (1)
-      options.links.head.name should be ("Sumo Logic")
-      options.links.head.href should be ("https://sumologic.com")
+      options.links(0).name should be ("Sumo Logic")
+      options.links(0).href should be ("https://sumologic.com")
     }
   }
 }

@@ -61,35 +61,37 @@ class AlbJwtAuthentication(config: Config) extends HttpAuthentication {
   private def parseJwtString(jwtString: String): AuthenticationResult = {
     JwtJson.decodeAll(jwtString, JwtOptions(signature = false)) match {
       case Success((header, claim, _)) =>
-        val key = downloadKey(header)
-        if (key.isEmpty) return FailureResponse
-        val publicKey = parseKey(key.get)
+        downloadKey(header).map {
+          key =>
+            val publicKey = parseKey(key)
 
-        if (JwtJson.isValid(jwtString, publicKey, Seq(JwtAlgorithm.ES256))) {
-          val parsedClaim = Json.parse(claim.content)
-          val name = (parsedClaim \\ "name").head.as[String]
-          val authInfo = AuthenticationInfo(Some(s"Logged in as: $name"), Seq.empty)
-          AuthenticationSucceeded(authInfo)
-        } else {
-          FailureResponse
-        }
+            if (JwtJson.isValid(jwtString, publicKey, Seq(JwtAlgorithm.ES256))) {
+              val parsedClaim = Json.parse(claim.content)
+              val nameOption = (parsedClaim \\ "name").headOption
+              nameOption match {
+                case Some(name) =>
+                  AuthenticationSucceeded(AuthenticationInfo(Some(s"Logged in as: ${name.as[String]}"), Seq.empty))
+                case None => FailureResponse
+              }
+            } else {
+              FailureResponse
+            }
+        }.getOrElse(FailureResponse)
       case _ => FailureResponse
     }
   }
 
   private def downloadKey(header: JwtHeader): Option[String] = {
-    if (header.keyId.isEmpty) return None
-    val keyId = header.keyId.get
-    val request = HttpRequest(uri = s"$keyEndpoint$keyId")
+    header.keyId match {
+      case Some(keyId) =>
+        val request = HttpRequest(uri = s"$keyEndpoint$keyId")
 
-    val responseTry = Await.ready(Http().singleRequest(request), KeyEndpointTimeout).value.get
-    if (responseTry.isFailure) return None
-    val response = responseTry.get
+        val response = Await.result(Http().singleRequest(request), KeyEndpointTimeout)
+        val responseString = Await.result(Unmarshal(response.entity).to[String], KeyEndpointTimeout)
 
-    val responseStringTry = Await.ready(Unmarshal(response.entity).to[String], KeyEndpointTimeout).value.get
-    if (responseStringTry.isFailure) return None
-
-    Some(responseStringTry.get)
+        Some(responseString)
+      case _ => None
+    }
   }
 
   private def parseKey(key: String): PublicKey = {
