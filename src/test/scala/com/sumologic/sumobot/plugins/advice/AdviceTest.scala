@@ -22,6 +22,8 @@ import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin
 import com.sumologic.sumobot.test.{BotPluginTestKit, SumoBotSpec}
 
+import scala.concurrent.duration._
+
 class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest")) with SumoBotSpec {
 
   val adviceRef = system.actorOf(Props[Advice], "advice")
@@ -36,14 +38,13 @@ class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest")) with SumoBo
       "how do you handle cocktails" should fullyMatch regex Advice.AdviceAbout
     }
 
-    // TODO: Fix this test and reenable.
-    "retrieve advice" ignore {
+    "retrieve advice" in {
       adviceRef ! instantMessage("I need some advice")
-      confirmOutgoingMessage {
+      confirmOutgoingMessage({
         msg =>
           println(s"ADVICE: ${msg.text}")
           msg.text should not include("No advice")
-      }
+      }, 5.seconds)
     }
   }
 }
