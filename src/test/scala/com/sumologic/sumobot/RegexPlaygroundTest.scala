@@ -19,7 +19,7 @@
 package com.sumologic.sumobot
 
 import com.sumologic.sumobot.plugins.BotPlugin
-import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotSpec
 
 class RegexPlaygroundTest extends SumoBotSpec {
   "BotPlugin.matchText()" should {

@@ -24,11 +24,11 @@ import akka.testkit.{TestActorRef, TestActors, TestKit, TestProbe}
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
 
 class HttpOutcomingSenderTest
-  extends TestKit(ActorSystem("HttpOutcomingSenderTest"))
-  with SumoBotSpec
+  extends SumoBotTestKit(ActorSystem("HttpOutcomingSenderTest"))
   with BeforeAndAfterAll {
 
   private val probe = new TestProbe(system)

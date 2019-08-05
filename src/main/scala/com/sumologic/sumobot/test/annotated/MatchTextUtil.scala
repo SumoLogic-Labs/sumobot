@@ -16,31 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.quartz
+package com.sumologic.sumobot.test.annotated
 
-import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestProbe}
-import com.sumologic.sumobot.test.SumoBotSpec
-import com.sumologic.sumobot.test.annotated.SumoBotTestKit
-import org.quartz.CronExpression
+import org.scalatest.WordSpecLike
 
-import scala.concurrent.duration._
+import scala.util.matching.Regex
 
-class QuartzExtensionTest
-  extends SumoBotTestKit(ActorSystem("QuartzExtensionTest")) {
+/**
+ * @author Chris (chris@sumologic.com)
+ */
+trait MatchTextUtil extends WordSpecLike {
 
-  object TestMessage
-
-  "QuartzExtension" should {
-    "allow scheduling jobs using cron" in {
-      val quartz = QuartzExtension(system)
-      val probe = TestProbe()
-
-      new CronExpression("0 0 8,12,20 ? * MON-FRI")
-
-      // This expression should trigger every second.
-      quartz.scheduleMessage("test", "* * * * * ?", probe.ref, TestMessage)
-      probe.expectMsg(5.seconds, TestMessage)
+  def shouldMatch(regex: Regex, text: String): Unit = {
+    if (!doesMatch(regex, text)) {
+      fail(s"$regex did not match $text but should")
     }
+  }
+
+  def shouldNotMatch(regex: Regex, text: String): Unit = {
+    if (doesMatch(regex, text)) {
+      fail(s"$regex matched $text but should not")
+    }
+  }
+
+  private def doesMatch(regex: Regex, text: String): Boolean = {
+    regex.pattern.matcher(text).find()
   }
 }

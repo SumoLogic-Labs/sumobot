@@ -19,7 +19,7 @@
 package com.sumologic.sumobot.http_frontend
 
 import akka.http.scaladsl.model.{ContentType, ContentTypes, HttpCharsets, MediaTypes}
-import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotSpec
 
 class StaticResourceTest extends SumoBotSpec {
   "StaticResource" should {

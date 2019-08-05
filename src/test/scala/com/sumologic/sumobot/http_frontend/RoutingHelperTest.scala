@@ -26,13 +26,14 @@ import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
-class RoutingHelperTest extends TestKit(ActorSystem("RoutingHelperTest"))
-  with SumoBotSpec with BeforeAndAfterAll {
+class RoutingHelperTest extends SumoBotTestKit(ActorSystem("RoutingHelperTest"))
+  with BeforeAndAfterAll {
 
   private implicit val materializer = ActorMaterializer()
 

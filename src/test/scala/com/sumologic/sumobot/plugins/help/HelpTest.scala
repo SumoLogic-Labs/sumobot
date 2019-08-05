@@ -23,7 +23,7 @@ import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel,
 import com.sumologic.sumobot.core.PluginRegistry
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.plugins.conversations.Conversations
-import com.sumologic.sumobot.test.BotPluginTestKit
+import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 import org.scalatest.{Matchers, WordSpecLike}
 
 class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {

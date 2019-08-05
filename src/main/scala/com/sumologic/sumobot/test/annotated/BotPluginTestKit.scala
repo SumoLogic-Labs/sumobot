@@ -16,21 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.test
+package com.sumologic.sumobot.test.annotated
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage, UserSender}
-import org.scalatest.BeforeAndAfterAll
+import org.junit.runner.RunWith
+import org.scalatest.concurrent.Eventually
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import slack.models.User
 
 import scala.concurrent.duration.{FiniteDuration, _}
 
-@deprecated("use com.sumologic.sumobot.test.annotated.BotPluginTestKit", "1.0.2")
+@RunWith(classOf[JUnitRunner])
 class BotPluginTestKit(_system: ActorSystem)
   extends TestKit(_system)
-  with SumoBotSpec
-  with BeforeAndAfterAll {
+    with WordSpecLike with Eventually with Matchers
+    with BeforeAndAfterAll {
 
   protected val outgoingMessageProbe = TestProbe()
   system.eventStream.subscribe(outgoingMessageProbe.ref, classOf[OutgoingMessage])

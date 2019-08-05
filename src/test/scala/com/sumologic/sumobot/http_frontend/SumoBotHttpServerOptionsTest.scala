@@ -22,7 +22,7 @@ import java.util.Properties
 
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServerOptions._
 import com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication
-import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import com.typesafe.config.ConfigFactory
 
 class SumoBotHttpServerOptionsTest extends SumoBotSpec {

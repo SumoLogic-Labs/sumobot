@@ -68,6 +68,12 @@
     </dependency>
 
     <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.offbytwo.jenkins</groupId>
       <artifactId>jenkins-client</artifactId>
       <version>0.3.8</version>
@@ -291,6 +297,7 @@
             <exclude>src/main/assembly.xml</exclude>
             <exclude>**/*.ssp</exclude>
             <exclude>**/*.css</exclude>
+            <exclude>build/**</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
           <useDefaultMapping>true</useDefaultMapping>

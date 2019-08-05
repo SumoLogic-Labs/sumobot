@@ -23,10 +23,11 @@ import akka.pattern.ask
 import akka.testkit.TestKit
 import akka.util.Timeout
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
-import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.sumologic.sumobot.brain.Brain.ValueRetrieved
 import com.sumologic.sumobot.core.aws.AWSAccounts
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
+import org.scalatest.{BeforeAndAfterAll, Matchers}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
@@ -34,8 +35,7 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 class S3BrainTest
-    extends TestKit(ActorSystem("S3SingleObjectBrainTest"))
-    with WordSpecLike
+    extends SumoBotTestKit(ActorSystem("S3SingleObjectBrainTest"))
     with BeforeAndAfterAll
     with Matchers {
 
