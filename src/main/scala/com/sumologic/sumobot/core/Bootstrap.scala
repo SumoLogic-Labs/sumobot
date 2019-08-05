@@ -21,7 +21,8 @@ package com.sumologic.sumobot.core
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.sumologic.sumobot.http_frontend.SumoBotHttpServer
+import com.sumologic.sumobot.http_frontend.authentication.{BasicAuthentication, NoAuthentication}
+import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServerOptions}
 import com.sumologic.sumobot.plugins.PluginCollection
 import com.typesafe.config.ConfigFactory
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
@@ -76,11 +77,10 @@ object Bootstrap {
 
   private def bootstrapHttp(brainProps: Props, pluginCollections: Seq[PluginCollection]): Unit = {
     val httpConfig = system.settings.config.getConfig("http")
-    val httpHost = httpConfig.getString("host")
-    val httpPort = httpConfig.getInt("port")
 
     val brain = system.actorOf(brainProps, "brain")
-    val httpServer = new SumoBotHttpServer(httpHost, httpPort)
+    val httpServerOptions = SumoBotHttpServerOptions.fromConfig(httpConfig)
+    val httpServer = new SumoBotHttpServer(httpServerOptions)
 
     receptionist = Some(system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist"))
 
@@ -91,13 +91,19 @@ object Bootstrap {
   }
 
   private def selectedFrontend(): SumobotFrontend = {
-    val isSlackSelected = system.settings.config.hasPath("slack.api.token")
-    val isHttpSelected = system.settings.config.hasPath("http")
+    val isSlackSelected =
+      system.settings.config.hasPath("slack.api.token") && isFrontendEnabled("slack")
+    val isHttpSelected = system.settings.config.hasPath("http") && isFrontendEnabled("http")
 
     if (isHttpSelected && isSlackSelected) throw new IllegalArgumentException("Only one frontend can be selected")
     if (!isHttpSelected && !isSlackSelected) throw new IllegalArgumentException("No frontend selected")
 
     if (isSlackSelected) SlackFrontend else HttpFrontend
+  }
+
+  private def isFrontendEnabled(frontendName: String): Boolean = {
+    !system.settings.config.hasPath(s"$frontendName.enabled") ||
+      system.settings.config.getBoolean(s"$frontendName.enabled")
   }
 
   private def shutdownActorSystem(): Unit = {

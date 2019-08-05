@@ -1,12 +1,64 @@
-# only one frontend (slack, http) can be active at the same time
+# Only one frontend (slack, http) can be active at the same time.
 
 slack {
+  # Required parameters:
   api.token = "..."
+
+  # Optional parameters:
+
+  # (default true, when slack API token defined)
+  # enabled = true
 }
 
 http {
+  # Required parameters:
   host = "localhost"
   port = 8080
+
+  # Optional parameters:
+
+  # (default true, when http block defined)
+  # enabled = true
+
+  # Origin (Access-Control-Allow-Origin header, default: *):
+  # origin = "..."
+
+  # Authentication:
+
+  # No authentication (default)
+  # authentication {
+  #   enabled = true
+  #   class = "com.sumologic.sumobot.http_frontend.authentication.NoAuthentication"
+  # }
+
+  # HTTP Basic Authentication
+  # authentication {
+  #   enabled = true
+  #   class = "com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication"
+  #   username = "..."
+  #   password = "..."
+  # }
+
+  # AWS ALB Authentication
+  # authentication {
+  #   enabled = true
+  #   class = "com.sumologic.sumobot.http_frontend.authentication.AlbJwtAuthentication"
+  #   key-endpoint = "..."
+  #   cookie-name = "..."
+  #   logout-redirect = "..."
+  # }
+
+  # UI customization (shown in top bar):
+
+  # title = "..."
+  # description = "..."
+  # links {
+  #   mylink1 {
+  #     name = "..."
+  #     href = "..."
+  #   }
+  #   ...
+  # }
 }
 
 # Not read by the code, just used in the config.

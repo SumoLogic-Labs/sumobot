@@ -20,62 +20,115 @@ package com.sumologic.sumobot.http_frontend
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS}
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{Message, UpgradeToWebSocket}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
+import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
+import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded, NoAuthentication}
 import org.reactivestreams.Publisher
 
-import SumoBotHttpServer._
-
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 object SumoBotHttpServer {
   private[http_frontend] val UrlSeparator = "/"
 
-  private[http_frontend] val RootPage = "index.html"
+  private[http_frontend] val RootPageName = "index.ssp"
   private[http_frontend] val WebSocketEndpoint = UrlSeparator + "websocket"
 
-  private[http_frontend] val Resources = Set(
-    UrlSeparator + RootPage, UrlSeparator + "script.js", UrlSeparator + "style.css")
+  private[http_frontend] val Resources = Set(UrlSeparator + "script.js", UrlSeparator + "style.css")
 
   private[http_frontend] val BufferSize = 128
   private[http_frontend] val SocketOverflowStrategy = OverflowStrategy.fail
 }
 
-class SumoBotHttpServer(httpHost: String, httpPort: Int)(implicit system: ActorSystem) {
+class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: ActorSystem) {
   private implicit val materializer: Materializer = ActorMaterializer()
 
-  private val serverSource = Http().bind(httpHost, httpPort)
+  private val routingHelper = RoutingHelper(options.origin)
+  private val rootPage = DynamicResource(RootPageName)
 
-  private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler(requestHandler))).run()
+  private val serverSource = Http().bind(options.httpHost, options.httpPort)
+
+  private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler {
+    routingHelper.withAllowOriginHeader {
+      routingHelper.withForbiddenFallback {
+        options.authentication.routes.orElse {
+          routingHelper.withHeadRequests {
+            requestHandler
+          }
+        }
+      }
+    }
+  })).run()
 
   def terminate(): Unit = {
     Await.result(binding, 10.seconds).terminate(5.seconds)
   }
 
-  private val requestHandler: HttpRequest => HttpResponse = {
-    case HttpRequest(GET, Uri.Path("/"), _, _, _) =>
-      staticResource(RootPage)
+  private val requestHandler: PartialFunction[HttpRequest, HttpResponse] = {
+    case req@HttpRequest(GET, Uri.Path("/"), _, _, _) =>
+      authenticate(req) {
+        authInfo => renderRootPage(authInfo)
+      }
 
-    case req@HttpRequest(GET, Uri.Path(WebSocketEndpoint), _, _, _) =>
-      webSocketRequestHandler(req)
+    case HttpRequest(OPTIONS, Uri.Path("/"), _, _, _) =>
+      rootPageOptions
 
-    case HttpRequest(GET, Uri.Path(path), _, _, _)
+    case req@HttpRequest(GET, Uri.Path(path), _, _, _)
       if Resources.contains(path) =>
       val filename = path.replaceFirst(UrlSeparator, "")
-      staticResource(filename)
+      authenticate(req) {
+        _ => staticResource(filename)
+      }
 
-    case invalid: HttpRequest =>
-      invalid.discardEntityBytes()
-      HttpResponse(403)
+    case HttpRequest(OPTIONS, Uri.Path(path), _, _, _)
+      if Resources.contains(path) =>
+      val filename = path.replaceFirst(UrlSeparator, "")
+      staticResourceOptions(filename)
+
+    case req@HttpRequest(GET, Uri.Path(WebSocketEndpoint), _, _, _) =>
+      authenticate(req) {
+        _ => webSocketRequestHandler(req)
+      }
+
+    case req@HttpRequest(OPTIONS, Uri.Path(WebSocketEndpoint), _, _, _) =>
+      webSocketOptions(req)
+  }
+
+  private def authenticate(request: HttpRequest)(succeededHandler: AuthenticationInfo => HttpResponse): HttpResponse = {
+    options.authentication.authentication(request) match {
+      case AuthenticationSucceeded(info) =>
+        succeededHandler(info)
+      case AuthenticationForbidden(response) =>
+        response
+    }
   }
 
   private def staticResource(filename: String): HttpResponse = {
     val resource = StaticResource(filename)
     HttpResponse(entity = HttpEntity(resource.contentType, resource.contents))
+  }
+
+  private def staticResourceOptions(filename: String): HttpResponse = {
+    HttpResponse()
+      .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
+  }
+
+  private def renderRootPage(authInfo: AuthenticationInfo): HttpResponse = {
+    val contents = rootPage.contents(Map(
+      "authInfo" -> authInfo,
+      "serverOptions" -> options
+    ))
+    HttpResponse(entity = HttpEntity(rootPage.contentType, contents))
+  }
+
+  private val rootPageOptions: HttpResponse = {
+    HttpResponse()
+      .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }
 
   private def webSocketRequestHandler(req: HttpRequest): HttpResponse = {
@@ -84,6 +137,11 @@ class SumoBotHttpServer(httpHost: String, httpPort: Int)(implicit system: ActorS
         webSocketUpgradeHandler(upgrade)
       case None => HttpResponse(400, entity = "Invalid WebSocket request")
     }
+  }
+
+  private def webSocketOptions(req: HttpRequest): HttpResponse = {
+    HttpResponse()
+      .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }
 
   def webSocketUpgradeHandler(upgrade: UpgradeToWebSocket): HttpResponse = {

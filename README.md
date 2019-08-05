@@ -32,7 +32,7 @@ http {
 
 After starting Sumo Bot, you can visit started server at `http://localhost:8080/`.
 
-To run server exposed to external world, change `host` to `0.0.0.0`.
+To run server exposed to external world, change `host` to `0.0.0.0`. For advanced configuration options, see: [`config/sumobot.conf.example`](https://github.com/SumoLogic/sumobot/blob/master/config/sumobot.conf.example).
 
 ### [Dev] How to release new version
 1. Make sure you have all credentials.

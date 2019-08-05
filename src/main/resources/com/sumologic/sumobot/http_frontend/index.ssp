@@ -16,19 +16,39 @@
     specific language governing permissions and limitations
     under the License.
 -->
+#import(com.sumologic.sumobot.http_frontend.authentication.AuthenticationInfo)
+#import(com.sumologic.sumobot.http_frontend.SumoBotHttpServerOptions)
+<%@ var authInfo: AuthenticationInfo %>
+<%@ var serverOptions: SumoBotHttpServerOptions %>
+
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Sumobot-over-HTTP</title>
+    <title>${serverOptions.title}</title>
     <meta name="description" content="Sumobot-over-HTTP">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script type="text/javascript" src="script.js"></script>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="page-container">
+        <div class="header">
+            <h1>${serverOptions.title}</h1>
+            #if (serverOptions.description.isDefined)
+                <span>${serverOptions.description.get}</span>
+            #end
+            #for (link <- serverOptions.links)
+                <span><a href="${link.href}">${link.name}</a></span>
+            #end
+            #if (authInfo.authMessage.isDefined)
+                <span>${authInfo.authMessage.get}</span>
+            #end
+            #for (link <- authInfo.authLinks)
+                <span><a href="${link.href}">${link.name}</a></span>
+            #end
+        </div>
         <div id="messages" class="messages"></div>
         <form class="inputs">
             <input title="message" class="message-input" id="message-input" type="text">
@@ -37,4 +57,3 @@
     </div>
 </body>
 </html>
-        
