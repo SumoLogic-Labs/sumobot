@@ -17,6 +17,8 @@
  * under the License.
  */
 package com.sumologic.sumobot.http_frontend.authentication
+import java.security.MessageDigest
+
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.typesafe.config.Config
@@ -30,7 +32,8 @@ class BasicAuthentication(config: Config) extends HttpAuthentication {
       case Some(header) =>
         val receivedCredentials = BasicHttpCredentials(header.credentials.token())
 
-        val authenticated = receivedCredentials.username == username && receivedCredentials.password == password
+        val authenticated = MessageDigest.isEqual(receivedCredentials.username.getBytes, username.getBytes) &&
+          MessageDigest.isEqual(receivedCredentials.password.getBytes, password.getBytes)
         if (authenticated) AuthenticationSucceeded(AuthenticationInfo(Some(s"Logged in as: $username"), None, Seq.empty))
         else AuthenticationForbidden(HttpResponse(403))
       case None =>
