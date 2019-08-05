@@ -22,7 +22,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 case class Link(name: String, href: String)
 
-case class AuthenticationInfo(authMessage: Option[String], authLinks: Seq[Link])
+case class AuthenticationInfo(authMessage: Option[String], authEmail: Option[String], authLinks: Seq[Link])
 
 sealed trait AuthenticationResult
 

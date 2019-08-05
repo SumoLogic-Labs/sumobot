@@ -22,6 +22,6 @@ import com.typesafe.config.Config
 
 class NoAuthentication(config: Config) extends HttpAuthentication {
   override def authentication(request: HttpRequest): AuthenticationResult = {
-    AuthenticationSucceeded(AuthenticationInfo(None, Seq.empty))
+    AuthenticationSucceeded(AuthenticationInfo(None, None, Seq.empty))
   }
 }

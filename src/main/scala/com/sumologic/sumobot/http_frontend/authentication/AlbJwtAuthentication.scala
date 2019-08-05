@@ -90,11 +90,12 @@ class AlbJwtAuthentication(config: Config) extends HttpAuthentication {
             if (JwtJson.isValid(jwtString, publicKey, Seq(JwtAlgorithm.ES256))) {
               val parsedClaim = Json.parse(claim.content)
               val nameOption = (parsedClaim \\ "name").headOption
+              val emailOption = (parsedClaim \\ "email").headOption.map(email => email.as[String])
               nameOption match {
                 case Some(name) =>
                   val authMessage = Some(s"Logged in as: ${name.as[String]}")
                   val links = Seq(Link("Log out", LogoutEndpointLink))
-                  AuthenticationSucceeded(AuthenticationInfo(authMessage, links))
+                  AuthenticationSucceeded(AuthenticationInfo(authMessage, emailOption, links))
                 case None => FailureResponse
               }
             } else {

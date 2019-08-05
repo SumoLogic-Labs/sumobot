@@ -31,7 +31,7 @@ class BasicAuthentication(config: Config) extends HttpAuthentication {
         val receivedCredentials = BasicHttpCredentials(header.credentials.token())
 
         val authenticated = receivedCredentials.username == username && receivedCredentials.password == password
-        if (authenticated) AuthenticationSucceeded(AuthenticationInfo(Some(s"Logged in as: $username"), Seq.empty))
+        if (authenticated) AuthenticationSucceeded(AuthenticationInfo(Some(s"Logged in as: $username"), None, Seq.empty))
         else AuthenticationForbidden(HttpResponse(403))
       case None =>
         val header = `WWW-Authenticate`(List(HttpChallenge("basic", Some("SumoBot"))))
