@@ -20,10 +20,13 @@ apply plugin: "scalaStyle"
 apply plugin: "application"
 apply plugin: "com.github.hierynomus.license"
 
-group = 'com.sumologic.sumobot'
+group = "com.sumologic.sumobot"
+description = "A Slack bot implemented in Akka"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 version = '1.0.1-SNAPSHOT'
-description = 'sumobot'
-sourceCompatibility = '1.8'
 
 repositories {
     jcenter()
@@ -74,21 +77,25 @@ application {
     mainClassName = 'com.sumologic.sumobot.Main'
 }
 
+ext.gitCommitIdAbbrev = System.getenv('GIT_COMMIT_ID_ABBREV') ?: 'git rev-parse --verify --short=12 HEAD'.execute().text.trim()
+
 task sourcesJar(type: Jar) {
     classifier = 'sources'
-    from(sourceSets.main.allJava)
+    from(sourceSets.main.allJava) {
+        expand(project: [version: project.version], git: [commit: [id: [abbrev: gitCommitIdAbbrev]]])
+    }
 }
 
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId 'com.sumologic.sumobot'
+            groupId(project.group)
             artifactId 'sumobot'
-            version '1.0.1-SNAPSHOT'
+            version(project.version)
 
             pom {
                 name = 'sumobot'
-                description = 'A Slack bot implemented in Akka'
+                description = project.description
                 url = 'https://github.com/SumoLogic/sumobot'
 
                 licenses {
