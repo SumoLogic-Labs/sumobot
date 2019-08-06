@@ -36,6 +36,7 @@ import com.sumologic.sumobot.plugins.PluginsFromProps
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
@@ -43,8 +44,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Promise}
 
 class SumoBotHttpServerTest
-  extends TestKit(ActorSystem("SumoBotHttpServerTest"))
-   with SumoBotSpec
+  extends SumoBotTestKit(ActorSystem("SumoBotHttpServerTest"))
    with BeforeAndAfterAll {
 
   private implicit val materializer = ActorMaterializer()

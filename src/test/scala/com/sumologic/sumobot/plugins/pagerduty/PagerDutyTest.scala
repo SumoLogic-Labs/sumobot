@@ -21,15 +21,14 @@ package com.sumologic.sumobot.plugins.pagerduty
 import akka.actor.ActorSystem
 import akka.testkit.{TestActorRef, TestKit}
 import com.sumologic.sumobot.plugins.BotPlugin
-import com.sumologic.sumobot.test.{MatchTextUtil, SumoBotSpec}
+import com.sumologic.sumobot.test.annotated.{MatchTextUtil, SumoBotSpec, SumoBotTestKit}
 import org.scalatest.BeforeAndAfterAll
 
 /**
  * @author Chris (chris@sumologic.com)
  */
 class PagerDutyTest
-  extends TestKit(ActorSystem("PagerDutyTest"))
-  with SumoBotSpec
+  extends SumoBotTestKit(ActorSystem("PagerDutyTest"))
   with BeforeAndAfterAll
   with MatchTextUtil {
 

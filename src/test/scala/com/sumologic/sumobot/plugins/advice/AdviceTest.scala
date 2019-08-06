@@ -20,11 +20,10 @@ package com.sumologic.sumobot.plugins.advice
 
 import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin
-import com.sumologic.sumobot.test.{BotPluginTestKit, SumoBotSpec}
+import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 
 import scala.concurrent.duration._
-
-class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest")) with SumoBotSpec {
+class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest"))  {
 
   val adviceRef = system.actorOf(Props[Advice], "advice")
   adviceRef ! InitializePlugin(null, null, null)

@@ -19,3 +19,7 @@ project/plugins/project/
 sumo-env.txt
 .idea/
 config/*.conf
+
+# Gradle
+build/
+.gradle/

@@ -1,0 +1,139 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_$scalaMajorVersion:1.0.1"
+        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "scala"
+apply plugin: "maven"
+apply plugin: "maven-publish"
+apply plugin: "scalaStyle"
+apply plugin: "application"
+apply plugin: "com.github.hierynomus.license"
+
+group = "com.sumologic.sumobot"
+description = "A Slack bot implemented in Akka"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+version = '1.0.1-SNAPSHOT'
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+dependencies {
+    compile "com.github.slack-scala-client:slack-scala-client_2.11:0.2.6"
+    compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
+    compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
+    compile "org.scalatest:scalatest_${scalaMajorVersion}:2.2.5"
+    compile "com.offbytwo.jenkins:jenkins-client:0.3.8"
+    compile("org.apache.httpcomponents:httpclient:4.3.6") {
+        force = true
+    }
+    compile "org.scalatra.scalate:scalate-core_2.11:1.9.4"
+    compile "org.slf4j:slf4j-log4j12:1.7.12"
+    compile "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
+    compile "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
+    compile("org.quartz-scheduler:quartz:2.2.1") {
+        exclude group: "c3p0", module: "c3p0"
+    }
+    compile "com.mchange:c3p0:0.9.5.4"
+    compile("net.liftweb:lift-json_${scalaMajorVersion}:2.6-RC1") {
+        exclude group: "org.specs2", module: "specs2_${scalaMajorVersion}"
+    }
+    compile "org.scala-lang:scala-compiler:2.11.12"
+    compile "org.scala-lang:scalap:2.11.12"
+    compile "org.scala-lang:scala-reflect:2.11.12"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.9.9.1"
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.9.9"
+    compile "com.fasterxml.jackson.core:jackson-core:2.9.9"
+    compile "org.dom4j:dom4j:2.1.1"
+    compile "com.google.guava:guava:27.1-jre"
+    compile "commons-beanutils:commons-beanutils:1.9.3"
+    compile "com.typesafe.play:play-json_2.11:2.7.1"
+    compile "com.pauldijou:jwt-play-json_2.11:3.1.0"
+    compile "com.typesafe.akka:akka-http_2.11:10.0.11"
+    compile "org.joda:joda-convert:1.9.2"
+    compile "junit:junit:4.12"
+    testCompile "org.mockito:mockito-core:2.0.31-beta"
+}
+
+compileScala {
+    scalaCompileOptions.additionalParameters = [
+        "-feature", "-target:jvm-1.8", "-deprecation", "-language:implicitConversions",
+        "-unchecked", "-Xfatal-warnings"
+    ]
+}
+
+application {
+    mainClassName = 'com.sumologic.sumobot.Main'
+}
+
+ext.gitCommitIdAbbrev = System.getenv('GIT_COMMIT_ID_ABBREV') ?: 'git rev-parse --verify --short=12 HEAD'.execute().text.trim()
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from(sourceSets.main.allJava) {
+        expand(project: [version: project.version], git: [commit: [id: [abbrev: gitCommitIdAbbrev]]])
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId(project.group)
+            artifactId(project.name)
+            version(project.version)
+
+            pom {
+                name = project.name
+                description = project.description
+                url = 'https://github.com/SumoLogic/sumobot'
+
+                licenses {
+                    license {
+                        name = 'Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'goledzki'
+                        name = 'Greg Oledzki'
+                        organization = 'Sumo Logic'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:SumoLogic/sumobot.git'
+                    developerConnection = 'scm:git:git@github.com:SumoLogic/sumobot.git'
+                    url = 'https://github.com/SumoLogic/sumobot'
+                    tag = 'HEAD'
+                }
+            }
+
+            from(components.java)
+            artifact(sourcesJar)
+        }
+    }
+}
+
+license {
+    header rootProject.file('src/etc/header.txt')
+    strictCheck true
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

@@ -16,31 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.quartz
+package com.sumologic.sumobot.test.annotated
 
 import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestProbe}
-import com.sumologic.sumobot.test.SumoBotSpec
-import com.sumologic.sumobot.test.annotated.SumoBotTestKit
-import org.quartz.CronExpression
+import akka.testkit.TestKit
+import org.junit.runner.RunWith
+import org.scalatest.concurrent.Eventually
+import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.junit.JUnitRunner
 
-import scala.concurrent.duration._
-
-class QuartzExtensionTest
-  extends SumoBotTestKit(ActorSystem("QuartzExtensionTest")) {
-
-  object TestMessage
-
-  "QuartzExtension" should {
-    "allow scheduling jobs using cron" in {
-      val quartz = QuartzExtension(system)
-      val probe = TestProbe()
-
-      new CronExpression("0 0 8,12,20 ? * MON-FRI")
-
-      // This expression should trigger every second.
-      quartz.scheduleMessage("test", "* * * * * ?", probe.ref, TestMessage)
-      probe.expectMsg(5.seconds, TestMessage)
-    }
-  }
-}
+@RunWith(classOf[JUnitRunner])
+abstract class SumoBotTestKit(actorSystem: ActorSystem)
+  extends TestKit(actorSystem) with WordSpecLike with Eventually with Matchers

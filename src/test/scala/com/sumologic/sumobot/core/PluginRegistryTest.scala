@@ -25,15 +25,14 @@ import akka.util.Timeout
 import com.sumologic.sumobot.core.PluginRegistry.{Plugin, PluginList, RequestPluginList}
 import com.sumologic.sumobot.plugins.BotPlugin.{PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.plugins.help.Help
-import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class PluginRegistryTest
-  extends TestKit(ActorSystem("PluginRegistryTest"))
-  with SumoBotSpec
+  extends SumoBotTestKit(ActorSystem("PluginRegistryTest"))
   with BeforeAndAfterAll {
 
   "PluginRegistry" should {

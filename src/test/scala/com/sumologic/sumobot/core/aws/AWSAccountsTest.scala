@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.core.aws
 
-import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import com.typesafe.config.ConfigFactory
 
 class AWSAccountsTest extends SumoBotSpec {

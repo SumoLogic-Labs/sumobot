@@ -25,6 +25,7 @@ import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateRespons
 import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
@@ -35,8 +36,7 @@ import slack.rtm.{RtmState, SlackRtmClient}
 import scala.concurrent.duration._
 
 class ReceptionistTest
-  extends TestKit(ActorSystem("ReceptionistTest"))
-  with SumoBotSpec
+  extends SumoBotTestKit(ActorSystem("ReceptionistTest"))
   with MockitoSugar
   with BeforeAndAfterEach
   with BeforeAndAfterAll {

@@ -23,7 +23,7 @@ import akka.testkit.TestProbe
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin
-import com.sumologic.sumobot.test.BotPluginTestKit
+import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import scala.concurrent.duration._
 import org.scalatest.{Matchers, WordSpecLike}

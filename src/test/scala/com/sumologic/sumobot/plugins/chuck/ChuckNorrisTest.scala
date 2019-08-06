@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.chuck
 
-import com.sumologic.sumobot.test.SumoBotSpec
+import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import play.api.libs.json.Json
 
 class ChuckNorrisTest extends SumoBotSpec {
