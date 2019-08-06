@@ -30,7 +30,7 @@ import slack.models.User
 import scala.concurrent.duration.{FiniteDuration, _}
 
 @RunWith(classOf[JUnitRunner])
-class BotPluginTestKit(_system: ActorSystem)
+abstract class BotPluginTestKit(_system: ActorSystem)
   extends TestKit(_system)
     with WordSpecLike with Eventually with Matchers
     with BeforeAndAfterAll {

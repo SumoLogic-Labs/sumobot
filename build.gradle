@@ -46,9 +46,13 @@ dependencies {
     compile "org.slf4j:slf4j-log4j12:1.7.12"
     compile "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
     compile "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
-    compile "org.quartz-scheduler:quartz:2.2.1"
+    compile("org.quartz-scheduler:quartz:2.2.1") {
+        exclude group: "c3p0", module: "c3p0"
+    }
     compile "com.mchange:c3p0:0.9.5.4"
-    compile "net.liftweb:lift-json_${scalaMajorVersion}:2.6-RC1"
+    compile("net.liftweb:lift-json_${scalaMajorVersion}:2.6-RC1") {
+        exclude group: "org.specs2", module: "specs2_${scalaMajorVersion}"
+    }
     compile "org.scala-lang:scala-compiler:2.11.12"
     compile "org.scala-lang:scalap:2.11.12"
     compile "org.scala-lang:scala-reflect:2.11.12"
@@ -90,11 +94,11 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId(project.group)
-            artifactId 'sumobot'
+            artifactId(project.name)
             version(project.version)
 
             pom {
-                name = 'sumobot'
+                name = project.name
                 description = project.description
                 url = 'https://github.com/SumoLogic/sumobot'
 
