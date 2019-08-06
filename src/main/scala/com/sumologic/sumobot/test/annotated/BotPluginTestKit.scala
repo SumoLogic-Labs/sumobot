@@ -30,8 +30,8 @@ import slack.models.User
 import scala.concurrent.duration.{FiniteDuration, _}
 
 @RunWith(classOf[JUnitRunner])
-abstract class BotPluginTestKit(_system: ActorSystem)
-  extends TestKit(_system)
+abstract class BotPluginTestKit(actorSystem: ActorSystem)
+  extends TestKit(actorSystem)
     with WordSpecLike with Eventually with Matchers
     with BeforeAndAfterAll {
 
@@ -39,7 +39,7 @@ abstract class BotPluginTestKit(_system: ActorSystem)
   system.eventStream.subscribe(outgoingMessageProbe.ref, classOf[OutgoingMessage])
 
   protected def confirmOutgoingMessage(test: OutgoingMessage => Unit, timeout: FiniteDuration = 1.second): Unit = {
-    outgoingMessageProbe.expectMsgClass(1.second, classOf[OutgoingMessage]) match {
+    outgoingMessageProbe.expectMsgClass(timeout, classOf[OutgoingMessage]) match {
       case msg: OutgoingMessage =>
         test(msg)
     }
