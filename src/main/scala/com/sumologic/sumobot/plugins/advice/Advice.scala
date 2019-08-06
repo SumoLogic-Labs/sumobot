@@ -29,7 +29,7 @@ object Advice {
   val RandomAdvice = BotPlugin.matchText("I need some advice")
 
   private[advice] def parseResponse(response: HttpResponse): Seq[String] = {
-    val json = Json.toJson(EntityUtils.toString(response.getEntity))
+    val json = Json.parse(EntityUtils.toString(response.getEntity))
     (json \\ "advice").map(_.as[String])
   }
 }

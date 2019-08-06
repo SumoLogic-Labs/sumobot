@@ -20,17 +20,24 @@ package com.sumologic.sumobot.plugins
 
 import org.apache.http.client.config.RequestConfig
 import org.apache.http.impl.client.HttpClientBuilder
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 
 object HttpClientWithTimeOut {
 
   val requestConfig: RequestConfig = RequestConfig.custom
     .setConnectionRequestTimeout(60000)
     .setConnectTimeout(60000)
+    .setSocketTimeout(60000)
     .build
 
   def client(requestConfig: RequestConfig = requestConfig) = {
+    val connManager = new PoolingHttpClientConnectionManager()
+    connManager.setMaxTotal(200)
+    connManager.setDefaultMaxPerRoute(50)
+
     HttpClientBuilder.create()
       .setDefaultRequestConfig(requestConfig)
+      .setConnectionManager(connManager)
       .build()
   }
 }
