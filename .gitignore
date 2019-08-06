@@ -23,4 +23,3 @@ config/*.conf
 # Gradle
 build/
 .gradle/
-gradle/
