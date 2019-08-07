@@ -170,6 +170,7 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
     upgrade.handleMessagesWithSinkSource(sink, publisherSource)
   }
 
+  // TODO(pgrabowski, 2019-08-07): New channels and users are created here, but RtmState in BotPlugin is not updated.
   private def temporaryChannel(): PublicChannel = {
     val channelName = s"C${"%08d".format(connectionNumber)}"
 
