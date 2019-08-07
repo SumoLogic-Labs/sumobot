@@ -27,7 +27,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import akka.http.scaladsl.model.ws.TextMessage
 import akka.stream.ActorMaterializer
 import com.sumologic.sumobot.core.HttpReceptionist
-import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
+import com.sumologic.sumobot.core.model.{Channel, IncomingMessage, UserSender}
+import slack.models.User
 
 import scala.concurrent.duration.Duration
 
@@ -36,7 +37,8 @@ object HttpIncomingReceiver {
   private val StrictTimeout = Duration.create(5, TimeUnit.SECONDS)
 }
 
-class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLogging {
+class HttpIncomingReceiver(outcomingRef: ActorRef, connectionChannel: Channel, user: User)
+  extends Actor with ActorLogging {
   private implicit val materializer = ActorMaterializer()
 
   override def receive: Receive = {
@@ -45,8 +47,8 @@ class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLoggi
 
     case strictMsg: TextMessage.Strict =>
       val contents = strictMsg.getStrictText
-      val incomingMessage = IncomingMessage(contents, true, HttpReceptionist.DefaultSumoBotChannel,
-        formatDateNow(), None, Seq.empty, UserSender(HttpReceptionist.DefaultClientUser))
+      val incomingMessage = IncomingMessage(contents, true, connectionChannel,
+        formatDateNow(), None, Seq.empty, UserSender(user))
       context.system.eventStream.publish(incomingMessage)
 
     case HttpIncomingReceiver.StreamEnded =>

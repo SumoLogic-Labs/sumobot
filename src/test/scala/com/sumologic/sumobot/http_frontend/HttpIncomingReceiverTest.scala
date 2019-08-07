@@ -38,7 +38,8 @@ class HttpIncomingReceiverTest
   system.eventStream.subscribe(probe.ref, classOf[IncomingMessage])
 
   private val dummyActor = TestActorRef(TestActors.blackholeProps)
-  private val httpIncomingReceiver = TestActorRef(new HttpIncomingReceiver(dummyActor))
+  private val httpIncomingReceiver = TestActorRef(new HttpIncomingReceiver(dummyActor,
+    HttpReceptionist.DefaultSumoBotChannel, HttpReceptionist.DefaultClientUser))
 
   "HttpIncomingReceiver" should {
     "publish IncomingMessage" when {
@@ -89,7 +90,8 @@ class HttpIncomingReceiverTest
         val testProbeOutcoming = TestProbe()
         testProbeOutcoming.watch(outcomingActor)
 
-        val shutdownReceiver = TestActorRef(new HttpIncomingReceiver(outcomingActor))
+        val shutdownReceiver = TestActorRef(new HttpIncomingReceiver(outcomingActor,
+          HttpReceptionist.DefaultSumoBotChannel, HttpReceptionist.DefaultClientUser))
         val testProbeShutdown = TestProbe()
         testProbeShutdown.watch(shutdownReceiver)
 

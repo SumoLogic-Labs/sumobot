@@ -34,7 +34,7 @@ class HttpOutcomingSenderTest
   private val probe = new TestProbe(system)
   system.eventStream.subscribe(probe.ref, classOf[TextMessage.Strict])
 
-  private val httpOutcomingSender = TestActorRef(new HttpOutcomingSender(probe.ref))
+  private val httpOutcomingSender = TestActorRef(new HttpOutcomingSender(probe.ref, HttpReceptionist.DefaultSumoBotChannel))
 
   "HttpOutcomingSender" should {
     "send TextMessage" when {
@@ -54,7 +54,7 @@ class HttpOutcomingSenderTest
         val testProbe = TestProbe()
         testProbe.watch(dummyActor)
 
-        val stoppedSender = TestActorRef(new HttpOutcomingSender(dummyActor))
+        val stoppedSender = TestActorRef(new HttpOutcomingSender(dummyActor, HttpReceptionist.DefaultSumoBotChannel))
         system.stop(stoppedSender)
 
         testProbe.expectTerminated(dummyActor)

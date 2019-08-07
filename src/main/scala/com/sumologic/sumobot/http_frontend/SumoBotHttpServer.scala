@@ -18,6 +18,7 @@
  */
 package com.sumologic.sumobot.http_frontend
 
+import java.time.Instant
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS}
@@ -26,9 +27,12 @@ import akka.http.scaladsl.model.ws.{Message, UpgradeToWebSocket}
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
+import com.sumologic.sumobot.core.HttpReceptionist.DefaultChannel
+import com.sumologic.sumobot.core.model.PublicChannel
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
 import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded, NoAuthentication}
 import org.reactivestreams.Publisher
+import slack.models.{Channel, User}
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -50,6 +54,8 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
 
   private val routingHelper = RoutingHelper(options.origin)
   private val rootPage = DynamicResource(RootPageName)
+
+  private var connectionNumber = 0
 
   private val serverSource = Http().bind(options.httpHost, options.httpPort)
 
@@ -145,17 +151,33 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   }
 
   def webSocketUpgradeHandler(upgrade: UpgradeToWebSocket): HttpResponse = {
+    connectionNumber += 1
+
+    val channel = temporaryChannel()
+    val user = temporaryUser()
+
     val (publisherRef: ActorRef, publisher: Publisher[Message]) =
       Source.actorRef[Message](BufferSize, SocketOverflowStrategy)
       .toMat(Sink.asPublisher(true))(Keep.both).run()
 
     val publisherSource = Source.fromPublisher(publisher)
 
-    val senderRef = system.actorOf(Props(classOf[HttpOutcomingSender], publisherRef))
-    val receiverRef = system.actorOf(Props(classOf[HttpIncomingReceiver], senderRef))
+    val senderRef = system.actorOf(Props(classOf[HttpOutcomingSender], publisherRef, channel))
+    val receiverRef = system.actorOf(Props(classOf[HttpIncomingReceiver], senderRef, channel, user))
 
     val sink = Sink.actorRef(receiverRef, HttpIncomingReceiver.StreamEnded)
 
     upgrade.handleMessagesWithSinkSource(sink, publisherSource)
+  }
+
+  private def temporaryChannel(): PublicChannel = {
+    val channelName = s"C${"%08d".format(connectionNumber)}"
+
+    PublicChannel(channelName, channelName)
+  }
+
+  private def temporaryUser(): User = {
+    User(s"U${"%08d".format(connectionNumber)}", s"sumobot-client-$connectionNumber", None, None, None, None, None,
+      None, None, None, None, None, None, None, None, None)
   }
 }

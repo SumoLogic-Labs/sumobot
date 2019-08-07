@@ -20,15 +20,16 @@ package com.sumologic.sumobot.http_frontend
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.http.scaladsl.model.ws.TextMessage
-import com.sumologic.sumobot.core.model.OutgoingMessage
+import com.sumologic.sumobot.core.model.{Channel, OutgoingMessage}
 
-class HttpOutcomingSender(publisherRef: ActorRef) extends Actor with ActorLogging {
+class HttpOutcomingSender(publisherRef: ActorRef, connectionChannel: Channel) extends Actor with ActorLogging {
   override def preStart(): Unit = {
     Seq(classOf[OutgoingMessage]).foreach(context.system.eventStream.subscribe(self, _))
   }
 
   override def receive: Receive = {
-    case OutgoingMessage(_, text, _) =>
+    case OutgoingMessage(channel, text, _)
+      if channel == connectionChannel =>
       publisherRef ! TextMessage(text)
   }
 

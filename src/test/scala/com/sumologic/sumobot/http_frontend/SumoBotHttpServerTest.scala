@@ -138,6 +138,40 @@ class SumoBotHttpServerTest
 
         disconnectPromise.success(None)
       }
+
+      "sending messages in multiple connections" in {
+        val probeA = TestProbe()
+        val probeB = TestProbe()
+
+        val disconnectPromiseA = sendWebSocketMessages(Array("help", "help"), probeA.ref)
+        val disconnectPromiseB = sendWebSocketMessages(Array("when did you start?", "when did you start?"), probeB.ref)
+
+        eventually {
+          val firstResponseA = probeA.expectMsgClass(classOf[TextMessage.Strict])
+          firstResponseA.getStrictText should include("Help")
+        }
+
+        eventually {
+          val secondResponseA = probeA.expectMsgClass(classOf[TextMessage.Strict])
+          secondResponseA.getStrictText should include("Help")
+        }
+
+        eventually {
+          val firstResponseB = probeB.expectMsgClass(classOf[TextMessage.Strict])
+          firstResponseB.getStrictText should include("I started at ")
+        }
+
+        eventually {
+          val secondResponseB = probeB.expectMsgClass(classOf[TextMessage.Strict])
+          secondResponseB.getStrictText should include("I started at ")
+        }
+
+        probeA.expectNoMessage(100.millis)
+        probeB.expectNoMessage(100.millis)
+
+        disconnectPromiseA.success(None)
+        disconnectPromiseB.success(None)
+      }
     }
 
     "send proper AllowOrigin header" when {
