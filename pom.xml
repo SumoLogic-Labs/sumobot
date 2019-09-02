@@ -164,12 +164,7 @@
       <artifactId>guava</artifactId>
       <version>27.1-jre</version>
     </dependency>
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>1.9.3</version>
-    </dependency>
-    
+
     <dependency>
       <groupId>com.typesafe.play</groupId>
       <artifactId>play-json_2.11</artifactId>
