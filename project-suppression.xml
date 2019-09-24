@@ -24,4 +24,12 @@
         <gav regex="true">^com\.offbytwo\.jenkins:jenkins-client:.*$</gav>
         <cve>CVE-2017-1000242</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this CVE is for Jenkins Git plugin
+   file name: jenkins-client-0.3.8.jar
+   ]]></notes>
+        <sha1>f4a80fa2e5ae7ea22f4bb40d97390943c0dce3c4</sha1>
+        <cve>CVE-2019-10392</cve>
+    </suppress>
 </suppressions>
