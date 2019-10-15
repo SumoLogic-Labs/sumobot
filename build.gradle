@@ -37,7 +37,7 @@ dependencies {
     compile "com.github.slack-scala-client:slack-scala-client_2.11:0.2.6"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
-    compile "org.scalatest:scalatest_${scalaMajorVersion}:2.2.5"
+    compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
     compile("com.offbytwo.jenkins:jenkins-client:0.3.8") {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
         exclude group: 'org.dom4j', module: 'dom4j'
