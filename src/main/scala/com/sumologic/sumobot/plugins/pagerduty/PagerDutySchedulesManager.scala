@@ -53,12 +53,11 @@ class PagerDutySchedulesManager(settings: PagerDutySettings) {
           val json = JsonParser.parse(str)
 
           val jsonOnCalls = json \\ "oncalls"
-          val JInt(jsonTotal) = json \\ "total"
-          total = jsonTotal.intValue()
+          implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCallUser], classOf[PagerDutyEscalationPolicy])))
+          total = (json \\ "total").extract[Int]
           page += 1
           offset = page * perPage
 
-          implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCallUser], classOf[PagerDutyEscalationPolicy])))
           val oncalls: List[PagerDutyOnCall] = jsonOnCalls.children.map(_.extract[PagerDutyOnCall])
 
           onCallsList ++= oncalls
