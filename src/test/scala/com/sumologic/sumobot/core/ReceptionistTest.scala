@@ -27,7 +27,7 @@ import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import slack.api.{BlockingSlackApiClient, RtmStartState, SlackApiClient}
 import slack.models._
