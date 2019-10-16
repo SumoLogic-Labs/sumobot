@@ -44,8 +44,24 @@
   <dependencies>
 
     <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-compiler</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scalap</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>com.github.slack-scala-client</groupId>
-      <artifactId>slack-scala-client_2.11</artifactId>
+      <artifactId>slack-scala-client_${scala.version.major}</artifactId>
       <version>0.2.6</version>
     </dependency>
 
@@ -64,7 +80,7 @@
     <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${scala.version.major}</artifactId>
-      <version>2.2.5</version>
+      <version>3.0.8</version>
     </dependency>
 
     <dependency>
@@ -97,7 +113,7 @@
 
     <dependency>
       <groupId>org.scalatra.scalate</groupId>
-      <artifactId>scalate-core_2.11</artifactId>
+      <artifactId>scalate-core_${scala.version.major}</artifactId>
       <version>1.9.4</version>
     </dependency>
 
@@ -140,29 +156,13 @@
     <dependency>
       <groupId>net.liftweb</groupId>
       <artifactId>lift-json_${scala.version.major}</artifactId>
-      <version>2.6-RC1</version>
+      <version>3.3.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.specs2</groupId>
           <artifactId>specs2_${scala.version.major}</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-compiler</artifactId>
-      <version>2.11.12</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scalap</artifactId>
-      <version>2.11.12</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-reflect</artifactId>
-      <version>2.11.12</version>
     </dependency>
 
     <!-- Jackson dependencies must be together -->
@@ -195,17 +195,17 @@
 
     <dependency>
       <groupId>com.typesafe.play</groupId>
-      <artifactId>play-json_2.11</artifactId>
+      <artifactId>play-json_${scala.version.major}</artifactId>
       <version>2.7.1</version>
     </dependency>
     <dependency>
       <groupId>com.pauldijou</groupId>
-      <artifactId>jwt-play-json_2.11</artifactId>
+      <artifactId>jwt-play-json_${scala.version.major}</artifactId>
       <version>3.1.0</version>
     </dependency>
     <dependency>
       <groupId>com.typesafe.akka</groupId>
-      <artifactId>akka-http_2.11</artifactId>
+      <artifactId>akka-http_${scala.version.major}</artifactId>
       <version>10.0.11</version>
     </dependency>
 

@@ -110,7 +110,7 @@ abstract class BotPlugin
     }
 
     def respondInFuture(body: IncomingMessage => OutgoingMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
-      Future {
+      (Future {
         try {
           body(msg)
         } catch {
@@ -118,7 +118,7 @@ abstract class BotPlugin
             log.error(e, "Execution failed.")
             msg.response("Execution failed.")
         }
-      } foreach sendMessage
+      }(executor) foreach sendMessage)(executor)
     }
 
     def httpGet(url: String)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = http(new HttpGet(url))(func)
