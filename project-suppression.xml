@@ -32,4 +32,44 @@
         <sha1>f4a80fa2e5ae7ea22f4bb40d97390943c0dce3c4</sha1>
         <cve>CVE-2019-10392</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery-ui.js
+   ]]></notes>
+        <sha1>81269986fe3d866d0430312c1dc18a718cc2d728</sha1>
+        <cve>CVE-2010-5312</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery-ui.js
+   ]]></notes>
+        <sha1>81269986fe3d866d0430312c1dc18a718cc2d728</sha1>
+        <cve>CVE-2016-7103</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery.js
+   ]]></notes>
+        <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
+        <cve>CVE-2012-6708</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery.js
+   ]]></notes>
+        <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
+        <cve>CVE-2015-9251</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery.js
+   ]]></notes>
+        <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
+        <cve>CVE-2019-11358</cve>
+    </suppress>
 </suppressions>
