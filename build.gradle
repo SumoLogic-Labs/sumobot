@@ -50,7 +50,7 @@ dependencies {
     compile "org.slf4j:slf4j-log4j12:1.7.12"
     compile "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
     compile "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
-    compile("org.quartz-scheduler:quartz:2.2.1") {
+    compile("org.quartz-scheduler:quartz:2.3.2") {
         exclude group: "c3p0", module: "c3p0"
     }
     compile "com.mchange:c3p0:0.9.5.4"
