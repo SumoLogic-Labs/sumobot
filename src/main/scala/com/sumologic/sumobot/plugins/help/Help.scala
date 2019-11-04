@@ -25,7 +25,6 @@ import com.sumologic.sumobot.core.PluginRegistry.{PluginList, RequestPluginList}
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.util.Success
 

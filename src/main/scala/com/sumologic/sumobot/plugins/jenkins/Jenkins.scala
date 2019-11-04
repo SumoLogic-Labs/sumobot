@@ -26,7 +26,6 @@ import com.sumologic.sumobot.core.model.{Channel, IncomingMessage, OutgoingMessa
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class Jenkins

@@ -19,6 +19,7 @@
 package com.sumologic.sumobot.plugins
 
 import java.net.URLEncoder
+import java.util.concurrent.{Executors, TimeoutException}
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.brain.BlockingBrain
@@ -32,9 +33,10 @@ import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import slack.models.{Group, Im, User, Channel => ClientChannel}
 import slack.rtm.RtmState
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
+import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
@@ -76,6 +78,13 @@ abstract class BotPlugin
   protected def sendMessage(msg: OutgoingMessageWithAttachments): Unit = context.system.eventStream.publish(msg)
   protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
 
+  protected def responseConcurrency = 10
+
+  protected def responseTimeout = 10.seconds
+
+  implicit protected val responseExecutionContext = ExecutionContext.fromExecutor(
+    Executors.newFixedThreadPool(responseConcurrency))
+
   class RichIncomingMessage(msg: IncomingMessage) {
     def response(text: String, inThread: Boolean = false) = {
       val threadTs = if (inThread) {
@@ -109,23 +118,28 @@ abstract class BotPlugin
       })
     }
 
-    def respondInFuture(body: IncomingMessage => OutgoingMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
-      (Future {
-        try {
-          body(msg)
-        } catch {
-          case NonFatal(e) =>
-            log.error(e, "Execution failed.")
-            msg.response("Execution failed.")
-        }
-      }(executor) foreach sendMessage)(executor)
+    def respondInFuture(body: IncomingMessage => OutgoingMessage): Unit = {
+      respondAsync((x: IncomingMessage)  => Future[OutgoingMessage]{body(x)})
+    }
+
+    def respondAsync(body: IncomingMessage => Future[OutgoingMessage]): Unit = {
+      val timeout = akka.pattern.after(responseTimeout, using = context.system.scheduler)(
+        Future.failed[OutgoingMessage](new TimeoutException("Response timed out")))
+      val response: Future[OutgoingMessage] = Future.firstCompletedOf[OutgoingMessage](Seq(timeout, body(msg)))
+      response.onComplete{
+        case Failure(NonFatal(e)) =>
+          log.error(e, "Execution failed.")
+          msg.response("Execution failed.")
+        case Success(message) =>
+          sendMessage(message)
+      }
     }
 
     def httpGet(url: String)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = http(new HttpGet(url))(func)
 
     def http(request: HttpUriRequest)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = {
       respondInFuture {
-        incoming =>
+        (incoming: IncomingMessage) =>
           val client = HttpClientWithTimeOut.client()
           func(incoming, client.execute(request))
       }
