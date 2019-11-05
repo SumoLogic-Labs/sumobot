@@ -25,7 +25,6 @@ import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.{BotPlugin, OperatorLimits}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 class System
