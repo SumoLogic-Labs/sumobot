@@ -35,7 +35,6 @@ import slack.rtm.RtmState
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
