@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.sumologic.sumobot</groupId>
-  <artifactId>sumobot</artifactId>
+  <artifactId>sumobot_${scala.version.major}</artifactId>
   <packaging>jar</packaging>
   <version>1.0.3-SNAPSHOT</version>
 
