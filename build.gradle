@@ -60,9 +60,9 @@ dependencies {
     compile("net.liftweb:lift-json_${scalaMajorVersion}:3.3.0") {
         exclude group: "org.specs2", module: "specs2_${scalaMajorVersion}"
     }
-    compile "org.scala-lang:scala-compiler:2.11.12"
-    compile "org.scala-lang:scalap:2.11.12"
-    compile "org.scala-lang:scala-reflect:2.11.12"
+    compile "org.scala-lang:scala-compiler:${scalaMajorVersion}.${scalaMinorVersion}"
+    compile "org.scala-lang:scalap:${scalaMajorVersion}.${scalaMinorVersion}"
+    compile "org.scala-lang:scala-reflect:${scalaMajorVersion}.${scalaMinorVersion}"
     compile "com.fasterxml.jackson.core:jackson-databind:2.10.0"
     compile "com.fasterxml.jackson.core:jackson-annotations:2.10.0"
     compile "com.fasterxml.jackson.core:jackson-core:2.10.0"
