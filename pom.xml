@@ -4,7 +4,7 @@
   <groupId>com.sumologic.sumobot</groupId>
   <artifactId>sumobot</artifactId>
   <packaging>jar</packaging>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.0.3-SNAPSHOT</version>
 
   <name>sumobot</name>
   <description>A Slack bot implemented in Akka</description>
@@ -37,8 +37,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <scala.version.major>2.11</scala.version.major>
     <scala.version>${scala.version.major}.12</scala.version>
-    <akka.version>2.5.11</akka.version>
-    <aws.sdk.version>1.11.393</aws.sdk.version>
+    <akka.version>2.5.25</akka.version>
+    <aws.sdk.version>1.11.669</aws.sdk.version>
   </properties>
 
   <dependencies>
@@ -62,7 +62,7 @@
     <dependency>
       <groupId>com.github.slack-scala-client</groupId>
       <artifactId>slack-scala-client_${scala.version.major}</artifactId>
-      <version>0.2.6</version>
+      <version>0.2.7</version>
     </dependency>
 
     <dependency>
@@ -206,7 +206,7 @@
     <dependency>
       <groupId>com.typesafe.akka</groupId>
       <artifactId>akka-http_${scala.version.major}</artifactId>
-      <version>10.0.11</version>
+      <version>10.1.10</version>
     </dependency>
 
     <dependency>

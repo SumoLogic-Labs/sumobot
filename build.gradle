@@ -26,7 +26,7 @@ description = "A Slack bot implemented in Akka"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = '1.0.1-SNAPSHOT'
+version = '1.0.3-SNAPSHOT'
 
 repositories {
     jcenter()
@@ -34,7 +34,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.github.slack-scala-client:slack-scala-client_2.11:0.2.6"
+    compile "com.github.slack-scala-client:slack-scala-client_2.11:0.2.7"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
@@ -68,7 +68,7 @@ dependencies {
     compile "commons-beanutils:commons-beanutils:1.9.3"
     compile "com.typesafe.play:play-json_2.11:2.7.1"
     compile "com.pauldijou:jwt-play-json_2.11:3.1.0"
-    compile "com.typesafe.akka:akka-http_2.11:10.0.11"
+    compile "com.typesafe.akka:akka-http_2.11:10.1.10"
     compile "org.joda:joda-convert:1.9.2"
     compile "junit:junit:4.12"
     testCompile "org.mockito:mockito-core:2.0.31-beta"
