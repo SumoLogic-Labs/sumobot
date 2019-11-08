@@ -1,3 +1,6 @@
+def scalaMajorVersion = gradle.ext.scalaMajorVersion
+def scalaMinorVersion = gradle.ext.scalaMinorVersion
+
 buildscript {
     repositories {
         mavenCentral()
@@ -10,7 +13,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_$scalaMajorVersion:1.0.1"
+        classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_${gradle.ext.scalaMajorVersion}:1.0.1"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
     }
 }
@@ -101,7 +104,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId(project.group)
-            artifactId(project.name + "_$scalaMajorVersion")
+            artifactId(project.name + "_${scalaMajorVersion}")
             version(project.version)
 
             pom {
