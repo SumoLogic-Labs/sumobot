@@ -25,6 +25,7 @@ apply plugin: "maven-publish"
 apply plugin: "scalaStyle"
 apply plugin: "application"
 apply plugin: "com.github.hierynomus.license"
+apply plugin: "signing"
 
 group = "com.sumologic.sumobot"
 description = "A Slack bot implemented in Akka"
@@ -94,10 +95,15 @@ application {
 ext.gitCommitIdAbbrev = System.getenv('GIT_COMMIT_ID_ABBREV') ?: 'git rev-parse --verify --short=12 HEAD'.execute().text.trim()
 
 task sourcesJar(type: Jar) {
-    classifier = 'sources'
+    archiveClassifier.set('sources')
     from(sourceSets.main.allJava) {
         expand(project: [version: project.version], git: [commit: [id: [abbrev: gitCommitIdAbbrev]]])
     }
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier.set('javadoc')
 }
 
 publishing {
@@ -135,8 +141,23 @@ publishing {
 
             from(components.java)
             artifact(sourcesJar)
+            artifact(javadocJar)
         }
     }
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username project.property('nexus_username')
+                password project.property('nexus_password')
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.maven
 }
 
 license {
