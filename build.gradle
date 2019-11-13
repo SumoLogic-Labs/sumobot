@@ -94,15 +94,17 @@ application {
 
 ext.gitCommitIdAbbrev = System.getenv('GIT_COMMIT_ID_ABBREV') ?: 'git rev-parse --verify --short=12 HEAD'.execute().text.trim()
 
-task sourcesJar(type: Jar) {
+task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier.set('sources')
     from(sourceSets.main.allJava) {
         expand(project: [version: project.version], git: [commit: [id: [abbrev: gitCommitIdAbbrev]]])
     }
+    from(sourceSets.main.allScala)
 }
 
-task javadocJar(type: Jar) {
+task javadocJar(type: Jar, dependsOn: scaladoc) {
     from javadoc
+    from scaladoc
     archiveClassifier.set('javadoc')
 }
 
