@@ -4,7 +4,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
-## [1.0.3] - 2019-11-13
+## [1.0.3] - 2019-11-14
 
 ### Added
 - Multiple Scala Version support: `2.11`, `2.12`
