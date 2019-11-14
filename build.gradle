@@ -1,3 +1,6 @@
+def scalaMajorVersion = gradle.ext.scalaMajorVersion
+def scalaMinorVersion = gradle.ext.scalaMinorVersion
+
 buildscript {
     repositories {
         mavenCentral()
@@ -5,9 +8,12 @@ buildscript {
         maven {
             url "https://plugins.gradle.org/m2/"
         }
+        maven {
+            url "https://dl.bintray.com/ngbinh/maven"
+        }
     }
     dependencies {
-        classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_$scalaMajorVersion:1.0.1"
+        classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_${gradle.ext.scalaMajorVersion}:1.0.1"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
     }
 }
@@ -19,6 +25,7 @@ apply plugin: "maven-publish"
 apply plugin: "scalaStyle"
 apply plugin: "application"
 apply plugin: "com.github.hierynomus.license"
+apply plugin: "signing"
 
 group = "com.sumologic.sumobot"
 description = "A Slack bot implemented in Akka"
@@ -34,7 +41,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.github.slack-scala-client:slack-scala-client_2.11:0.2.7"
+    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.7"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
@@ -46,7 +53,7 @@ dependencies {
     compile("org.apache.httpcomponents:httpclient:4.3.6") {
         force = true
     }
-    compile "org.scalatra.scalate:scalate-core_2.11:1.9.4"
+    compile "org.scalatra.scalate:scalate-core_${scalaMajorVersion}:1.9.4"
     compile "org.slf4j:slf4j-log4j12:1.7.12"
     compile "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
     compile "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
@@ -57,18 +64,18 @@ dependencies {
     compile("net.liftweb:lift-json_${scalaMajorVersion}:3.3.0") {
         exclude group: "org.specs2", module: "specs2_${scalaMajorVersion}"
     }
-    compile "org.scala-lang:scala-compiler:2.11.12"
-    compile "org.scala-lang:scalap:2.11.12"
-    compile "org.scala-lang:scala-reflect:2.11.12"
+    compile "org.scala-lang:scala-compiler:${scalaMajorVersion}.${scalaMinorVersion}"
+    compile "org.scala-lang:scalap:${scalaMajorVersion}.${scalaMinorVersion}"
+    compile "org.scala-lang:scala-reflect:${scalaMajorVersion}.${scalaMinorVersion}"
     compile "com.fasterxml.jackson.core:jackson-databind:2.10.0"
     compile "com.fasterxml.jackson.core:jackson-annotations:2.10.0"
     compile "com.fasterxml.jackson.core:jackson-core:2.10.0"
     compile "org.dom4j:dom4j:2.1.1"
     compile "com.google.guava:guava:27.1-jre"
     compile "commons-beanutils:commons-beanutils:1.9.3"
-    compile "com.typesafe.play:play-json_2.11:2.7.1"
-    compile "com.pauldijou:jwt-play-json_2.11:3.1.0"
-    compile "com.typesafe.akka:akka-http_2.11:10.1.10"
+    compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.7.1"
+    compile "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
+    compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.1.10"
     compile "org.joda:joda-convert:1.9.2"
     compile "junit:junit:4.12"
     testCompile "org.mockito:mockito-core:2.0.31-beta"
@@ -87,18 +94,25 @@ application {
 
 ext.gitCommitIdAbbrev = System.getenv('GIT_COMMIT_ID_ABBREV') ?: 'git rev-parse --verify --short=12 HEAD'.execute().text.trim()
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set('sources')
     from(sourceSets.main.allJava) {
         expand(project: [version: project.version], git: [commit: [id: [abbrev: gitCommitIdAbbrev]]])
     }
+    from(sourceSets.main.allScala)
+}
+
+task javadocJar(type: Jar, dependsOn: scaladoc) {
+    from javadoc
+    from scaladoc
+    archiveClassifier.set('javadoc')
 }
 
 publishing {
     publications {
         maven(MavenPublication) {
             groupId(project.group)
-            artifactId(project.name)
+            artifactId(project.name + "_${scalaMajorVersion}")
             version(project.version)
 
             pom {
@@ -129,8 +143,23 @@ publishing {
 
             from(components.java)
             artifact(sourcesJar)
+            artifact(javadocJar)
         }
     }
+    repositories {
+        maven {
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username project.property('nexus_username')
+                password project.property('nexus_password')
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.maven
 }
 
 license {
