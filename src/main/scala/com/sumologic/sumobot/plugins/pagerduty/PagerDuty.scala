@@ -90,42 +90,47 @@ class PagerDuty extends BotPlugin with ActorLogging {
   private[this] def whoIsOnCall(msg: IncomingMessage,
                                   maximumLevel: Int,
                                   filterOpt: Option[String]): OutgoingMessage = {
-    manager.getAllOnCalls match {
-      case Some(oncalls) =>
-        val nonTestOnCalls = oncalls.filter {
-          oncall =>
-            !(ignoreTest && oncall.escalation_policy.summary.toLowerCase.contains("test"))
-        }
-        val partiallyFilteredOnCalls = nonTestOnCalls.filter {
-          oncall =>
-            (oncall.escalation_level <= maximumLevel && (filterOpt.isEmpty ||
-                filterOpt.exists(filter =>
-                  oncall.escalation_policy.summary.toLowerCase.contains(filter.toLowerCase))))
-        }
-
-        val filteredOnCalls = policyFilter match {
-          case Some(filter) => filter.filter(msg, partiallyFilteredOnCalls)
-          case None => partiallyFilteredOnCalls
-        }
-
-        val outputString =
-          filteredOnCalls.groupBy(_.escalation_policy.summary).toList.sortBy(_._1).map {
-            tpl =>
-              val oncallString = tpl._2.groupBy(_.escalation_level).toList.sortBy(_._1).map {
-                levelOnCallsTpl =>
-                  val oncalls = levelOnCallsTpl._2.map(_.user.summary).sorted.mkString(", ")
-                  val levelName = levelOnCallsTpl._1 match {
-                    case 1 => "primary"
-                    case 2 => "secondary"
-                    case 3 => "tertiary"
-                    case other => s"level $other"
-                  }
-                  s"- _$levelName:_ $oncalls"
-              }.mkString("\n", "\n", "\n")
-              "*" + tpl._1 + "*" + oncallString
-          }.mkString("\n")
-        msg.message(outputString)
-      case None => msg.message("No oncalls found")
+    val oncalls = try {
+      manager.getAllOnCalls
+    } catch {
+      case e: Exception =>
+        log.error(e, "Pagerduty lookup failure")
+        msg.message("Failed to retrieve on-calls from Pagerduty")
+        throw e
     }
+
+    val nonTestOnCalls = oncalls.filter {
+      oncall =>
+        !(ignoreTest && oncall.escalation_policy.summary.toLowerCase.contains("test"))
+    }
+    val partiallyFilteredOnCalls = nonTestOnCalls.filter {
+      oncall =>
+        (oncall.escalation_level <= maximumLevel && (filterOpt.isEmpty ||
+            filterOpt.exists(filter =>
+              oncall.escalation_policy.summary.toLowerCase.contains(filter.toLowerCase))))
+    }
+
+    val filteredOnCalls = policyFilter match {
+      case Some(filter) => filter.filter(msg, partiallyFilteredOnCalls)
+      case None => partiallyFilteredOnCalls
+    }
+
+    val outputString =
+      filteredOnCalls.groupBy(_.escalation_policy.summary).toList.sortBy(_._1).map {
+        tpl =>
+          val oncallString = tpl._2.groupBy(_.escalation_level).toList.sortBy(_._1).map {
+            levelOnCallsTpl =>
+              val oncalls = levelOnCallsTpl._2.map(_.user.summary).sorted.mkString(", ")
+              val levelName = levelOnCallsTpl._1 match {
+                case 1 => "primary"
+                case 2 => "secondary"
+                case 3 => "tertiary"
+                case other => s"level $other"
+              }
+              s"- _$levelName:_ $oncalls"
+          }.mkString("\n", "\n", "\n")
+          "*" + tpl._1 + "*" + oncallString
+      }.mkString("\n")
+    msg.message(outputString)
   }
 }
