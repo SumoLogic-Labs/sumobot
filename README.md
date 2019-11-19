@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SumoLogic/sumobot.svg?branch=master)](https://travis-ci.org/SumoLogic/sumobot) [![codecov.io](http://codecov.io/github/SumoLogic/sumobot/coverage.svg?branch=master)](http://codecov.io/github/SumoLogic/sumobot?branch=master) [![Stories in Ready](https://badge.waffle.io/SumoLogic/sumobot.svg?label=ready&title=Ready)](http://waffle.io/SumoLogic/sumobot)
+o[![Build Status](https://travis-ci.org/SumoLogic/sumobot.svg?branch=master)](https://travis-ci.org/SumoLogic/sumobot) [![codecov.io](http://codecov.io/github/SumoLogic/sumobot/coverage.svg?branch=master)](http://codecov.io/github/SumoLogic/sumobot?branch=master) [![Stories in Ready](https://badge.waffle.io/SumoLogic/sumobot.svg?label=ready&title=Ready)](http://waffle.io/SumoLogic/sumobot)
 
 # Sumo Bot
 
@@ -74,9 +74,9 @@ outside this list)
         signing.gnupg.passphrase=${password_for_imported_sumoapi_key}
         ```
 2. Remove `-SNAPSHOT` suffix from `version` in `build.gradle`
-3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.3`: 
+3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.5`:
     ```
-    export RELEASE_VERSION=sumobot-1.0.3
+    export RELEASE_VERSION=sumobot-1.0.5
     git checkout -b ${RELEASE_VERSION}
     git add build.gradle
     git commit -m "[release] ${RELEASE_VERSION}"
