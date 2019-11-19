@@ -26,7 +26,7 @@ import scala.collection.mutable.ArrayBuffer
 class PagerDutySchedulesManager(settings: PagerDutySettings) {
   private[this] val perPage = 100
 
-  def getAllOnCalls: Option[Seq[PagerDutyOnCall]] = {
+  def getAllOnCalls: Seq[PagerDutyOnCall] = {
     val client = HttpClientWithTimeOut.client()
     try {
       var total = Integer.MAX_VALUE
@@ -47,28 +47,28 @@ class PagerDutySchedulesManager(settings: PagerDutySettings) {
         if (entity != null) {
           val inputStream = entity.getContent
           val str = Some(scala.io.Source.fromInputStream(inputStream).mkString).getOrElse {
-            return None
+            return Seq()
           }
 
           val json = JsonParser.parse(str)
 
-          val jsonOnCalls = json \\ "oncalls"
-          implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCallUser], classOf[PagerDutyEscalationPolicy])))
-          total = (json \\ "total").extract[Int]
-          page += 1
-          offset = page * perPage
+          try {
+            val jsonOnCalls = json \ "oncalls"
+            implicit val formats = DefaultFormats.withHints(ShortTypeHints(List(classOf[PagerDutyOnCallUser], classOf[PagerDutyEscalationPolicy])))
+            total = (json \ "total").extract[Int]
+            page += 1
+            offset = page * perPage
 
-          val oncalls: List[PagerDutyOnCall] = jsonOnCalls.children.map(_.extract[PagerDutyOnCall])
-
-          onCallsList ++= oncalls
+            val oncalls: List[PagerDutyOnCall] = jsonOnCalls.children.map(_.extract[PagerDutyOnCall])
+            onCallsList ++= oncalls
+          } catch {
+            case e: Exception =>
+              println(s"Failed to parse $str")
+              throw e
+          }
         }
-
       }
-      Some(onCallsList.toList)
-    } catch {
-      case e: Exception =>
-        println(e)
-        None
+      onCallsList.toList
     } finally {
       client.close()
     }
