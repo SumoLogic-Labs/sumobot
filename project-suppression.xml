@@ -72,4 +72,28 @@
         <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
         <cve>CVE-2019-11358</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, project uses higher Scala version
+   file name: scala-compiler-2.10.6.jar
+   ]]></notes>
+        <sha1>9b15174852f5b6bb1edbf303d5722286a0a54011</sha1>
+        <cve>CVE-2017-15288</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, project uses higher Scala version
+   file name: scala-reflect-2.10.6.jar
+   ]]></notes>
+        <sha1>3259f3df0f166f017ef5b2d385445808398c316c</sha1>
+        <cve>CVE-2017-15288</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, project uses higher Scala version
+   file name: scala-library-2.10.6.jar
+   ]]></notes>
+        <sha1>421989aa8f95a05a4f894630aad96b8c7b828732</sha1>
+        <cve>CVE-2017-15288</cve>
+    </suppress>
 </suppressions>
