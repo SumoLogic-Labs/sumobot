@@ -15,6 +15,7 @@ buildscript {
     dependencies {
         classpath "org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_${gradle.ext.scalaMajorVersion}:1.0.1"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0"
+        classpath "org.owasp:dependency-check-gradle:5.2.4"
     }
 }
 
@@ -26,6 +27,7 @@ apply plugin: "scalaStyle"
 apply plugin: "application"
 apply plugin: "com.github.hierynomus.license"
 apply plugin: "signing"
+apply plugin: "org.owasp.dependencycheck"
 
 group = "com.sumologic.sumobot"
 description = "A Slack bot implemented in Akka"
@@ -47,7 +49,7 @@ dependencies {
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
     compile("com.offbytwo.jenkins:jenkins-client:0.3.8") {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
-        exclude group: 'org.dom4j', module: 'dom4j'
+        exclude group: 'dom4j', module: 'dom4j'
     }
     compile('commons-beanutils:commons-beanutils:1.9.4')
     compile("org.apache.httpcomponents:httpclient:4.3.6") {
@@ -169,4 +171,9 @@ license {
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+dependencyCheck {
+    format = 'ALL'
+    suppressionFile = 'project-suppression.xml'
 }
