@@ -36,8 +36,7 @@ class Beer extends BotPlugin with TimeHelpers {
     "Robots are made out of old beer cans.",
     "Ah, Jeez, let's just pray I have the energy to get myself another beer.",
     "Hmmm... okay, but I'll need ten kegs of beer, a continuous tape of \"Louie, Louie,\" and a regulation two-story panty-raid ladder.",
-    "Ah, beer. So many choices, and it makes so little difference.",
-    "Hey, that was my last beer! You bastard! I'll kill you!"
+    "Ah, beer. So many choices, and it makes so little difference."
   )
 
   private var lastChimedIn = 0l
