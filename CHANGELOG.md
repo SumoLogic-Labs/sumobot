@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.5] - 2019-12-16
+- Upgrading dependencies
+
 ## [1.0.3] - 2019-11-14
 
 ### Added
