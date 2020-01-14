@@ -96,4 +96,12 @@
         <sha1>421989aa8f95a05a4f894630aad96b8c7b828732</sha1>
         <cve>CVE-2017-15288</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, we don't deserialize any data from network
+   file name: log4j-1.2.17.jar
+   ]]></notes>
+        <sha1>5af35056b4d257e4b64b9e8069c0746e8b08629f</sha1>
+        <cve>CVE-2019-17571</cve>
+    </suppress>
 </suppressions>
