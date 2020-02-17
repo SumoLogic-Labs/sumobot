@@ -21,9 +21,16 @@ package com.sumologic.sumobot
 import akka.actor.Props
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.Bootstrap
+import com.sumologic.sumobot.core.Bootstrap.{ClasspathConfigReader, FileConfigReader}
 import com.sumologic.sumobot.plugins.PluginsFromConfig
 
 
 object Main extends App {
-  Bootstrap.bootstrap(Props(classOf[InMemoryBrain]), PluginsFromConfig)
+
+  val configReader = if (args.length > 0 && args(0).contains(ClasspathConfigReader.getClass.getSimpleName.replaceAll("\\$", ""))) {
+    ClasspathConfigReader
+  } else {
+    FileConfigReader
+  }
+  Bootstrap.bootstrap(Props(classOf[InMemoryBrain]), configReader, PluginsFromConfig)
 }
