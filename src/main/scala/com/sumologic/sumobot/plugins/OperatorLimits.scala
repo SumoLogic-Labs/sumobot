@@ -25,7 +25,7 @@ import slack.models.User
 import scala.collection.JavaConverters._
 
 object OperatorLimits {
-  private val config = Bootstrap.system.settings.config
+  private lazy val config = Bootstrap.system.settings.config
   private lazy val operatorNames = config.getStringList("operators").asScala.toSet
 
   def isOperator(sender: Sender): Boolean =

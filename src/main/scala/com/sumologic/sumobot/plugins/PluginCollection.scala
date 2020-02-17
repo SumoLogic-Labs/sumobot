@@ -27,9 +27,8 @@ import scala.util.{Failure, Success, Try}
 
 trait PluginCollection {
 
-  private val log = Logging.getLogger(Bootstrap.system, this)
-
-  protected def addPlugin(name: String, props: Props)(implicit system: ActorSystem) = {
+  protected def addPlugin(name: String, props: Props)(implicit system: ActorSystem): Unit = {
+    lazy val log = Logging.getLogger(system, this)
     val property = s"plugins.$name.enabled"
     Try(system.settings.config.getBoolean(property)) match {
       case Success(true) =>

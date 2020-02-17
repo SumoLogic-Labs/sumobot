@@ -21,10 +21,9 @@ package com.sumologic.sumobot.core
 import java.io.File
 
 import akka.actor.{ActorRef, ActorSystem, Props}
-import com.sumologic.sumobot.http_frontend.authentication.{BasicAuthentication, NoAuthentication}
 import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServerOptions}
 import com.sumologic.sumobot.plugins.PluginCollection
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
 import slack.rtm.SlackRtmClient
 
@@ -36,14 +35,25 @@ object Bootstrap {
   case object SlackFrontend extends SumobotFrontend
   case object HttpFrontend extends SumobotFrontend
 
-  private val pluginConfig = ConfigFactory.parseFile(new File("config/sumobot.conf"))
+  private val configFileLocation = "config/sumobot.conf"
 
-  implicit val system = ActorSystem("sumobot", ConfigFactory.load(pluginConfig))
+  // not sealed, implement own if you need something else
+  trait ConfigReader {
+    def readConfig: Config
+  }
+  case object FileConfigReader extends ConfigReader {
+    override def readConfig: Config = ConfigFactory.parseFile(new File(configFileLocation))
+  }
+  case object ClasspathConfigReader extends ConfigReader {
+    override def readConfig: Config = ConfigFactory.load(configFileLocation)
+  }
+
+  implicit var system: ActorSystem = _
 
   var receptionist: Option[ActorRef] = None
 
-  def bootstrap(brainProps: Props,
-                pluginCollections: PluginCollection*): Unit = {
+  def bootstrap(brainProps: Props, configReader: ConfigReader, pluginCollections: Seq[PluginCollection]): Unit = {
+    system = ActorSystem("sumobot", configReader.readConfig)
     val frontend = selectedFrontend()
 
     frontend match {
@@ -52,6 +62,14 @@ object Bootstrap {
       case HttpFrontend =>
         bootstrapHttp(brainProps, pluginCollections)
     }
+  }
+
+  def bootstrap(brainProps: Props, configReader: ConfigReader, pluginCollection: PluginCollection): Unit = {
+    bootstrap(brainProps, configReader, Seq(pluginCollection))
+  }
+
+  def bootstrap(brainProps: Props, pluginCollections: PluginCollection*): Unit = {
+    bootstrap(brainProps, FileConfigReader, pluginCollections)
   }
 
   private def bootstrapSlack(brainProps: Props,
