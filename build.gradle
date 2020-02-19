@@ -35,7 +35,7 @@ description = "A Slack bot implemented in Akka"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = '1.0.6'
+version = '1.0.7-SNAPSHOT'
 
 repositories {
     jcenter()

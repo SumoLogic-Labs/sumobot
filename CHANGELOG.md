@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.6] - 2020-02-19
+- Adding support for reading config from classpath
+
 ## [1.0.5] - 2019-12-16
 - Upgrading dependencies
 
