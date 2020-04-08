@@ -96,4 +96,3 @@ in `build.gradle`, ex. `1.0.4-SNAPSHOT`
     git commit -m "[release] Updating version after release ${RELEASE_VERSION}"
     git push
     ```
-

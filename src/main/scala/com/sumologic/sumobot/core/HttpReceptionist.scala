@@ -30,7 +30,7 @@ import slack.rtm.RtmState
 
 object HttpReceptionist {
   private[core] val DefaultChannel = Channel("C0001SUMO", "sumobot", Instant.now().getEpochSecond(),
-    Some("U0001SUMO"), Some(false), Some(true), Some(false), Some(true), None, Some(false), None, None, None, None, None, None, None, None)
+    Some("U0001SUMO"), Some(false), Some(true), Some(false), Some(false), Some(true), None, Some(false), Some(false), None, None, None, None, None, None, None, None)
   val DefaultSumoBotChannel = PublicChannel(DefaultChannel.id, DefaultChannel.name)
 
   val DefaultBotUser = User("U0001SUMO", "sumobot-bot", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
