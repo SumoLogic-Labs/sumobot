@@ -25,6 +25,7 @@ import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
 import com.sumologic.sumobot.core.aws.AWSAccounts
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
+import com.sumologic.sumobot.util.ParExecutor
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -84,13 +85,13 @@ class AWSSupport
   }
 
   private def getAllCases: Seq[CaseInAccount] = {
-    clients.toSeq.par.flatMap {
+    ParExecutor.runInParallelAndGetFlattenedResults(clients.toSeq) {
       tpl =>
         val client = tpl._2
         val unresolved = client.describeCases(new DescribeCasesRequest()).getCases.asScala.toList
         val resolved = client.describeCases(new DescribeCasesRequest().withIncludeResolvedCases(true)).getCases.asScala.toList
         (unresolved ++ resolved).map(CaseInAccount(tpl._1, _))
-    }.seq
+    }
   }
 
   private def summary(cia: CaseInAccount): String =
