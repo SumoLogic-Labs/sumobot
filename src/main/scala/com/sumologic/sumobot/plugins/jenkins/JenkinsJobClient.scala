@@ -66,7 +66,7 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
   private val CacheExpiration = Duration(Bootstrap.system.settings.config.getInt(s"plugins.jenkins.cache.expiration.seconds"), TimeUnit.SECONDS)
   private val cacheLock = new AnyRef
   private var cachedJobs: Option[Map[String, Job]] = None
-  private var lastCacheTime = 0l
+  private var lastCacheTime = 0L
 
   def buildJob(givenName: String, cause: String): String = {
     Try(server.getJob(givenName)) match {
