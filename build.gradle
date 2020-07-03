@@ -61,7 +61,7 @@ dependencies {
         exclude group: "c3p0", module: "c3p0"
     }
     compile "com.mchange:c3p0:0.9.5.4"
-    compile("net.liftweb:lift-json_${scalaMajorVersion}:3.3.0") {
+    compile("net.liftweb:lift-json_${scalaMajorVersion}:3.4.1") {
         exclude group: "org.specs2", module: "specs2_${scalaMajorVersion}"
     }
     compile "org.scala-lang:scala-compiler:${scalaMajorVersion}.${scalaMinorVersion}"
