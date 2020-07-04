@@ -84,7 +84,8 @@ dependencies {
 compileScala {
     scalaCompileOptions.additionalParameters = [
         "-feature", "-target:jvm-1.8", "-deprecation", "-language:implicitConversions",
-        "-unchecked", "-Xfatal-warnings"
+        "-unchecked"
+        // , "-Xfatal-warnings" // NOTE(chris, 2020-07-03): As much as I'd like fatal-warnings, it's basically impossible with 2.12 and 2.13
     ]
 }
 
