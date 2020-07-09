@@ -30,7 +30,7 @@ object Advice {
 
   private[advice] def parseResponse(response: HttpResponse): Seq[String] = {
     val json = Json.parse(EntityUtils.toString(response.getEntity))
-    (json \\ "advice").map(_.as[String])
+    (json \\ "advice").map(_.as[String]).toSeq
   }
 }
 

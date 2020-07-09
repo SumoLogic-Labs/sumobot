@@ -36,7 +36,7 @@ class PagerDutyEventApi {
 
   def page(channel: String,
            serviceKey: String,
-           description: String) {
+           description: String): Unit = {
     val event = Json.toJson(PagerDutyEvent(serviceKey, "trigger", channel, description))
     val entity = new StringEntity(event.toString(), ContentType.APPLICATION_JSON)
     val post = new HttpPost(SubmitUrl)

@@ -40,7 +40,7 @@ class Beer extends BotPlugin with TimeHelpers {
     "Hey, that was my last beer! You bastard! I'll kill you!"
   )
 
-  private var lastChimedIn = 0l
+  private var lastChimedIn = 0L
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
     case message@IncomingMessage(BeerMention(beer), _, _, _, _, _, _) =>

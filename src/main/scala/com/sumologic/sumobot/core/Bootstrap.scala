@@ -23,6 +23,7 @@ import java.io.File
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServerOptions}
 import com.sumologic.sumobot.plugins.PluginCollection
+import com.sumologic.sumobot.util.ParExecutor
 import com.typesafe.config.{Config, ConfigFactory}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
 import slack.rtm.SlackRtmClient
@@ -88,7 +89,7 @@ object Bootstrap {
     val brain = system.actorOf(brainProps, "brain")
     receptionist = Some(system.actorOf(Receptionist.props(rtmClient, syncClient, asyncClient, brain), "receptionist"))
 
-    pluginCollections.par.foreach(_.setup)
+    ParExecutor.runInParallel(pluginCollections)(_.setup)
 
     sys.addShutdownHook(shutdownActorSystem())
   }
@@ -102,7 +103,7 @@ object Bootstrap {
 
     receptionist = Some(system.actorOf(Props(classOf[HttpReceptionist], brain), "receptionist"))
 
-    pluginCollections.par.foreach(_.setup)
+    ParExecutor.runInParallel(pluginCollections)(_.setup)
 
     sys.addShutdownHook(httpServer.terminate())
     sys.addShutdownHook(shutdownActorSystem())
