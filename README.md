@@ -80,9 +80,9 @@ outside this list)
         signing.gnupg.passphrase=${password_for_imported_sumoapi_key}
         ```
 2. Remove `-SNAPSHOT` suffix from `version` in `build.gradle`
-3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.8`:
+3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.9`:
     ```
-    export RELEASE_VERSION=sumobot-1.0.8
+    export RELEASE_VERSION=sumobot-1.0.9
     git checkout -b ${RELEASE_VERSION}
     git add build.gradle
     git commit -m "[release] ${RELEASE_VERSION}"
