@@ -47,6 +47,12 @@ To build project in any supported Scala version:
 gradlew build -PscalaVersion=2.12.8
 ```
 
+
+### [Dev] Testing
+
+For testing, change your consumer `pom.xml` or `gradle.properties` to depend on the `SNAPSHOT` version generated.
+Make sure, your consumer can resolve artifacts from a local repository.
+
 ### [Dev] Managing Scala versions
 
 This project supports multiple versions of Scala. Supported versions are listed in `gradle.properties`.
@@ -87,7 +93,7 @@ outside this list)
     ./gradlew build publish -PscalaVersion=2.12.11
     ./gradlew build publish -PscalaVersion=2.13.3
     ```
-5. Go to https://oss.sonatype.org/index.html#stagingRepositories, search for com.sumologic and release your repo. 
+5. Go to https://oss.sonatype.org/index.html#stagingRepositories, search for com.sumologic, close and release your repo. 
 NOTE: If you had to login, reload the URL. It doesn't take you to the right page post-login
 6. Update the `README.md` and `CHANGELOG.md` with the new version and set upcoming snapshot `version` 
 in `build.gradle`, ex. `1.0.9-SNAPSHOT` 
