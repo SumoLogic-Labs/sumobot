@@ -41,7 +41,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.9"
+    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.11"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
