@@ -44,7 +44,7 @@ gradlew build
 
 To build project in any supported Scala version:
 ```
-gradlew build -PscalaVersion=2.12.8
+gradlew build -PscalaVersion=2.12.12
 ```
 
 
@@ -80,9 +80,9 @@ outside this list)
         signing.gnupg.passphrase=${password_for_imported_sumoapi_key}
         ```
 2. Remove `-SNAPSHOT` suffix from `version` in `build.gradle`
-3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.8`:
+3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.9`:
     ```
-    export RELEASE_VERSION=sumobot-1.0.8
+    export RELEASE_VERSION=sumobot-1.0.9
     git checkout -b ${RELEASE_VERSION}
     git add build.gradle
     git commit -m "[release] ${RELEASE_VERSION}"
@@ -90,7 +90,7 @@ outside this list)
 4. Perform a release in selected Scala versions:
     ```
     ./gradlew build publish -PscalaVersion=2.11.12
-    ./gradlew build publish -PscalaVersion=2.12.11
+    ./gradlew build publish -PscalaVersion=2.12.12
     ./gradlew build publish -PscalaVersion=2.13.3
     ```
 5. Go to https://oss.sonatype.org/index.html#stagingRepositories, search for com.sumologic, close and release your repo. 

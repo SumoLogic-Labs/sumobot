@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.8] - 2020-10-29
+- Dependency bump
+
 ## [1.0.7] - 2020-04-08
 - Dependencies version bump
 
