@@ -20,7 +20,6 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
 import akka.event.Logging
-import com.sumologic.sumobot.core.Bootstrap
 import com.typesafe.config.ConfigException
 
 import scala.util.{Failure, Success, Try}

@@ -18,9 +18,9 @@
  */
 package com.sumologic.sumobot.util
 
-import java.util.concurrent.atomic.AtomicInteger
-
 import com.sumologic.sumobot.test.annotated.SumoBotSpec
+
+import java.util.concurrent.atomic.AtomicInteger
 
 class ParExecutorTest extends SumoBotSpec {
 

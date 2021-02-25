@@ -18,8 +18,6 @@
  */
 package com.sumologic.sumobot.core
 
-import java.time.Instant
-
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.sumologic.sumobot.core.model.PublicChannel
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
@@ -27,6 +25,8 @@ import play.api.libs.json.{JsObject, JsValue}
 import slack.api.RtmStartState
 import slack.models.{Channel, Group, Im, Team, User}
 import slack.rtm.RtmState
+
+import java.time.Instant
 
 object HttpReceptionist {
   private[core] val DefaultChannel = Channel("C0001SUMO", "sumobot", Instant.now().getEpochSecond(),

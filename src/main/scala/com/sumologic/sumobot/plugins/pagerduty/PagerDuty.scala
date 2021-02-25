@@ -22,7 +22,6 @@ import akka.actor.ActorLogging
 import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, PublicChannel, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
 trait EscalationPolicyFilter {

@@ -19,8 +19,7 @@
 package com.sumologic.sumobot.quartz
 
 import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestProbe}
-import com.sumologic.sumobot.test.SumoBotSpec
+import akka.testkit.TestProbe
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.quartz.CronExpression
 

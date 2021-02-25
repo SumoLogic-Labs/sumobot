@@ -18,17 +18,16 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import java.time.Instant
-import java.util.concurrent.TimeUnit
-
 import akka.actor.{Actor, ActorLogging, ActorRef}
-import akka.pattern.pipe
-import scala.concurrent.ExecutionContext.Implicits.global
 import akka.http.scaladsl.model.ws.TextMessage
+import akka.pattern.pipe
 import akka.stream.ActorMaterializer
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
 
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 
 object HttpIncomingReceiver {

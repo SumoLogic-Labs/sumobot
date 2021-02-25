@@ -20,7 +20,7 @@ package com.sumologic.sumobot.core.model
 
 import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import slack.api.RtmStartState
-import slack.models.{Channel => SlackChannel, Group, Im, Team, User}
+import slack.models.{Group, Im, Team, User, Channel => SlackChannel}
 import slack.rtm.RtmState
 
 class ChannelTest

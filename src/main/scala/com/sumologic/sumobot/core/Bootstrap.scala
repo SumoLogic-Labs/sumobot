@@ -18,8 +18,6 @@
  */
 package com.sumologic.sumobot.core
 
-import java.io.File
-
 import akka.actor.{ActorRef, ActorSystem, Props}
 import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServerOptions}
 import com.sumologic.sumobot.plugins.PluginCollection
@@ -28,6 +26,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
 import slack.rtm.SlackRtmClient
 
+import java.io.File
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

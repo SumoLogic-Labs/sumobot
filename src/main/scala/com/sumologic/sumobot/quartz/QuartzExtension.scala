@@ -18,14 +18,14 @@
  */
 package com.sumologic.sumobot.quartz
 
-import java.util.TimeZone
-
 import akka.actor._
-import org.quartz.{JobDataMap, JobExecutionContext}
-import org.quartz.impl.StdSchedulerFactory
-import org.quartz.TriggerBuilder._
 import org.quartz.CronScheduleBuilder._
 import org.quartz.JobBuilder._
+import org.quartz.TriggerBuilder._
+import org.quartz.impl.StdSchedulerFactory
+import org.quartz.{JobDataMap, JobExecutionContext}
+
+import java.util.TimeZone
 
 object QuartzExtension
   extends ExtensionId[QuartzExtension]

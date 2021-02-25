@@ -18,13 +18,12 @@
  */
 package com.sumologic.sumobot.plugins.conversations
 
-import java.text.DateFormat
-import java.util.Date
-
 import akka.actor.ActorLogging
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin
 
+import java.text.DateFormat
+import java.util.Date
 import scala.concurrent.duration._
 
 class Conversations extends BotPlugin with ActorLogging {

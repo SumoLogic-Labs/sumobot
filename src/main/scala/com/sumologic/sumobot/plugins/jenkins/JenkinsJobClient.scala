@@ -18,9 +18,6 @@
  */
 package com.sumologic.sumobot.plugins.jenkins
 
-import java.net.{URI, URLEncoder}
-import java.util.concurrent.TimeUnit
-
 import akka.event.Logging
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
@@ -28,13 +25,15 @@ import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.util.TimeHelpers
 import com.sumologic.sumobot.plugins.{Emotions, HttpClientWithTimeOut}
-import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.{HttpGet, HttpPost}
 import org.apache.http.client.config.{CookieSpecs, RequestConfig}
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 
+import java.net.{URI, URLEncoder}
+import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal

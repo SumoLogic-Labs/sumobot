@@ -27,7 +27,7 @@ import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
-import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded, NoAuthentication}
+import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded}
 import org.reactivestreams.Publisher
 
 import scala.concurrent.Await

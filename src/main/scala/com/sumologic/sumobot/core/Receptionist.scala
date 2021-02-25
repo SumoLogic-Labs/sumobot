@@ -23,7 +23,7 @@ import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateRespons
 import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{Attachment => SAttachment, BotMessage, ImOpened, Message, MessageChanged}
+import slack.models.{BotMessage, ImOpened, Message, MessageChanged, Attachment => SAttachment}
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global

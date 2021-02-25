@@ -18,14 +18,13 @@
  */
 package com.sumologic.sumobot.plugins.jenkins
 
-import java.net.URLEncoder
-
 import akka.actor.{ActorLogging, ActorRef, PoisonPill, Props}
 import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.core.model.{Channel, IncomingMessage, OutgoingMessage, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
 
+import java.net.URLEncoder
 import scala.concurrent.duration._
 
 class Jenkins

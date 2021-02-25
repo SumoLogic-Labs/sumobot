@@ -18,12 +18,12 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import java.util.Properties
-
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServerOptions._
 import com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication
 import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import com.typesafe.config.ConfigFactory
+
+import java.util.Properties
 
 class SumoBotHttpServerOptionsTest extends SumoBotSpec {
   "SumoBotHttpServerOptions" should {

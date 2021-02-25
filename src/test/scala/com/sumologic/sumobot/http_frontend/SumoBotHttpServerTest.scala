@@ -22,9 +22,9 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.ContentTypes._
 import akka.http.scaladsl.model.HttpMethods.{GET, HEAD, OPTIONS}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
-import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
@@ -35,7 +35,6 @@ import com.sumologic.sumobot.http_frontend.authentication.NoAuthentication
 import com.sumologic.sumobot.plugins.PluginsFromProps
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
-import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll

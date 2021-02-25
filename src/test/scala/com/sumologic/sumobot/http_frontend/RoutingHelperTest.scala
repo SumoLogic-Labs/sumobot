@@ -21,16 +21,15 @@ package com.sumologic.sumobot.http_frontend
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpMethods.{GET, HEAD}
 import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, StatusCodes, Uri}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
-import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class RoutingHelperTest extends SumoBotTestKit(ActorSystem("RoutingHelperTest"))
   with BeforeAndAfterAll {

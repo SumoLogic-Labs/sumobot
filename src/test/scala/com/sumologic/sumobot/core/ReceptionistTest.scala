@@ -24,11 +24,10 @@ import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
-import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.mockito.MockitoSugar
 import slack.api.{BlockingSlackApiClient, RtmStartState, SlackApiClient}
 import slack.models._
 import slack.rtm.{RtmState, SlackRtmClient}

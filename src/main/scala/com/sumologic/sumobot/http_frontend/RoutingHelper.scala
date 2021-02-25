@@ -18,9 +18,9 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, ResponseEntity}
 import akka.http.scaladsl.model.HttpMethods.{GET, HEAD}
+import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
 import akka.stream.Materializer
 
 case class RoutingHelper(origin: String)(implicit materializer: Materializer) {

@@ -17,11 +17,11 @@
  * under the License.
  */
 package com.sumologic.sumobot.http_frontend.authentication
-import java.security.MessageDigest
-
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import com.typesafe.config.Config
+
+import java.security.MessageDigest
 
 class BasicAuthentication(config: Config) extends HttpAuthentication {
   private val username = config.getString("username")

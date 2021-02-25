@@ -19,7 +19,6 @@
 package com.sumologic.sumobot.core.util
 
 import java.util.concurrent.TimeUnit
-
 import scala.concurrent.duration._
 
 trait TimeHelpers {
