@@ -41,7 +41,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.11"
+    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.14"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
@@ -73,9 +73,9 @@ dependencies {
     compile "org.dom4j:dom4j:2.1.1"
     compile "com.google.guava:guava:27.1-jre"
     compile "commons-beanutils:commons-beanutils:1.9.3"
-    compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.7.1"
+    compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.7.4"
     compile "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
-    compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.1.10"
+    compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.1.14"
     compile "org.joda:joda-convert:1.9.2"
     compile "junit:junit:4.12"
     testCompile "org.mockito:mockito-core:2.0.31-beta"
