@@ -37,9 +37,9 @@ class RoutingHelperTest extends SumoBotTestKit(ActorSystem("RoutingHelperTest"))
   private implicit val materializer = ActorMaterializer()
 
   private val origin = "https://www.sumologic.com"
-  private val routingHelper = new RoutingHelper(origin)
+  private val routingHelper = RoutingHelper(origin)
 
-  private val wildcardRoutingHelper = new RoutingHelper("*")
+  private val wildcardRoutingHelper = RoutingHelper("*")
 
   private val singleResponseRoute: PartialFunction[HttpRequest, HttpResponse] = {
     case _: HttpRequest =>

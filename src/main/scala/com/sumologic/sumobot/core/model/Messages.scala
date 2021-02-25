@@ -135,7 +135,7 @@ object Messages {
     Some(actions.map {
       a =>
         SActionField(name = a.name, text = a.text, `type` = a.actionType, style = a.style, value = a.value,
-          confirm = a.confirm.map(convertConfirmFieldToSlackModel(_)))
+          confirm = a.confirm.map(convertConfirmFieldToSlackModel))
     })
   }
 
