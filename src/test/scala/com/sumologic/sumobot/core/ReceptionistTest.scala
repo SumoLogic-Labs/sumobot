@@ -57,7 +57,7 @@ class ReceptionistTest
   private val probe = new TestProbe(system)
   system.eventStream.subscribe(probe.ref, classOf[IncomingMessage])
   private val brain = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
-  private val sut = system.actorOf(Props(classOf[Receptionist], rtmClient, syncClient, asyncClient, brain))
+  private val sut = system.actorOf(Receptionist.props(rtmClient, syncClient, asyncClient, brain))
 
   "Receptionist" should {
     "mark messages as addressed to us" when {
