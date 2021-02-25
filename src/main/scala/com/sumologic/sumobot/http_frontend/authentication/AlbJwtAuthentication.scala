@@ -18,13 +18,10 @@
  */
 package com.sumologic.sumobot.http_frontend.authentication
 
-import java.security.spec.X509EncodedKeySpec
-import java.security.{KeyFactory, PublicKey}
-import java.util.Base64
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS, HEAD}
+import akka.http.scaladsl.model.HttpMethods.{GET, HEAD, OPTIONS}
+import akka.http.scaladsl.model.headers.{RawHeader, `Access-Control-Allow-Methods`, `Location`}
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes, Uri}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ActorMaterializer
@@ -32,8 +29,10 @@ import com.sumologic.sumobot.http_frontend.authentication.AlbJwtAuthentication._
 import com.typesafe.config.Config
 import pdi.jwt.{JwtAlgorithm, JwtHeader, JwtJson, JwtOptions}
 import play.api.libs.json.Json
-import akka.http.scaladsl.model.headers.{`Location`, RawHeader, `Access-Control-Allow-Methods`}
 
+import java.security.spec.X509EncodedKeySpec
+import java.security.{KeyFactory, PublicKey}
+import java.util.Base64
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Success

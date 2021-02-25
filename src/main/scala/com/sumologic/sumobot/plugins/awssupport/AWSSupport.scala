@@ -28,7 +28,6 @@ import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.util.ParExecutor
 
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
 class AWSSupport

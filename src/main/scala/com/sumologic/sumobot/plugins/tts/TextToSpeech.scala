@@ -18,11 +18,10 @@
  */
 package com.sumologic.sumobot.plugins.tts
 
-import java.io.File
-
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 
+import java.io.File
 import scala.sys.process._
 import scala.util.Try
 

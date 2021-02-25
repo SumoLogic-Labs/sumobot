@@ -18,15 +18,14 @@
  */
 package com.sumologic.sumobot.brain
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.util.Properties
-
 import akka.actor.{Actor, Props}
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
-import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.ObjectMetadata
 import com.sumologic.sumobot.brain.Brain._
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.util.Properties
 import scala.collection.JavaConverters._
 import scala.collection.immutable
 

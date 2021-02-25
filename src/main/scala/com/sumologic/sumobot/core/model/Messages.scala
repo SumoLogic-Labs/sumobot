@@ -18,11 +18,10 @@
  */
 package com.sumologic.sumobot.core.model
 
-import java.io.File
-
 import akka.actor.ActorRef
-
 import slack.models.{ActionField => SActionField, Attachment => SAttachment, AttachmentField => SAttachmentField, ConfirmField => SConfirmField}
+
+import java.io.File
 
 case class OutgoingMessage(channel: Channel, text: String, threadTs: Option[String] = None)
 
@@ -136,7 +135,7 @@ object Messages {
     Some(actions.map {
       a =>
         SActionField(name = a.name, text = a.text, `type` = a.actionType, style = a.style, value = a.value,
-          confirm = a.confirm.map(convertConfirmFieldToSlackModel(_)))
+          confirm = a.confirm.map(convertConfirmFieldToSlackModel))
     })
   }
 

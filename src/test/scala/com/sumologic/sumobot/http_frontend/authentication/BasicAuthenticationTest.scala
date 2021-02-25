@@ -18,11 +18,12 @@
  */
 package com.sumologic.sumobot.http_frontend.authentication
 
-import akka.http.scaladsl.model.HttpMethods.{GET, POST}
+import akka.http.scaladsl.model.HttpMethods.GET
+import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
 import com.sumologic.sumobot.test.annotated.SumoBotSpec
-import akka.http.scaladsl.model.headers._
 import com.typesafe.config.ConfigFactory
+
 import scala.collection.JavaConverters._
 
 class BasicAuthenticationTest extends SumoBotSpec {

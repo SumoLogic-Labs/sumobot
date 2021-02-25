@@ -25,9 +25,8 @@ import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin
 import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 import org.scalatest.concurrent.PatienceConfiguration.Timeout
+
 import scala.concurrent.duration._
-import org.scalatest.{Matchers, WordSpecLike}
-import org.scalatest.concurrent.Eventually._
 
 class AliasTest
   extends BotPluginTestKit(ActorSystem("AliasTest")) {

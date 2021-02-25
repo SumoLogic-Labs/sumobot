@@ -18,17 +18,16 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import java.time.Instant
-
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.ws.TextMessage
 import akka.stream.scaladsl.Source
 import akka.testkit.{TestActorRef, TestActors, TestKit, TestProbe}
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.IncomingMessage
-import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
+
+import java.time.Instant
 
 class HttpIncomingReceiverTest
   extends SumoBotTestKit(ActorSystem("HttpIncomingReceiverTest"))

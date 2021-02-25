@@ -18,14 +18,14 @@
  */
 package com.sumologic.sumobot.plugins.chuck
 
-import java.net.URLEncoder
-
 import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 import org.apache.http.HttpResponse
 import org.apache.http.util.EntityUtils
 import play.api.libs.json.Json
 import slack.models.User
+
+import java.net.URLEncoder
 
 class ChuckNorris extends BotPlugin {
   override protected def help: String =

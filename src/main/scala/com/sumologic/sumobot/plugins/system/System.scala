@@ -18,13 +18,12 @@
  */
 package com.sumologic.sumobot.plugins.system
 
-import java.net.InetAddress
-import java.util.Date
-
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.{BotPlugin, OperatorLimits}
 
+import java.net.InetAddress
+import java.util.Date
 import scala.concurrent.duration._
 
 class System

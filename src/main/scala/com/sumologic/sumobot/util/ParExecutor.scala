@@ -19,7 +19,6 @@
 package com.sumologic.sumobot.util
 
 import java.util.concurrent.{SynchronousQueue, ThreadPoolExecutor, TimeUnit}
-
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 

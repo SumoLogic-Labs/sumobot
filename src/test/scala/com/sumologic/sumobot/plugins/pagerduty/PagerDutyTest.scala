@@ -19,9 +19,8 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorSystem
-import akka.testkit.{TestActorRef, TestKit}
-import com.sumologic.sumobot.plugins.BotPlugin
-import com.sumologic.sumobot.test.annotated.{MatchTextUtil, SumoBotSpec, SumoBotTestKit}
+import akka.testkit.TestKit
+import com.sumologic.sumobot.test.annotated.{MatchTextUtil, SumoBotTestKit}
 import org.scalatest.BeforeAndAfterAll
 
 /**

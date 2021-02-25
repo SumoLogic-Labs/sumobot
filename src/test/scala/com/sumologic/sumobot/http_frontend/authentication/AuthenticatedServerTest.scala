@@ -35,15 +35,14 @@ import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServer
 import com.sumologic.sumobot.plugins.PluginsFromProps
 import com.sumologic.sumobot.plugins.help.Help
 import com.sumologic.sumobot.plugins.system.System
-import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
+import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.collection.JavaConverters._
 
 class AuthenticatedServerTest
   extends SumoBotTestKit(ActorSystem("AuthenticatedServerTest"))

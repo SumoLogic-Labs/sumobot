@@ -18,9 +18,6 @@
  */
 package com.sumologic.sumobot.plugins
 
-import java.net.URLEncoder
-import java.util.concurrent.{Executors, TimeoutException}
-
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.Bootstrap
@@ -33,11 +30,13 @@ import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import slack.models.{Group, Im, User, Channel => ClientChannel}
 import slack.rtm.RtmState
 
+import java.net.URLEncoder
+import java.util.concurrent.{Executors, TimeoutException}
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
+import scala.util.{Failure, Success}
 
 object BotPlugin {
 

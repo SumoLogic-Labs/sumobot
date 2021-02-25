@@ -24,11 +24,10 @@ import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
-import com.sumologic.sumobot.test.SumoBotSpec
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.mockito.Mockito._
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatestplus.mockito.MockitoSugar
 import slack.api.{BlockingSlackApiClient, RtmStartState, SlackApiClient}
 import slack.models._
 import slack.rtm.{RtmState, SlackRtmClient}
@@ -41,12 +40,12 @@ class ReceptionistTest
   with BeforeAndAfterEach
   with BeforeAndAfterAll {
 
-  private val self = new User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-  private val somebodyElse = new User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-  private val team = new Team("T123", "testers", "example.com", "example.com", 1, false, null, "no plan")
-  private val channel = new Channel("C123", "slack_test", 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
-  private val im = new Im("I123", true, somebodyElse.id, 1, None)
-  private val startState = new RtmStartState("http://nothing/", self, team, users = List(self, somebodyElse), channels = List(channel), List.empty, ims = List(im), List.empty)
+  private val self = User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val somebodyElse = User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val team = Team("T123", "testers", "example.com", "example.com", 1, false, null, "no plan")
+  private val channel = Channel("C123", "slack_test", 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
+  private val im = Im("I123", true, somebodyElse.id, 1, None)
+  private val startState = RtmStartState("http://nothing/", self, team, users = List(self, somebodyElse), channels = List(channel), List.empty, ims = List(im), List.empty)
 
   val state = new RtmState(startState)
   val rtmClient = mock[SlackRtmClient]
@@ -92,8 +91,8 @@ class ReceptionistTest
 
     "re-interpret messages that were updated" in {
 
-      val previousMessage = new EditMessage(Some(somebodyElse.id), "previous message", currentTimeStamp)
-      val newMessage = new EditMessage(Some(somebodyElse.id), "hello dude4", currentTimeStamp)
+      val previousMessage = EditMessage(Some(somebodyElse.id), "previous message", currentTimeStamp)
+      val newMessage = EditMessage(Some(somebodyElse.id), "hello dude4", currentTimeStamp)
 
       sut ! MessageChanged(newMessage, previousMessage, currentTimeStamp, currentTimeStamp, channel.id)
       val result = probe.expectMsgClass(classOf[IncomingMessage])
