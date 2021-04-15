@@ -23,7 +23,7 @@ import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateRespons
 import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{BotMessage, ImOpened, Message, MessageChanged, Attachment => SAttachment}
+import slack.models.{ImOpened, Message, MessageChanged, Attachment => SAttachment}
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -117,15 +117,11 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case message: Message if !tooOld(message.ts, message) =>
       translateAndDispatch(message.channel, message.user, message.text, message.ts, threadTimestamp = message.thread_ts,
-        message.attachments.getOrElse(Seq()))
+        message.attachments.getOrElse(Seq()), fromBot = message.bot_id.isDefined)
 
     case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) && messageChanged.message.user.isDefined =>
       val message = messageChanged.message
       translateAndDispatch(messageChanged.channel, message.user.get, message.text, message.ts)
-
-    case botMessage: BotMessage if !tooOld(botMessage.ts, botMessage) && botMessage.username.isDefined =>
-      translateAndDispatch(botMessage.channel, botMessage.username.get, botMessage.text, botMessage.ts,
-        attachments = botMessage.attachments.getOrElse(Seq()), fromBot = true)
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
