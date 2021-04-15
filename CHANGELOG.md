@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.11] - 2021-04-15
+- Dependency bump
+
 ## [1.0.10] - 2021-04-01
 - Dependency bump
 - resolve() call on `sumobot.conf`
