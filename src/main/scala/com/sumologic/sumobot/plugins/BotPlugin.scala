@@ -175,6 +175,10 @@ abstract class BotPlugin
       yield clientToInstanceMessageChannel(im)
   }
 
+  protected def channelForName(name: String): Option[Channel] = {
+    Seq(publicChannel(name), groupChannel(name), instantMessageChannel(name)).flatten.headOption
+  }
+
   protected def urlEncode(string: String): String = URLEncoder.encode(string, "utf-8")
 
   protected def scheduleActorMessage(name: String, cronExpression: String, message: AnyRef): Unit = {
