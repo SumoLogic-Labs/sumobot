@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.14] - 2021-08-17
+- Fix for NullPointerException introduced in 1.0.13
+
 ## [1.0.13] - 2021-08-17
 - Dependency bump
 
