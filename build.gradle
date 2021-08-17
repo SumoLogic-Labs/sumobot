@@ -43,7 +43,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.16"
+    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.2.17"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
@@ -55,8 +55,8 @@ dependencies {
     compile("org.apache.httpcomponents:httpclient:4.5.13") {
         force = true
     }
-    compile "org.scalatra.scalate:scalate-core_${scalaMajorVersion}:1.9.6"
-    compile "org.slf4j:slf4j-log4j12:1.7.30"
+    compile "org.scalatra.scalate:scalate-core_${scalaMajorVersion}:1.9.7"
+    compile "org.slf4j:slf4j-log4j12:1.7.32"
     compile "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
     compile "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
     compile("org.quartz-scheduler:quartz:2.3.2") {
@@ -80,7 +80,7 @@ dependencies {
     compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.1.14"
     compile "org.joda:joda-convert:2.2.1"
     compile "junit:junit:4.13.2"
-    testCompile "org.mockito:mockito-core:3.10.0"
+    testCompile "org.mockito:mockito-core:3.11.2"
 }
 
 compileScala {

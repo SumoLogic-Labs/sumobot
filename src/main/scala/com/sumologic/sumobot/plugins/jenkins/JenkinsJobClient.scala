@@ -51,7 +51,7 @@ class JenkinsJobClient(val configuration: JenkinsConfiguration)
   rawConMan.setMaxTotal(200)
   rawConMan.setDefaultMaxPerRoute(20)
 
-  val requestConfig = RequestConfig.custom.setCookieSpec(CookieSpecs.BROWSER_COMPATIBILITY)
+  val requestConfig = RequestConfig.custom.setCookieSpec(CookieSpecs.DEFAULT)
     .setConnectionRequestTimeout(60000)
     .setConnectTimeout(60000)
     .build

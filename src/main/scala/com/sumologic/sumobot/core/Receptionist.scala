@@ -116,7 +116,7 @@ class Receptionist(rtmClient: SlackRtmClient,
       pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId -> (doneRecipient, doneMessage))
 
     case message: Message if !tooOld(message.ts, message) =>
-      translateAndDispatch(message.channel, message.user, message.text, message.ts, threadTimestamp = message.thread_ts,
+      translateAndDispatch(message.channel, message.user.get, message.text, message.ts, threadTimestamp = message.thread_ts,
         message.attachments.getOrElse(Seq()), fromBot = message.bot_id.isDefined)
 
     case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) && messageChanged.message.user.isDefined =>
