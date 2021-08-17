@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.13] - 2021-08-17
+- Dependency bump
+
 ## [1.0.12] - 2021-05-13
 - Dependency bump
 - (minor) New method `channelForName()` added
