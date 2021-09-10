@@ -73,7 +73,7 @@ case class IncomingMessage(canonicalText: String,
 case class IncomingMessageAttachment(text: String)
 
 case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String,
-                         comment: Option[String] = None)
+                         comment: Option[String] = None, threadTimestamp: Option[String] = None)
 
 
 sealed abstract class Sender {

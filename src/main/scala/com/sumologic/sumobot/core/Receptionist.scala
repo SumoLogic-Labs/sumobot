@@ -96,10 +96,11 @@ class Receptionist(rtmClient: SlackRtmClient,
       val attachmentsAsSlackModel = Messages.convertToSlackModel(attachments)
       asyncClient.postChatMessage(channel.id, text, attachments = attachmentsAsSlackModel, threadTs = threadTs)
 
-    case OutgoingImage(channel, imageFile, contentType, title, comment) =>
+    case OutgoingImage(channel, imageFile, contentType, title, comment, threadTimestamp) =>
       log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")
       val fut = asyncClient.uploadFile(content = Left(imageFile), filetype = Some(contentType), title = Some(title),
-        filename = Some(imageFile.getName), channels = Some(Seq(channel.name)), initialComment = comment)
+        filename = Some(imageFile.getName), channels = Some(Seq(channel.name)), initialComment = comment,
+        thread_ts = threadTimestamp)
       fut.onComplete {
         f => log.info(s"Sending image ended with $f")
       }
