@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.16] - 2021-10-06
+- Support for titles in attachments
+
 ## [1.0.15] - 2021-09-10
 - Support for sending images in threads
 
