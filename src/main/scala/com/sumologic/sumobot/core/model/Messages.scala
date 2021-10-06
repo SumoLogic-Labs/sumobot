@@ -70,7 +70,7 @@ case class IncomingMessage(canonicalText: String,
                            attachments: Seq[IncomingMessageAttachment] = Seq(),
                            sentBy: Sender)
 
-case class IncomingMessageAttachment(text: String)
+case class IncomingMessageAttachment(text: String, title: String)
 
 case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String,
                          comment: Option[String] = None, threadTimestamp: Option[String] = None)

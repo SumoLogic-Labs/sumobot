@@ -165,7 +165,9 @@ class Receptionist(rtmClient: SlackRtmClient,
     } else {
       BotSender(userId)
     }
-    val msgToBot = translateMessage(channelId, idTimestamp, threadTimestamp, text, attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""))), sentBy)
+    val msgToBot = translateMessage(channelId, idTimestamp, threadTimestamp, text,
+      attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""), a.title.getOrElse(""))),
+      sentBy)
     if (userId != selfId) {
       log.info(s"Dispatching message: $msgToBot")
       context.system.eventStream.publish(msgToBot)
