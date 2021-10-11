@@ -80,7 +80,7 @@ outside this list)
         signing.gnupg.passphrase=${password_for_imported_sumoapi_key}
         ```
 2. Remove `-SNAPSHOT` suffix from `version` in `build.gradle`
-3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.17`:
+3. Make a release branch with Scala version and project version, ex. `sumobot-1.0.18`:
     ```
     export RELEASE_VERSION=sumobot-1.0.17
     git checkout -b ${RELEASE_VERSION}
@@ -96,7 +96,7 @@ outside this list)
 5. Go to https://oss.sonatype.org/index.html#stagingRepositories, search for com.sumologic, close and release your repo. 
 NOTE: If you had to login, reload the URL. It doesn't take you to the right page post-login
 6. Update the `README.md` and `CHANGELOG.md` with the new version and set upcoming snapshot `version` 
-in `build.gradle`, ex. `1.0.18-SNAPSHOT`
+in `build.gradle`, ex. `1.0.19-SNAPSHOT`
 7. Commit the change and push as a PR:
     ```
     git add build.gradle README.md CHANGELOG.md

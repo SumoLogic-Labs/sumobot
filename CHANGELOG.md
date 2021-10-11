@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.17] - 2021-10-11
+- Basic support for reactions
+
 ## [1.0.16] - 2021-10-06
 - Support for titles in attachments
 
