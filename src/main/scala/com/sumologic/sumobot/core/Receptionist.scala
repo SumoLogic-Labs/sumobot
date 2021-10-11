@@ -23,7 +23,7 @@ import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateRespons
 import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{ImOpened, Message, MessageChanged, Attachment => SAttachment}
+import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, Attachment => SAttachment}
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -129,6 +129,9 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case ResponseInProgress(channel) =>
       rtmClient.indicateTyping(channel.id)
+
+    case ReactionAdded(reaction, ReactionItemMessage(channel, ts), _, user, _) =>
+      context.system.eventStream.publish(Reaction(reaction, channel, ts, user))
   }
 
   protected def translateMessage(channelId: String,

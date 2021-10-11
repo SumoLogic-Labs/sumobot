@@ -57,6 +57,7 @@ abstract class BotPlugin
     with Emotions {
 
   type ReceiveIncomingMessage = PartialFunction[IncomingMessage, Unit]
+  type ReceiveReaction = PartialFunction[Reaction, Unit]
 
   protected var state: RtmState = _
 
@@ -67,6 +68,7 @@ abstract class BotPlugin
   // For plugins to implement.
 
   protected def receiveIncomingMessage: ReceiveIncomingMessage
+  protected def receiveReaction: ReceiveReaction = Map.empty
 
   protected def help: String
 
@@ -191,6 +193,7 @@ abstract class BotPlugin
 
   override final def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[IncomingMessage])
+    context.system.eventStream.subscribe(self, classOf[Reaction])
     Bootstrap.receptionist.foreach(_ ! PluginAdded(self, help))
     pluginPreStart()
   }
@@ -209,6 +212,10 @@ abstract class BotPlugin
     case ignore =>
   }
 
+  private final def receiveReactionInternal: ReceiveReaction = receiveReaction orElse {
+    case ignore =>
+  }
+
   override def receive: Receive = uninitialized orElse pluginReceive
 
   private def uninitialized: Receive = {
@@ -223,6 +230,9 @@ abstract class BotPlugin
   protected final def initialized: Receive = {
     case message@IncomingMessage(text, _, _, _, _, _, _) =>
       receiveIncomingMessageInternal(message)
+
+    case reaction@Reaction(_, _, _, _) =>
+      receiveReactionInternal(reaction)
   }
 
   protected def pluginReceive: Receive = Map.empty
