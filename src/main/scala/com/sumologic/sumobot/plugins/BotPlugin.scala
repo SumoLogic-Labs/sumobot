@@ -167,15 +167,15 @@ abstract class BotPlugin
 
   protected def userById(id: String): Option[User] = state.users.find(_.id == id)
 
-  protected def userByName(name: String): Option[User] = state.users.find(_.name == name)
+  protected[plugins] def userByName(name: String): Option[User] = state.users.find(_.name == name)
 
   protected def publicChannel(name: String): Option[PublicChannel] = state.channels.find(_.name == name).map(clientToPublicChannel)
 
   protected def groupChannel(name: String): Option[GroupChannel] = state.groups.find(_.name == name).map(clientToGroupChannel)
 
-  protected def instantMessageChannel(name: String): Option[InstantMessageChannel] = {
+  protected[plugins] def instantMessageChannel(name: String): Option[InstantMessageChannel] = {
     for (user <- state.users.find(_.name == name);
-         im <- state.ims.find(_.user == user.name))
+         im <- state.ims.find(_.user == user.id))
       yield clientToInstanceMessageChannel(im)
   }
 
