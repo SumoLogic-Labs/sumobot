@@ -78,7 +78,7 @@ dependencies {
     compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.7.4"
     compile "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
     compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.1.14"
-    compile "org.joda:joda-convert:2.2.1"
+    compile "org.joda:joda-convert:2.2.2"
     compile "junit:junit:4.13.2"
     testCompile "org.mockito:mockito-core:3.11.2"
 }
