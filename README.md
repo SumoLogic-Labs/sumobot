@@ -89,7 +89,6 @@ outside this list)
     ```
 4. Perform a release in selected Scala versions:
     ```
-    ./gradlew build publish -PscalaVersion=2.11.12
     ./gradlew build publish -PscalaVersion=2.12.12
     ./gradlew build publish -PscalaVersion=2.13.3
     ```
