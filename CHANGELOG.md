@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2022-02-21
+- Dropping support for Scala 2.11
+- [Upgrading to slack-scala-client 0.3.0](https://github.com/slack-scala-client/slack-scala-client/releases/tag/v0.3.0)
+- Dependency bump
+ 
 ## [1.0.17] - 2021-10-11
 - Basic support for reactions
 
