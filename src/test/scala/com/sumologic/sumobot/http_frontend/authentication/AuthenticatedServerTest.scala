@@ -39,10 +39,10 @@ import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
-import scala.jdk.CollectionConverters._
 import scala.collection.immutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 class AuthenticatedServerTest
   extends SumoBotTestKit(ActorSystem("AuthenticatedServerTest"))
