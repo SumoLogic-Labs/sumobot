@@ -27,7 +27,7 @@ class BlockingBrainTest()
   extends SumoBotTestKit(ActorSystem("BlockingBrainTest"))
   with BeforeAndAfterAll {
 
-  override def afterAll() {
+  override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
 

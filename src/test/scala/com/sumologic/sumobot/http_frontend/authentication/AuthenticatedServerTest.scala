@@ -151,7 +151,7 @@ class AuthenticatedServerTest
     httpResponse
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     httpServer.terminate()
     Bootstrap.receptionist = None
     TestKit.shutdownActorSystem(system, 10.seconds, true)

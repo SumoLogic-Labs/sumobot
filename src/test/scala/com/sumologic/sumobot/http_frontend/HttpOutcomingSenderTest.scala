@@ -61,7 +61,7 @@ class HttpOutcomingSenderTest
     }
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
 }

@@ -89,7 +89,7 @@ class S3BrainTest
         map(alphabet.charAt).mkString
   }
 
-  override def afterAll() {
+  override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
     credsOption.foreach(cleanupBuckets)
   }
