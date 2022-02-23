@@ -61,7 +61,7 @@ class BlockingBrainTest()
       sut.store("not3", "value2")
       val returnedValues = sut.listValues("test")
       returnedValues.size should be(2)
-      returnedValues.contains("test1") should be(true)
+      returnedValues.contains("BROKEN") should be(true)
       returnedValues.contains("test2") should be(true)
     }
 
