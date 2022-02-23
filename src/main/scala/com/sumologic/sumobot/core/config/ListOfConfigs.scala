@@ -20,7 +20,7 @@ package com.sumologic.sumobot.core.config
 
 import com.typesafe.config.{Config, ConfigException}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 object ListOfConfigs {

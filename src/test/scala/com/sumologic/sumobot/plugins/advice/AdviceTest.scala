@@ -25,7 +25,7 @@ import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 import scala.concurrent.duration._
 class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest"))  {
 
-  val adviceRef = system.actorOf(Props[Advice], "advice")
+  val adviceRef = system.actorOf(Props[Advice](), "advice")
   adviceRef ! InitializePlugin(null, null, null)
 
   "advice" should {

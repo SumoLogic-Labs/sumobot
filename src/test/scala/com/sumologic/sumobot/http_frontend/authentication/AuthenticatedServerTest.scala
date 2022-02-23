@@ -39,10 +39,10 @@ import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import com.typesafe.config.ConfigFactory
 import org.scalatest.BeforeAndAfterAll
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 
 class AuthenticatedServerTest
   extends SumoBotTestKit(ActorSystem("AuthenticatedServerTest"))
@@ -72,7 +72,7 @@ class AuthenticatedServerTest
   private val httpServerOptions = SumoBotHttpServerOptions(host, port, origin, basicAuthentication, "", None, Seq.empty)
   private val httpServer = new SumoBotHttpServer(httpServerOptions)
 
-  private val brain = TestActorRef(Props[InMemoryBrain])
+  private val brain = TestActorRef(Props[InMemoryBrain]())
   private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))
 
   private val pluginCollection = PluginsFromProps(Array(Props(classOf[Help]), Props(classOf[System])))
@@ -151,7 +151,7 @@ class AuthenticatedServerTest
     httpResponse
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     httpServer.terminate()
     Bootstrap.receptionist = None
     TestKit.shutdownActorSystem(system, 10.seconds, true)

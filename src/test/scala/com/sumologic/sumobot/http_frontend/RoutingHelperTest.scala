@@ -127,7 +127,7 @@ class RoutingHelperTest extends SumoBotTestKit(ActorSystem("RoutingHelperTest"))
     Await.result(Unmarshal(httpEntity).to[String], 5.seconds)
   }
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
   }
 }

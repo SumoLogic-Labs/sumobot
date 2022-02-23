@@ -27,7 +27,7 @@ import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 
 class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
 
-  val helpRef = system.actorOf(Props[Help], "help")
+  val helpRef = system.actorOf(Props[Help](), "help")
 
   val reg = system.actorOf(Props(classOf[PluginRegistry]))
   val mock = system.actorOf(Props(classOf[Conversations]), "mock")

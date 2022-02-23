@@ -24,7 +24,7 @@ import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
 import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import com.typesafe.config.ConfigFactory
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class BasicAuthenticationTest extends SumoBotSpec {
   private val authConfig = ConfigFactory.parseMap(

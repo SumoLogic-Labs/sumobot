@@ -21,7 +21,7 @@ package com.sumologic.sumobot.http_frontend
 import com.sumologic.sumobot.http_frontend.authentication.{HttpAuthentication, Link, NoAuthentication}
 import com.typesafe.config.{Config, ConfigFactory}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Success, Try}
 
 case class SumoBotHttpServerOptions(httpHost: String, httpPort: Int,

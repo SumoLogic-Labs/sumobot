@@ -55,7 +55,7 @@ class SumoBotHttpServerTest
     new NoAuthentication(ConfigFactory.empty()), "", None, Seq.empty)
   private val httpServer = new SumoBotHttpServer(httpServerOptions)
 
-  private val brain = TestActorRef(Props[InMemoryBrain])
+  private val brain = TestActorRef(Props[InMemoryBrain]())
   private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))
 
   private val pluginCollection = PluginsFromProps(Array(Props(classOf[Help]), Props(classOf[System])))
@@ -228,7 +228,7 @@ class SumoBotHttpServerTest
 
   private val webSocketRequest = WebSocketRequest(s"ws://$host:$port/websocket")
 
-  override def afterAll: Unit = {
+  override def afterAll(): Unit = {
     httpServer.terminate()
     Bootstrap.receptionist = None
     TestKit.shutdownActorSystem(system, 10.seconds, true)

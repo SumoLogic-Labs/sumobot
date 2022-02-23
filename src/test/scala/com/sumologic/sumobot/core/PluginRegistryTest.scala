@@ -39,7 +39,7 @@ class PluginRegistryTest
     "maintain a list of all registered plugins" in {
 
       implicit val timeout = Timeout(1.second)
-      val reg = system.actorOf(Props[PluginRegistry])
+      val reg = system.actorOf(Props[PluginRegistry]())
       def checkList(func: Seq[Plugin] => Unit) = {
         Await.result(reg ? RequestPluginList, 1.second) match {
           case PluginList(list) => func(list)
@@ -47,7 +47,7 @@ class PluginRegistryTest
         }
       }
 
-      val fakePlugin = system.actorOf(Props[Help])
+      val fakePlugin = system.actorOf(Props[Help]())
 
       checkList(_.isEmpty should be(true))
       reg ! PluginAdded(fakePlugin, "hah")

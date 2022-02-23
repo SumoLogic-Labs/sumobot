@@ -27,7 +27,7 @@ import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.util.ParExecutor
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 class AWSSupport

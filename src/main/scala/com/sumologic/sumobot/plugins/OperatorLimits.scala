@@ -22,7 +22,7 @@ import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model.{IncomingMessage, Sender, UserSender}
 import slack.models.User
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object OperatorLimits {
   private lazy val config = Bootstrap.system.settings.config
