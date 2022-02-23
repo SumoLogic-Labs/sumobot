@@ -20,7 +20,7 @@ buildscript {
 
     ext.akkaVersion = '2.5.32'
     ext.awsSdkVersion = '1.11.1017'
-    ext.comFasterxmlJacksonVersion = '2.10.0'
+    ext.comFasterxmlJacksonVersion = '2.13.1'
 }
 
 apply plugin: "java"
