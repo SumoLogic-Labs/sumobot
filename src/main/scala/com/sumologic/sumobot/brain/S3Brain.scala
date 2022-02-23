@@ -26,7 +26,7 @@ import com.sumologic.sumobot.brain.Brain._
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.Properties
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.immutable
 
 object S3Brain {

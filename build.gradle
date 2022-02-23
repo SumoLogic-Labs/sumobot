@@ -72,6 +72,8 @@ dependencies {
     compile "org.scala-lang:scala-compiler:${scalaMajorVersion}.${scalaMinorVersion}"
     compile "org.scala-lang:scalap:${scalaMajorVersion}.${scalaMinorVersion}"
     compile "org.scala-lang:scala-reflect:${scalaMajorVersion}.${scalaMinorVersion}"
+    compile "org.scala-lang.modules:scala-collection-compat_${scalaMajorVersion}:2.6.0"
+
     compile "com.fasterxml.jackson.core:jackson-databind:${comFasterxmlJacksonVersion}"
     compile "com.fasterxml.jackson.core:jackson-annotations:${comFasterxmlJacksonVersion}"
     compile "com.fasterxml.jackson.core:jackson-core:${comFasterxmlJacksonVersion}"

@@ -34,7 +34,7 @@ import org.apache.http.util.EntityUtils
 
 import java.net.{URI, URLEncoder}
 import java.util.concurrent.TimeUnit
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
