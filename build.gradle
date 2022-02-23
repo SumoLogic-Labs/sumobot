@@ -17,6 +17,10 @@ buildscript {
         classpath "org.owasp:dependency-check-gradle:6.5.3"
         classpath "com.github.ben-manes:gradle-versions-plugin:0.42.0"
     }
+
+    ext.akkaVersion = '2.5.32'
+    ext.awsSdkVersion = '1.11.1017'
+    ext.comFasterxmlJacksonVersion = '2.10.0'
 }
 
 apply plugin: "java"
@@ -69,11 +73,10 @@ dependencies {
     compile "org.scala-lang:scala-compiler:${scalaMajorVersion}.${scalaMinorVersion}"
     compile "org.scala-lang:scalap:${scalaMajorVersion}.${scalaMinorVersion}"
     compile "org.scala-lang:scala-reflect:${scalaMajorVersion}.${scalaMinorVersion}"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.10.0"
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.10.0"
-    compile "com.fasterxml.jackson.core:jackson-core:2.10.0"
+    compile "com.fasterxml.jackson.core:jackson-databind:${comFasterxmlJacksonVersion}"
+    compile "com.fasterxml.jackson.core:jackson-annotations:${comFasterxmlJacksonVersion}"
+    compile "com.fasterxml.jackson.core:jackson-core:${comFasterxmlJacksonVersion}"
     compile "org.dom4j:dom4j:2.1.3"
-    compile "com.google.guava:guava:27.1-jre"
     compile "commons-beanutils:commons-beanutils:1.9.3"
     compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.7.4"
     compile "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
