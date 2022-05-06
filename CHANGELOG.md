@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.2] - 2022-05-06
+- Dependency bump, incl. slack-scala-client
+
 ## [1.1.1] - 2022-02-23
 - Dependency bump, incl. Scala versions change
 
