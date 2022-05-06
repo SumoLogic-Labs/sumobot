@@ -22,10 +22,10 @@ import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS}
 import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.ws.{Message, UpgradeToWebSocket}
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse, Uri}
+import akka.http.scaladsl.model.ws.{Message, WebSocketUpgrade}
+import akka.http.scaladsl.model._
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.{ActorMaterializer, Materializer, OverflowStrategy}
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
 import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded}
 import org.reactivestreams.Publisher
@@ -46,12 +46,10 @@ object SumoBotHttpServer {
 }
 
 class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: ActorSystem) {
-  private implicit val materializer: Materializer = ActorMaterializer()
-
   private val routingHelper = RoutingHelper(options.origin)
   private val rootPage = DynamicResource(RootPageName)
 
-  private val serverSource = Http().bind(options.httpHost, options.httpPort)
+  private val serverSource = Http().newServerAt(options.httpHost, options.httpPort).connectionSource()
 
   private val binding = serverSource.to(Sink.foreach(_.handleWithSyncHandler {
     routingHelper.withAllowOriginHeader {
@@ -132,7 +130,7 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
   }
 
   private def webSocketRequestHandler(req: HttpRequest): HttpResponse = {
-    req.header[UpgradeToWebSocket] match {
+    req.attribute(AttributeKeys.webSocketUpgrade) match {
       case Some(upgrade) =>
         webSocketUpgradeHandler(upgrade)
       case None => HttpResponse(400, entity = "Invalid WebSocket request")
@@ -144,7 +142,7 @@ class SumoBotHttpServer(options: SumoBotHttpServerOptions)(implicit system: Acto
       .withHeaders(List(`Access-Control-Allow-Methods`(List(GET))))
   }
 
-  def webSocketUpgradeHandler(upgrade: UpgradeToWebSocket): HttpResponse = {
+  def webSocketUpgradeHandler(upgrade: WebSocketUpgrade): HttpResponse = {
     val (publisherRef: ActorRef, publisher: Publisher[Message]) =
       Source.actorRef[Message](BufferSize, SocketOverflowStrategy)
       .toMat(Sink.asPublisher(true))(Keep.both).run()

@@ -18,7 +18,7 @@ buildscript {
         classpath "com.github.ben-manes:gradle-versions-plugin:0.42.0"
     }
 
-    ext.akkaVersion = '2.5.32'
+    ext.akkaVersion = '2.6.19'
     ext.awsSdkVersion = '1.12.213'
     ext.comFasterxmlJacksonVersion = '2.13.1'
 }
@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.3.0"
+    compile "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.3.1"
     compile "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     compile "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     compile "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
@@ -79,9 +79,9 @@ dependencies {
     compile "com.fasterxml.jackson.core:jackson-core:${comFasterxmlJacksonVersion}"
     compile "org.dom4j:dom4j:2.1.3"
     compile "commons-beanutils:commons-beanutils:1.9.3"
-    compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.7.4"
+    compile "com.typesafe.play:play-json_${scalaMajorVersion}:2.9.2"
     compile "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
-    compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.1.14"
+    compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.9"
     compile "org.joda:joda-convert:2.2.2"
     compile "junit:junit:4.13.2"
     testCompile "org.mockito:mockito-core:4.5.1"

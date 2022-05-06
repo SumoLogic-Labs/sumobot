@@ -18,10 +18,9 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem}
 import akka.http.scaladsl.model.ws.TextMessage
 import akka.pattern.pipe
-import akka.stream.ActorMaterializer
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
 
@@ -36,7 +35,7 @@ object HttpIncomingReceiver {
 }
 
 class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLogging {
-  private implicit val materializer = ActorMaterializer()
+  implicit val actorSystem = ActorSystem()
 
   override def receive: Receive = {
     case streamedMsg: TextMessage.Streamed =>

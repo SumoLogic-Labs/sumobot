@@ -45,9 +45,6 @@ import scala.concurrent.{Await, Promise}
 class SumoBotHttpServerTest
   extends SumoBotTestKit(ActorSystem("SumoBotHttpServerTest"))
    with BeforeAndAfterAll {
-
-  private implicit val materializer = ActorMaterializer()
-
   private val host = "localhost"
   private val port = 9999
   private val origin = "https://sumologic.com"
