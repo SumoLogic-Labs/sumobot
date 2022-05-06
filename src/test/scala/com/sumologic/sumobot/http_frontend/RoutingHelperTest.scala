@@ -33,9 +33,6 @@ import scala.concurrent.duration._
 
 class RoutingHelperTest extends SumoBotTestKit(ActorSystem("RoutingHelperTest"))
   with BeforeAndAfterAll {
-
-  private implicit val materializer = ActorMaterializer()
-
   private val origin = "https://www.sumologic.com"
   private val routingHelper = RoutingHelper(origin)
 

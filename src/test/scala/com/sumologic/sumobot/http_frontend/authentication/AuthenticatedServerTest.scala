@@ -47,8 +47,6 @@ import scala.jdk.CollectionConverters._
 class AuthenticatedServerTest
   extends SumoBotTestKit(ActorSystem("AuthenticatedServerTest"))
     with BeforeAndAfterAll {
-  private implicit val materializer = ActorMaterializer()
-
   private val host = "localhost"
   private val port = 10000
   private val origin = "https://sumologic.com"
