@@ -69,7 +69,8 @@ class Receptionist(rtmClient: SlackRtmClient,
       classOf[OutgoingImage],
       classOf[OpenIM],
       classOf[RtmStateRequest],
-      classOf[ResponseInProgress]
+      classOf[ResponseInProgress],
+      classOf[NewChannelTopic]
     ).foreach(context.system.eventStream.subscribe(self, _))
   }
 
@@ -132,6 +133,9 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case ReactionAdded(reaction, ReactionItemMessage(channel, ts), _, user, _) =>
       context.system.eventStream.publish(Reaction(reaction, channel, ts, user))
+
+    case NewChannelTopic(channel, topic) =>
+      asyncClient.setConversationTopic(channel.id, topic)
   }
 
   protected def translateMessage(channelId: String,
