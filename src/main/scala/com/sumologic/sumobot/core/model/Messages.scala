@@ -77,6 +77,7 @@ case class OutgoingImage(channel: Channel, image: File, contentType: String, tit
 
 case class Reaction(emoji: String, channelId: String, messageTimestamp: String, addedByUser: String)
 
+case class NewChannelTopic(channel: Channel, topic: String)
 
 sealed abstract class Sender {
   def slackReference: String
