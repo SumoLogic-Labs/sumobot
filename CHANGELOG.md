@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.3] - 2022-05-25
+- Dependency bump
+- Support for `NewChannelTopic`
+
 ## [1.1.2] - 2022-05-06
 - Dependency bump, incl. slack-scala-client
 
