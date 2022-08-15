@@ -84,7 +84,7 @@ dependencies {
     compile "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.9"
     compile "org.joda:joda-convert:2.2.2"
     compile "junit:junit:4.13.2"
-    testCompile "org.mockito:mockito-core:4.6.1"
+    testCompile "org.mockito:mockito-core:4.7.0"
 }
 
 compileScala {
