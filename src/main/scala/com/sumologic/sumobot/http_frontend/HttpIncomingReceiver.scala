@@ -43,7 +43,7 @@ class HttpIncomingReceiver(outcomingRef: ActorRef) extends Actor with ActorLoggi
 
     case strictMsg: TextMessage.Strict =>
       val contents = strictMsg.getStrictText
-      val incomingMessage = IncomingMessage(contents, true, HttpReceptionist.DefaultSumoBotChannel,
+      val incomingMessage = IncomingMessage(contents, true, HttpReceptionist.DefaultSumoBotChannelId,
         formatDateNow(), None, Seq.empty, UserSender(HttpReceptionist.DefaultClientUser))
       context.system.eventStream.publish(incomingMessage)
 

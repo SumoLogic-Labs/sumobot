@@ -23,7 +23,7 @@ import slack.models.{ActionField => SActionField, Attachment => SAttachment, Att
 
 import java.io.File
 
-case class OutgoingMessage(channel: Channel, text: String, threadTs: Option[String] = None)
+case class OutgoingMessage(channelId: String, text: String, threadTs: Option[String] = None)
 
 // NOTE(mccartney, 2018-11-02): Slack API doesn't allow sending messages with attachments using the RTM client,
 // thus modelling it as a separate case class. Although the document structure is consistent with `OutgoingMessage`.
@@ -64,7 +64,7 @@ case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
 
 case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
-                           channel: Channel,
+                           channelId: String,
                            idTimestamp: String,
                            threadTimestamp: Option[String] = None,
                            attachments: Seq[IncomingMessageAttachment] = Seq(),
@@ -98,7 +98,7 @@ case class ResponseInProgress(channel: Channel)
 object PublicHttpsReference {
   def forMessage(baseSlackUrl: String, msg: IncomingMessage) = {
     val clearId = msg.idTimestamp.replace(".", "")
-    val channelId = msg.channel.id
+    val channelId = msg.channelId
     s"$baseSlackUrl/archives/$channelId/p$clearId"
   }
 }
