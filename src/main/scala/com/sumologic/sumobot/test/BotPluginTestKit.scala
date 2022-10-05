@@ -20,34 +20,41 @@ package com.sumologic.sumobot.test
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
-import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage, UserSender}
+import org.scalatest.BeforeAndAfterAll
 import slack.models.User
 
 import scala.concurrent.duration.{FiniteDuration, _}
 
+@deprecated("use com.sumologic.sumobot.test.annotated.BotPluginTestKit", "1.0.2")
 class BotPluginTestKit(_system: ActorSystem)
   extends TestKit(_system)
-  with SumoBotSpec {
+  with SumoBotSpec
+  with BeforeAndAfterAll {
 
   protected val outgoingMessageProbe = TestProbe()
   system.eventStream.subscribe(outgoingMessageProbe.ref, classOf[OutgoingMessage])
 
   protected def confirmOutgoingMessage(test: OutgoingMessage => Unit, timeout: FiniteDuration = 1.second): Unit = {
-    outgoingMessageProbe.expectMsgClass(1.second, classOf[OutgoingMessage]) match {
+    outgoingMessageProbe.expectMsgClass(timeout, classOf[OutgoingMessage]) match {
       case msg: OutgoingMessage =>
         test(msg)
     }
   }
 
   protected def instantMessage(text: String, user: User = mockUser("123", "jshmoe")): IncomingMessage = {
-    IncomingMessage(text, true, InstantMessageChannel("125", user), user)
+    IncomingMessage(text, true, InstantMessageChannel("125", user), "1527239216000090", sentBy = UserSender(user))
   }
 
   protected def mockUser(id: String, name: String): User = {
-    User(id, name, None, None, None, None, None, None, None, None, None, None)
+    User(id, name, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   }
 
   protected def send(message: IncomingMessage): Unit = {
     system.eventStream.publish(message)
+  }
+
+  override protected def afterAll(): Unit = {
+    TestKit.shutdownActorSystem(system)
   }
 }

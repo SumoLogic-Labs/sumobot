@@ -18,20 +18,29 @@
  */
 package com.sumologic.sumobot.plugins
 
-import com.netflix.config.scala.DynamicStringListProperty
-import com.sumologic.sumobot.core.model.IncomingMessage
+import com.sumologic.sumobot.core.Bootstrap
+import com.sumologic.sumobot.core.model.{IncomingMessage, Sender, UserSender}
 import slack.models.User
 
+import scala.jdk.CollectionConverters._
+
 object OperatorLimits {
-  private lazy val operatorNames = DynamicStringListProperty("operators", List.empty, ",")
+  private lazy val config = Bootstrap.system.settings.config
+  private lazy val operatorNames = config.getStringList("operators").asScala.toSet
+
+  def isOperator(sender: Sender): Boolean =
+    sender match {
+      case u: UserSender => isOperator(u.slackUser)
+      case _ => false
+    }
 
   def isOperator(user: User): Boolean =
-    operatorNames.get.exists(_.trim.equalsIgnoreCase(user.name.trim))
+    operatorNames.exists(_.trim.equalsIgnoreCase(user.name.trim))
 }
 
 trait OperatorLimits {
   this: BotPlugin => 
   
   protected def sentByOperator(message: IncomingMessage): Boolean =
-    OperatorLimits.isOperator(message.sentByUser)
+    OperatorLimits.isOperator(message.sentBy)
 }

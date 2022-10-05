@@ -19,20 +19,16 @@
 package com.sumologic.sumobot.core.aws
 
 import com.amazonaws.auth.{AWSCredentials, BasicAWSCredentials}
-import com.netflix.config.scala.{DynamicStringProperty, DynamicStringListProperty}
+import com.sumologic.sumobot.core.config.ListOfConfigs
+import com.typesafe.config.Config
 
-object AWSCredentialSource {
-  def credentials: Map[String, AWSCredentials] = {
-    DynamicStringListProperty("aws.accounts", List.empty, ",")() match {
-      case Some(names) =>
-        names.map {
-          name =>
-            for (keyId <- DynamicStringProperty(s"aws.$name.key.id", null)();
-                 accessKey <- DynamicStringProperty(s"aws.$name.key.secret", null)())
-              yield name -> new BasicAWSCredentials(keyId.trim, accessKey.trim)
-        }.flatten.toMap
-      case None =>
-        Map.empty
+object AWSAccounts {
+  def load(config: Config): Map[String, AWSCredentials] = {
+    ListOfConfigs.parse(config, "aws") {
+      (name, accountConfig) =>
+        val key = accountConfig.getString(s"key.id")
+        val secret = accountConfig.getString(s"key.secret")
+        new BasicAWSCredentials(key, secret)
     }
   }
 }

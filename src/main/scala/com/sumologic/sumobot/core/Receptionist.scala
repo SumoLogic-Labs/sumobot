@@ -19,23 +19,35 @@
 package com.sumologic.sumobot.core
 
 import akka.actor._
-import com.sumologic.sumobot.core.model._
+import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
+import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import slack.models.{ImOpened, Message}
-import slack.rtm.SlackRtmClient
-import slack.rtm.SlackRtmConnectionActor.SendMessage
+import slack.api.{BlockingSlackApiClient, SlackApiClient}
+import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, Attachment => SAttachment}
+import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Receptionist {
-  def props(rtmClient: SlackRtmClient, brain: ActorRef): Props =
-    Props(classOf[Receptionist], rtmClient, brain)
+
+  case class RtmStateRequest(sendTo: ActorRef)
+
+  case class RtmStateResponse(rtmState: RtmState)
+
+  def props(rtmClient: SlackRtmClient,
+            syncClient: BlockingSlackApiClient,
+            asyncClient: SlackApiClient,
+            brain: ActorRef): Props =
+    Props(classOf[Receptionist], rtmClient, syncClient, asyncClient, brain)
 }
 
-class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
+class Receptionist(rtmClient: SlackRtmClient,
+                   syncClient: BlockingSlackApiClient,
+                   asyncClient: SlackApiClient,
+                   brain: ActorRef) extends Actor with ActorLogging {
 
-  private val slack = rtmClient.actor
-  private val blockingClient = rtmClient.apiClient
+  implicit val system = ActorSystem("slack")
+
   private val selfId = rtmClient.state.self.id
   private val selfName = rtmClient.state.self.name
   rtmClient.addEventListener(self)
@@ -43,14 +55,23 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
   private val simpleNamePrefix = """(\w+)\:?\s(.*)""".r
+  private val tsPattern = "(\\d+)\\.(\\d+)".r
+
+  private val messageAgeLimitMillis = 60 * 1000
 
   private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
 
   private val pluginRegistry = context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
 
   override def preStart(): Unit = {
-    context.system.eventStream.subscribe(self, classOf[OutgoingMessage])
-    context.system.eventStream.subscribe(self, classOf[OpenIM])
+    Seq(classOf[OutgoingMessage],
+      classOf[OutgoingMessageWithAttachments],
+      classOf[OutgoingImage],
+      classOf[OpenIM],
+      classOf[RtmStateRequest],
+      classOf[ResponseInProgress],
+      classOf[NewChannelTopic]
+    ).foreach(context.system.eventStream.subscribe(self, _))
   }
 
 
@@ -67,8 +88,23 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
     case message@PluginRemoved(_) =>
       pluginRegistry ! message
 
-    case OutgoingMessage(channel, text) =>
-      slack ! SendMessage(channel.id, text)
+    case OutgoingMessage(channel, text, threadTs) =>
+      log.info(s"sending - ${channel.name}: $text")
+      rtmClient.sendMessage(channel.id, text, threadTs)
+
+    case OutgoingMessageWithAttachments(channel, text, threadTs, attachments) =>
+      log.info(s"sending - ${channel.name}: $text")
+      val attachmentsAsSlackModel = Messages.convertToSlackModel(attachments)
+      asyncClient.postChatMessage(channel.id, text, attachments = attachmentsAsSlackModel, threadTs = threadTs)
+
+    case OutgoingImage(channel, imageFile, contentType, title, comment, threadTimestamp) =>
+      log.info(s"Sending image (${imageFile.length()} bytes) to ${channel.name}")
+      val fut = asyncClient.uploadFile(content = Left(imageFile), filetype = Some(contentType), title = Some(title),
+        filename = Some(imageFile.getName), channels = Some(Seq(channel.name)), initialComment = comment,
+        thread_ts = threadTimestamp)
+      fut.onComplete {
+        f => log.info(s"Sending image ended with $f")
+      }
 
     case ImOpened(user, channel) =>
       pendingIMSessionsByUserId.get(user).foreach {
@@ -78,31 +114,90 @@ class Receptionist(rtmClient: SlackRtmClient, brain: ActorRef) extends Actor {
       }
 
     case OpenIM(userId, doneRecipient, doneMessage) =>
-      blockingClient.openIm(userId)
-      pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId ->(doneRecipient, doneMessage))
+      asyncClient.openIm(userId)
+      pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId -> (doneRecipient, doneMessage))
 
-    case message: Message =>
-      val msgToBot = translateMessage(message)
-      if (message.user != selfId) {
-        context.system.eventStream.publish(msgToBot)
-      }
+    case message: Message if !tooOld(message.ts, message) && message.user.isDefined =>
+      translateAndDispatch(message.channel, message.user.get, message.text, message.ts, threadTimestamp = message.thread_ts,
+        message.attachments.getOrElse(Seq()), fromBot = message.bot_id.isDefined)
+
+    case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) && messageChanged.message.user.isDefined =>
+      val message = messageChanged.message
+      translateAndDispatch(messageChanged.channel, message.user.get, message.text, message.ts)
+
+    case RtmStateRequest(sendTo) =>
+      sendTo ! RtmStateResponse(rtmClient.state)
+
+    case ResponseInProgress(channel) =>
+      rtmClient.indicateTyping(channel.id)
+
+    case ReactionAdded(reaction, ReactionItemMessage(channel, ts), _, user, _) =>
+      context.system.eventStream.publish(Reaction(reaction, channel, ts, user))
+
+    case NewChannelTopic(channel, topic) =>
+      asyncClient.setConversationTopic(channel.id, topic)
   }
 
-  protected def translateMessage(slackMessage: Message): IncomingMessage = {
+  protected def translateMessage(channelId: String,
+                                 idTimestamp: String,
+                                 threadTimestamp: Option[String] = None,
+                                 text: String,
+                                 attachments: Seq[IncomingMessageAttachment],
+                                 from: Sender): IncomingMessage = {
+    val channel = Channel.forChannelId(rtmClient.state, channelId)
 
-    val channel = Channel.forMessage(rtmClient.state, slackMessage)
-    val sentByUser = rtmClient.state.users.find(_.id == slackMessage.user).
-      getOrElse(throw new IllegalStateException(s"Message from unknown user: ${slackMessage.user}"))
-
-    slackMessage.text match {
+    text match {
       case atMention(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, sentByUser)
+        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, sentByUser)
+        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        IncomingMessage(text.trim, true, channel, sentByUser)
+        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
       case _ =>
-        IncomingMessage(slackMessage.text.trim, channel.isInstanceOf[InstantMessageChannel], channel, sentByUser)
+        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, idTimestamp, threadTimestamp, attachments, from)
     }
   }
+
+  private def translateAndDispatch(channelId: String,
+                                   userId: String,
+                                   text: String,
+                                   idTimestamp: String,
+                                   threadTimestamp: Option[String] = None,
+                                   attachments: Seq[SAttachment] = Seq(),
+                                   fromBot: Boolean = false): Unit = {
+    val sentBy: Sender = if (!fromBot) {
+      val slackUser: slack.models.User = rtmClient.state.users.find(_.id == userId).
+        getOrElse(throw new IllegalStateException(s"Message from unknown user: $userId"))
+      UserSender(slackUser)
+    } else {
+      BotSender(userId)
+    }
+    val msgToBot = translateMessage(channelId, idTimestamp, threadTimestamp, text,
+      attachments.map(a => IncomingMessageAttachment(a.text.getOrElse(""), a.title.getOrElse(""))),
+      sentBy)
+    if (userId != selfId) {
+      log.info(s"Dispatching message: $msgToBot")
+      context.system.eventStream.publish(msgToBot)
+    }
+  }
+
+  // NOTE(stefan, 2017-01-09): This check is required because I've seen the API send us some old messages
+  // at times that I can't explain to myself.
+  private def tooOld(ts: String, message: AnyRef): Boolean = {
+    ts match {
+      case tsPattern(timeOfMessage, _) =>
+        val oldestAllowableMessageTime = (System.currentTimeMillis() - messageAgeLimitMillis) / 1000
+        val messageTooOld = timeOfMessage.toLong < oldestAllowableMessageTime
+        if (messageTooOld) {
+          log.warning(s"Discarding old message ($ts is too old, cutoff is $oldestAllowableMessageTime): $message")
+        }
+        messageTooOld
+      case other: String =>
+        log.warning(s"Could not parse ts: '$other'")
+        false
+    }
+  }
+
+
+
 }

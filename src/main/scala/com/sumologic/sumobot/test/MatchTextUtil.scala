@@ -23,6 +23,7 @@ import scala.util.matching.Regex
 /**
  * @author Chris (chris@sumologic.com)
  */
+@deprecated("use com.sumologic.sumobot.test.annotated.MatchTextUtil", "1.0.2")
 trait MatchTextUtil {
   this : SumoBotSpec =>
 

@@ -1,0 +1,170 @@
+# Only one frontend (slack, http) can be active at the same time.
+
+slack {
+  # Required parameters:
+  api.token = "..."
+
+  # Optional parameters:
+
+  # (default true, when slack API token defined)
+  # enabled = true
+}
+
+http {
+  # Required parameters:
+  host = "localhost"
+  port = 8080
+
+  # Optional parameters:
+
+  # (default true, when http block defined)
+  # enabled = true
+
+  # Origin (Access-Control-Allow-Origin header, default: *):
+  # origin = "..."
+
+  # Authentication:
+
+  # No authentication (default)
+  # authentication {
+  #   enabled = true
+  #   class = "com.sumologic.sumobot.http_frontend.authentication.NoAuthentication"
+  # }
+
+  # HTTP Basic Authentication
+  # authentication {
+  #   enabled = true
+  #   class = "com.sumologic.sumobot.http_frontend.authentication.BasicAuthentication"
+  #   username = "..."
+  #   password = "..."
+  # }
+
+  # AWS ALB Authentication
+  # authentication {
+  #   enabled = true
+  #   class = "com.sumologic.sumobot.http_frontend.authentication.AlbJwtAuthentication"
+  #   key-endpoint = "..."
+  #   cookie-name = "..."
+  #   logout-redirect = "..."
+  # }
+
+  # UI customization (shown in top bar):
+
+  # title = "..."
+  # description = "..."
+  # links {
+  #   mylink1 {
+  #     name = "..."
+  #     href = "..."
+  #   }
+  #   ...
+  # }
+}
+
+# Not read by the code, just used in the config.
+ldap {
+  username = "..."
+  password = "..."
+}
+
+jira {
+  url = "https://jira.example.com/jira/"
+
+  mapping {
+    somebody= "else"
+  }
+
+  ignoreUsers = [ "flexo", "pingboard", "slackbot", "borg" ]
+}
+
+aws {
+  infra {
+    key.id = "..."
+    key.secret = "..."
+  }
+}
+
+operators = ["superman"]
+
+plugins {
+
+  advice {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.advice.Advice"
+  }
+
+  alias = {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.alias.Alias"
+  }
+
+  aws-support = {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.awssupport.AWSSupport"
+  }
+
+  beer {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.beer.Beer"
+  }
+
+  brain-surgery {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.brain.BrainSurgery"
+  }
+
+  chuck {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.chuck.ChuckNorris"
+  }
+
+
+  conversations {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.conversations.Conversations"
+  }
+
+  help {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.help.Help"
+  }
+
+  jenkins {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.jenkins.Jenkins"
+    url = "https://jenkins.example.com/"
+    username = ${ldap.username}
+    password = ${ldap.password}
+  }
+
+  hudson {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.jenkins.Jenkins"
+    url = "https://hudson.example.com/hudson/"
+    username = ${ldap.username}
+    password = ${ldap.password}
+  }
+
+  pagerduty {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.pagerduty.PagerDuty"
+
+    token = "..."
+    url = "https://example.pagerduty.com/"
+
+    service {
+      slack_test = "..."
+    }
+  }
+
+  system {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.system.System"
+  }
+
+  text-to-speech {
+    enabled = true
+    class = "com.sumologic.sumobot.plugins.tts.TextToSpeech"
+    executable = "/usr/bin/say"
+  }
+}

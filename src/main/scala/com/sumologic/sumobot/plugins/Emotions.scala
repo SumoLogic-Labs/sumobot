@@ -40,5 +40,9 @@ trait Emotions {
     chooseRandom(":frowning:")
   }
 
+  val checkOk: String = ":white_check_mark:"
+
+  val crossNotOk: String = ":x:"
+
   protected def chooseRandom(inputs: String*): String = inputs(random.nextInt(inputs.size))
 }

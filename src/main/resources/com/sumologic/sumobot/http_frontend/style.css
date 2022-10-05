@@ -1,0 +1,142 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+html, body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    background-color: #f7f7f7;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.page-container {
+    padding: 10px;
+    background-color: white;
+    box-shadow: 0px 0px 60px #d4d4d4;
+    border-radius: 20px;
+}
+
+.header {
+    border-bottom: 1px solid #e1e8ed;
+    padding: 7px 7px 10px 7px;
+}
+
+.header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 5px 0;
+}
+
+.header span {
+    display: inline-block;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    color: #777;
+}
+
+.header span:not(:last-child) {
+    padding-right: 9px;
+    margin-right: 5px;
+    border-right: 1px solid #777;
+}
+
+.header a {
+    color: #777;
+}
+
+.messages {
+    display: flex;
+    flex-direction: column;
+    width: 500px;
+    height: 500px;
+    padding: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: auto;
+ }
+
+.message {
+    white-space: pre-line;
+    font-size: 0.9rem;
+    min-width: 70px;
+    max-width: 200px;
+    padding: 10px;
+    margin-bottom: 10px;
+    animation-name: new-message;
+    animation-duration: 0.15s;
+    animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.incoming {
+    background-color: #5780f6;
+    color: white;
+    border-radius: 20px 20px 20px 2px;
+    align-self: flex-start;
+}
+
+.outcoming {
+    background-color: #ecf0fe;
+    color: #85a2fa;
+    border: 1px solid #e1e8ed;
+    border-radius: 20px 20px 2px 20px;
+    align-self: flex-end;
+}
+
+@keyframes new-message {
+    from { transform: scale(1.2); opacity: 0.5; }
+    to { transform: scale(1.0); opacity: 1.0; }
+}
+
+.inputs {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 5px 5px 5px;
+}
+
+.message-input {
+    width: 80%;
+    padding: 2px 8px 2px 8px;
+    outline: none;
+    height: 30px;
+    font-size: 0.9rem;
+    border: 1px solid #e1e8ed;
+    border-radius: 15px;
+}
+
+.message-input:focus {
+    background-color: #fafbff;
+    border: 1px solid #bfccff;
+}
+
+.send-button {
+    border: none;
+    border-radius: 15px;
+    width: 60px;
+    height: 34px;
+    outline: none;
+    font-size: 0.90rem;
+    font-weight: 700;
+    background-color: #5780f6;
+    color: white;
+}

@@ -18,63 +18,54 @@
  */
 package com.sumologic.sumobot.plugins.jenkins
 
-import java.net.{URI, URLEncoder}
-
 import akka.event.Logging
-import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
 import com.offbytwo.jenkins.JenkinsServer
 import com.offbytwo.jenkins.client.JenkinsHttpClient
 import com.offbytwo.jenkins.model.Job
 import com.sumologic.sumobot.core.Bootstrap
-import com.sumologic.sumobot.plugins.Emotions
+import com.sumologic.sumobot.core.util.TimeHelpers
+import com.sumologic.sumobot.plugins.{Emotions, HttpClientWithTimeOut}
+import org.apache.http.client.config.{CookieSpecs, RequestConfig}
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
-import org.apache.http.client.params.{ClientPNames, CookiePolicy}
-import org.apache.http.impl.client.DefaultHttpClient
-import org.apache.http.impl.conn.PoolingClientConnectionManager
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 
-import scala.collection.JavaConverters._
+import java.net.{URI, URLEncoder}
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-object JenkinsJobClient {
-  def createClient(name: String): Option[JenkinsJobClient] = {
-
-    for (url <- DynamicStringProperty(s"jenkins.$name.url", null)();
-         user <- DynamicStringProperty(s"jenkins.$name.username", null)();
-         password <- DynamicStringProperty(s"jenkins.$name.password", null)())
-      yield new JenkinsJobClient(name, url, user, password,
-      DynamicStringProperty(s"jenkins.$name.buildtoken", null)())
-  }
-}
-
-class JenkinsJobClient(val name: String,
-                       val url: String,
-                       user: String,
-                       password: String,
-                       buildToken: Option[String])
-  extends Emotions {
+class JenkinsJobClient(val configuration: JenkinsConfiguration)
+  extends Emotions
+  with TimeHelpers {
 
   private val log = Logging.getLogger(Bootstrap.system, this)
-
+  import configuration._
   private val uri = new URI(url)
 
-  private val rawConMan = new PoolingClientConnectionManager()
+  private val rawConMan = new PoolingHttpClientConnectionManager()
   rawConMan.setMaxTotal(200)
   rawConMan.setDefaultMaxPerRoute(20)
-  private val rawHttpClient = new DefaultHttpClient()
-  rawHttpClient.getParams.setParameter(ClientPNames.COOKIE_POLICY, CookiePolicy.BROWSER_COMPATIBILITY)
 
-  private val basicAuthClient = new JenkinsHttpClient(uri, user, password)
+  val requestConfig = RequestConfig.custom.setCookieSpec(CookieSpecs.DEFAULT)
+    .setConnectionRequestTimeout(60000)
+    .setConnectTimeout(60000)
+    .build
+
+  private val rawHttpClient = HttpClientWithTimeOut.client(requestConfig)
+
+  private val basicAuthClient = new JenkinsHttpClient(uri, username, password)
 
   private val server = new JenkinsServer(basicAuthClient)
 
-  private val CacheExpiration = DynamicIntProperty(s"jenkins.$name.cache.expiration", 15000)
+  private val CacheExpiration = Duration(Bootstrap.system.settings.config.getInt(s"plugins.jenkins.cache.expiration.seconds"), TimeUnit.SECONDS)
   private val cacheLock = new AnyRef
   private var cachedJobs: Option[Map[String, Job]] = None
-  private var lastCacheTime = 0l
+  private var lastCacheTime = 0L
 
   def buildJob(givenName: String, cause: String): String = {
     Try(server.getJob(givenName)) match {
@@ -101,12 +92,12 @@ class JenkinsJobClient(val name: String,
             s"job $jobName has been triggered!"
           } catch {
             case NonFatal(e) =>
-              log.error(s"Could not trigger job $jobName", e)
+              log.error(s"Could not trigger job $jobName {}", e)
               "Unable to trigger job. Got an exception"
           }
         }
       case Failure(e) =>
-        log.error(s"Error triggering job $givenName on $url", e)
+        log.error(s"Error triggering job $givenName on $url {}", e)
         unknownJobMessage(givenName)
       case _ =>
         unknownJobMessage(givenName)
@@ -115,20 +106,19 @@ class JenkinsJobClient(val name: String,
 
   def jobs: Map[String, Job] = {
     cacheLock synchronized {
-      if (cachedJobs.isEmpty || System.currentTimeMillis() - lastCacheTime > CacheExpiration.get) {
+      if (cachedJobs.isEmpty || elapsedSince(lastCacheTime) > CacheExpiration) {
         cachedJobs = Some(server.getJobs.asScala.toMap)
-        lastCacheTime = System.currentTimeMillis()
+        lastCacheTime = now
       }
     }
 
     cachedJobs.get
   }
 
-
   private def loginWithCookie(): Unit = {
     val request = new HttpPost(url + "j_acegi_security_check")
     val pairs = List(
-      new BasicNameValuePair("j_username", user),
+      new BasicNameValuePair("j_username", username),
       new BasicNameValuePair("j_password", password),
       new BasicNameValuePair("remember_me", "on"),
       new BasicNameValuePair("from", "/"),
@@ -159,8 +149,7 @@ class JenkinsJobClient(val name: String,
     }
   }
 
-
-  def unknownJobMessage(jobName: String) = chooseRandom(
+  private[jenkins] def unknownJobMessage(jobName: String) = chooseRandom(
     s"I don't know any job named $jobName!! $upset",
     s"Bite my shiny metal ass. There's no job named $jobName!"
   )

@@ -18,25 +18,19 @@
  */
 package com.sumologic.sumobot.plugins.jenkins
 
-import java.net.URLEncoder
-
 import akka.actor.{ActorLogging, ActorRef, PoisonPill, Props}
 import com.offbytwo.jenkins.model.Job
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, Channel}
+import com.sumologic.sumobot.core.model.{Channel, IncomingMessage, OutgoingMessage, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 import com.sumologic.sumobot.plugins.jenkins.JenkinsJobMonitor.InspectJobs
+
+import java.net.URLEncoder
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object Jenkins {
-  def props(client: JenkinsJobClient): Props =
-    Props(classOf[Jenkins], client)
-}
-
-class Jenkins(client: JenkinsJobClient)
+class Jenkins
   extends BotPlugin
-  with JenkinsJobHelpers
-  with ActorLogging {
+    with JenkinsJobHelpers
+    with ActorLogging {
 
   private case object PollJobs
 
@@ -57,14 +51,16 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
   private val UnmonitorJob = matchText(s"$name unmonitor (\\S+)")
   private val Info = matchText(s"$name info")
 
+  private val client: JenkinsJobClient = new JenkinsJobClient(JenkinsConfiguration.load(config))
+
   private var monitoredJobs = Map.empty[String, ActorRef]
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
-    case message@IncomingMessage(Info(), _, _, _) =>
-      message.respond(s"Connected to ${client.url}")
+    case message@IncomingMessage(Info(), _, _, _, _, _, _) =>
+      message.respond(s"Connected to ${client.configuration.url}")
 
-    case message@IncomingMessage(JobStatus(givenName), _, _, _) =>
+    case message@IncomingMessage(JobStatus(givenName), _, _, _, _, _, _) =>
       message.respondInFuture {
         msg =>
           withKnownJob(msg, givenName) {
@@ -73,14 +69,14 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
           }
       }
 
-    case message@IncomingMessage(BuildJob(givenName), _, _, user) =>
+    case message@IncomingMessage(BuildJob(givenName), _, _, _, _, _, UserSender(user)) =>
       val cause = URLEncoder.encode(s"Triggered via sumobot by ${user.name} in ${message.channel.name}", "UTF-8")
       message.respondInFuture {
         msg =>
           msg.response(client.buildJob(givenName, cause))
       }
 
-    case message@IncomingMessage(MonitorJob(givenName), _, _, _) =>
+    case message@IncomingMessage(MonitorJob(givenName), _, _, _, _, _, _) =>
       message.respondInFuture {
         msg =>
           withKnownJob(msg, givenName) {
@@ -100,7 +96,7 @@ $name unmonitor <jobname> - I'll stop bugging you about that job."""
           }
       }
 
-    case message@IncomingMessage(UnmonitorJob(givenName), _, _, _) =>
+    case message@IncomingMessage(UnmonitorJob(givenName), _, _, _, _, _, _) =>
       monitoredJobs.find(_._1.equalsIgnoreCase(monitorKey(message.channel, givenName.trim))) match {
         case Some(monitoredJob) =>
           monitoredJobs -= monitoredJob._1

@@ -20,16 +20,23 @@ package com.sumologic.sumobot.plugins
 
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.brain.BlockingBrain
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, InstantMessageChannel}
 import com.sumologic.sumobot.core.Bootstrap
+import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
+import com.sumologic.sumobot.quartz.QuartzExtension
+import com.typesafe.config.Config
+import org.apache.http.HttpResponse
+import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
+import slack.models.{Group, Im, User, Channel => ClientChannel}
 import slack.rtm.RtmState
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.concurrent.duration.FiniteDuration
+import java.net.URLEncoder
+import java.util.concurrent.{Executors, TimeoutException}
+import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
+import scala.util.{Failure, Success}
 
 object BotPlugin {
 
@@ -41,15 +48,16 @@ object BotPlugin {
 
   case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef)
 
-  def matchText(regex: String): Regex = ("(?i)" + regex).r
+  def matchText(regex: String): Regex = ("(?i)(?s)" + regex).r
 }
 
 abstract class BotPlugin
-    extends Actor
+  extends Actor
     with ActorLogging
     with Emotions {
 
   type ReceiveIncomingMessage = PartialFunction[IncomingMessage, Unit]
+  type ReceiveReaction = PartialFunction[Reaction, Unit]
 
   protected var state: RtmState = _
 
@@ -60,68 +68,153 @@ abstract class BotPlugin
   // For plugins to implement.
 
   protected def receiveIncomingMessage: ReceiveIncomingMessage
+  protected def receiveReaction: ReceiveReaction = Map.empty
 
   protected def help: String
 
   // Helpers for plugins to use.
 
+  protected def sendMessage(msg: OutgoingMessage): Unit = context.system.eventStream.publish(msg)
+  protected def sendMessage(msg: OutgoingMessageWithAttachments): Unit = context.system.eventStream.publish(msg)
+  protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
+
+  protected def responseConcurrency = 10
+
+  protected def responseTimeout = 10.seconds
+
+  implicit protected val responseExecutionContext = ExecutionContext.fromExecutor(
+    Executors.newFixedThreadPool(responseConcurrency))
+
   class RichIncomingMessage(msg: IncomingMessage) {
-    def response(text: String) = OutgoingMessage(msg.channel, responsePrefix + text)
+    def response(text: String, inThread: Boolean = false) = {
+      val threadTs = if (inThread) {
+        msg.threadTimestamp.orElse(Some(msg.idTimestamp))
+      } else {
+        None
+      }
+      OutgoingMessage(msg.channel, responsePrefix(inThread) + text, threadTs)
+    }
 
     def message(text: String) = OutgoingMessage(msg.channel, text)
 
-    def say(text: String) = context.system.eventStream.publish(message(text))
+    def say(text: String) = sendMessage(message(text))
 
-    def respond(text: String) = context.system.eventStream.publish(response(text))
+    def respond(text: String, inThread: Boolean = false) = sendMessage(response(text, inThread))
 
-    def senderId: String = s"<@${msg.sentByUser.id}>"
+    private def responsePrefix(inThread: Boolean): String =
+      if (msg.channel.isInstanceOf[InstantMessageChannel] || inThread) {
+        ""
+      } else {
+        s"${msg.sentBy.slackReference}: "
+      }
 
-    private def responsePrefix: String = if (msg.channel.isInstanceOf[InstantMessageChannel]) "" else s"$senderId: "
+    def scheduleResponse(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, response(text))
 
-    def scheduleResponse(delay: FiniteDuration, text: String): Unit = {
+    def scheduleMessage(delay: FiniteDuration, text: String): Unit = scheduleOutgoingMessage(delay, message(text))
+
+    def scheduleOutgoingMessage(delay: FiniteDuration, outgoingMessage: OutgoingMessage): Unit = {
       context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = context.system.eventStream.publish(response(text))
+        override def run(): Unit = sendMessage(outgoingMessage)
       })
     }
 
-    def scheduleMessage(delay: FiniteDuration, text: String): Unit = {
-      context.system.scheduler.scheduleOnce(delay, new Runnable() {
-        override def run(): Unit = context.system.eventStream.publish(message(text))
-      })
+    def respondInFuture(body: IncomingMessage => OutgoingMessage): Unit = {
+      respondAsync((x: IncomingMessage)  => Future[OutgoingMessage]{body(x)})
     }
 
-    def respondInFuture(body: IncomingMessage => OutgoingMessage)(implicit executor: scala.concurrent.ExecutionContext): Unit = {
-      Future {
-        try {
-          body(msg)
-        } catch {
-          case NonFatal(e) =>
-            log.error(e, "Execution failed.")
-            msg.response("Execution failed.")
-        }
-      } foreach context.system.eventStream.publish
+    def respondAsync(body: IncomingMessage => Future[OutgoingMessage]): Unit = {
+      val timeout = akka.pattern.after(responseTimeout, using = context.system.scheduler)(
+        Future.failed[OutgoingMessage](new TimeoutException("Response timed out")))
+      val response: Future[OutgoingMessage] = Future.firstCompletedOf[OutgoingMessage](Seq(timeout, body(msg)))
+      response.onComplete{
+        case Failure(NonFatal(e)) =>
+          log.error(e, "Execution failed.")
+          msg.response("Execution failed.")
+        case Success(message) =>
+          sendMessage(message)
+      }
+    }
+
+    def httpGet(url: String)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = http(new HttpGet(url))(func)
+
+    def http(request: HttpUriRequest)(func: (IncomingMessage, HttpResponse) => OutgoingMessage): Unit = {
+      respondInFuture {
+        (incoming: IncomingMessage) =>
+          val client = HttpClientWithTimeOut.client()
+          func(incoming, client.execute(request))
+      }
     }
   }
 
   implicit def enrichIncomingMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
 
+  implicit def clientToPublicChannel(channel: ClientChannel): PublicChannel = PublicChannel(channel.id, channel.name)
+
+  implicit def clientToGroupChannel(group: Group): GroupChannel = GroupChannel(group.id, group.name)
+
+  implicit def clientToInstanceMessageChannel(im: Im): InstantMessageChannel =
+    InstantMessageChannel(im.id, state.users.find(_.id == im.user).get)
+
+  protected val UserId = "<@(\\w+)>"
+
+  protected val ChannelId = "<#(C\\w+)\\|.*>"
+
+  protected def mention(user: User): String = s"<@${user.id}>"
+
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
 
+  protected def userById(id: String): Option[User] = state.users.find(_.id == id)
+
+  protected[plugins] def userByName(name: String): Option[User] = state.users.find(_.name == name)
+
+  protected def publicChannel(name: String): Option[PublicChannel] = state.channels.find(_.name == name).map(clientToPublicChannel)
+
+  protected def groupChannel(name: String): Option[GroupChannel] = state.groups.find(_.name == name).map(clientToGroupChannel)
+
+  protected[plugins] def instantMessageChannel(name: String): Option[InstantMessageChannel] = {
+    for (user <- state.users.find(_.name == name);
+         im <- state.ims.find(_.user == user.id))
+      yield clientToInstanceMessageChannel(im)
+  }
+
+  protected def channelForName(name: String): Option[Channel] = {
+    Seq(publicChannel(name), groupChannel(name), instantMessageChannel(name)).flatten.headOption
+  }
+
+  protected def urlEncode(string: String): String = URLEncoder.encode(string, "utf-8")
+
+  protected def scheduleActorMessage(name: String, cronExpression: String, message: AnyRef): Unit = {
+    QuartzExtension(context.system).scheduleMessage(name, cronExpression, self, message)
+  }
+
+  protected def config: Config = context.system.settings.config.getConfig(s"plugins.${self.path.name}")
+
   // Implementation. Most plugins should not override.
 
-  override def preStart(): Unit = {
+  override final def preStart(): Unit = {
     context.system.eventStream.subscribe(self, classOf[IncomingMessage])
+    context.system.eventStream.subscribe(self, classOf[Reaction])
     Bootstrap.receptionist.foreach(_ ! PluginAdded(self, help))
+    pluginPreStart()
   }
 
-  override def postStop(): Unit = {
+  protected def pluginPreStart(): Unit = {}
+
+  override final def postStop(): Unit = {
     Bootstrap.receptionist.foreach(_ ! PluginRemoved(self))
     context.system.eventStream.unsubscribe(self)
+    pluginPostStop()
   }
 
+  protected def pluginPostStop(): Unit = {}
+
   private final def receiveIncomingMessageInternal: ReceiveIncomingMessage = receiveIncomingMessage orElse {
+    case ignore =>
+  }
+
+  private final def receiveReactionInternal: ReceiveReaction = receiveReaction orElse {
     case ignore =>
   }
 
@@ -137,8 +230,11 @@ abstract class BotPlugin
   }
 
   protected final def initialized: Receive = {
-    case message@IncomingMessage(text, _, _, _) =>
+    case message@IncomingMessage(text, _, _, _, _, _, _) =>
       receiveIncomingMessageInternal(message)
+
+    case reaction@Reaction(_, _, _, _) =>
+      receiveReactionInternal(reaction)
   }
 
   protected def pluginReceive: Receive = Map.empty

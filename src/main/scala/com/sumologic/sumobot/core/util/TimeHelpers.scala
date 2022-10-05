@@ -16,26 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.sumologic.sumobot.core
+package com.sumologic.sumobot.core.util
 
-import akka.actor.ActorSystem
-import com.netflix.config.scala.{DynamicIntProperty, DynamicStringProperty}
-import slack.rtm.SlackRtmClient
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 
-object SlackSettings {
-  val ApiToken = DynamicStringProperty("slack.api.token", null)
+trait TimeHelpers {
+  def now: Long = System.currentTimeMillis
 
-  val ConnectTimeout = DynamicIntProperty("slack.connect.timeout.seconds", 15)
+  def elapsedSince(time: Long): Duration = asDuration(System.currentTimeMillis - now)
 
-  def connectOrExit(implicit system: ActorSystem): SlackRtmClient = {
-    ApiToken() match {
-      case Some(token) =>
-        SlackRtmClient(token, ConnectTimeout.get.seconds)
-      case None =>
-        println(s"Please set the slack.api.token environment variable!")
-        sys.exit(1)
-        null
-    }
-  }
+  def asDuration(millis: Long): Duration = Duration(millis, TimeUnit.MILLISECONDS)
 }

@@ -18,17 +18,16 @@
  */
 package com.sumologic.sumobot.plugins.system
 
-import java.net.InetAddress
-import java.util.Date
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model.IncomingMessage
-import com.sumologic.sumobot.plugins.{OperatorLimits, BotPlugin}
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.sumologic.sumobot.plugins.{BotPlugin, OperatorLimits}
 
+import java.net.InetAddress
+import java.util.Date
 import scala.concurrent.duration._
 
 class System
-    extends BotPlugin
+  extends BotPlugin
     with OperatorLimits {
   override protected def help =
     """Low-level system stuff:
@@ -47,17 +46,17 @@ class System
   private val startTime = new Date().toString
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(WhereAreYou(), true, _, _) =>
+    case message@IncomingMessage(WhereAreYou(), true, _, _, _, _, _) =>
       message.respond(s"I'm running at $hostname ($hostAddress)")
-    case message@IncomingMessage(WhenDidYouStart(_), true, _, _) =>
+    case message@IncomingMessage(WhenDidYouStart(_), true, _, _, _, _, _) =>
       message.respond(s"I started at $startTime")
-    case message@IncomingMessage(DieOn(host), true, _, _) =>
+    case message@IncomingMessage(DieOn(host), true, _, _, _, _, _) =>
 
       if (host.trim.equalsIgnoreCase(hostname)) {
         if (!sentByOperator(message)) {
-          message.respond(s"Sorry, ${message.senderId}, I can't do that.")
+          message.respond(s"Sorry, ${message.sentBy.slackReference}, I can't do that.")
         } else {
-          message.respond(s"Sayonara, ${message.senderId}!")
+          message.respond(s"Sayonara, ${message.sentBy.slackReference}!")
           context.system.scheduler.scheduleOnce(2.seconds, new Runnable {
             override def run() = {
               Bootstrap.shutdown()

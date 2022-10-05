@@ -22,24 +22,24 @@ import akka.actor.ActorSystem
 import akka.pattern.ask
 import akka.testkit.TestKit
 import akka.util.Timeout
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
+import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.sumologic.sumobot.brain.Brain.ValueRetrieved
-import com.sumologic.sumobot.core.aws.AWSCredentialSource
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import com.sumologic.sumobot.core.aws.AWSAccounts
+import com.sumologic.sumobot.test.annotated.SumoBotTestKit
+import org.scalatest.{BeforeAndAfterAll, Matchers}
 
-import scala.collection.JavaConverters._
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 class S3BrainTest
-    extends TestKit(ActorSystem("S3SingleObjectBrainTest"))
-    with WordSpecLike
+    extends SumoBotTestKit(ActorSystem("S3SingleObjectBrainTest"))
     with BeforeAndAfterAll
     with Matchers {
 
-  lazy val credsOption = AWSCredentialSource.credentials.values.headOption
+  lazy val credsOption = AWSAccounts.load(system.settings.config).values.headOption
 
   val bucketPrefix = "sumobot-s3-brain"
 
@@ -89,13 +89,13 @@ class S3BrainTest
         map(alphabet.charAt).mkString
   }
 
-  override def afterAll() {
+  override def afterAll(): Unit = {
     TestKit.shutdownActorSystem(system)
     credsOption.foreach(cleanupBuckets)
   }
 
   def cleanupBuckets(creds: AWSCredentials): Unit = {
-    val s3 = new AmazonS3Client(creds)
+    val s3 = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(creds)).build()
     s3.listBuckets().asScala.filter(_.getName.startsWith(bucketPrefix)).foreach {
       bucket =>
         println(s"Deleting S3 bucket ${bucket.getName}")

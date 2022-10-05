@@ -1,6 +1,7 @@
 *.class
 *.log
-*.iml 
+*.iml
+*~
 
 # sbt specific
 .cache
@@ -18,4 +19,9 @@ project/plugins/project/
 .worksheet
 sumo-env.txt
 .idea/
-config/
+config/*.conf
+
+# Gradle
+build/
+.gradle/
+out/

@@ -19,9 +19,28 @@
 package com.sumologic.sumobot.plugins
 
 import akka.actor.{ActorSystem, Props}
+import akka.event.Logging
+import com.typesafe.config.ConfigException
+
+import scala.util.{Failure, Success, Try}
 
 trait PluginCollection {
-  protected def addPlugin(name: String, props: Props)(implicit system: ActorSystem) = system.actorOf(props, name)
+
+  protected def addPlugin(name: String, props: Props)(implicit system: ActorSystem): Unit = {
+    lazy val log = Logging.getLogger(system, this)
+    val property = s"plugins.$name.enabled"
+    Try(system.settings.config.getBoolean(property)) match {
+      case Success(true) =>
+        system.actorOf(props, name)
+      case Success(false) =>
+        log.debug(s"Plugin $name is disabled.")
+      case Failure(_: ConfigException.Missing) =>
+        log.debug(s"Could not find $property. Enabling plugin by default.")
+        system.actorOf(props, name)
+      case Failure(other) =>
+        throw other
+    }
+  }
 
   def setup(implicit system: ActorSystem): Unit
 }

@@ -44,7 +44,7 @@ class Alias extends BotPlugin {
   }
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(CreateAlias(from, to), _, _, _) =>
+    case message@IncomingMessage(CreateAlias(from, to), _, _, _, _, _, _) =>
       if (from.isEmpty || to.isEmpty) {
         message.respond("You've gotta give me both parts!")
       } else if (from == to) {
@@ -55,14 +55,14 @@ class Alias extends BotPlugin {
         message.respond(s"Ok, remembered that '$from' is '$to'")
       }
 
-    case message@IncomingMessage(text, _, _, _) if knownAliases.exists(_._1.equalsIgnoreCase(text)) =>
+    case message@IncomingMessage(text, _, _, _, _, _, _) if knownAliases.exists(_._1.equalsIgnoreCase(text)) =>
       knownAliases.find(_._1.equalsIgnoreCase(text)).foreach {
         tpl =>
           val replacement = tpl._2
           context.system.eventStream.publish(message.copy(canonicalText = replacement))
       }
 
-    case message@IncomingMessage(RemoveAlias(alias), _, _, _) =>
+    case message@IncomingMessage(RemoveAlias(alias), _, _, _, _, _, _) =>
       knownAliases.find(_._1.equalsIgnoreCase(alias)) match {
         case Some(knownAlias) =>
           knownAliases -= knownAlias._1
@@ -72,7 +72,7 @@ class Alias extends BotPlugin {
           message.respond(s"I don't know anything about $alias")
       }
 
-    case message@IncomingMessage(ShowAliases(alias), _, _, _) =>
+    case message@IncomingMessage(ShowAliases(alias), _, _, _, _, _, _) =>
       if (knownAliases.nonEmpty) {
         message.respond(knownAliases.toSeq.sortBy(_._1).map(tpl => s"'${tpl._1}' is '${tpl._2}'").mkString("\n"))
       } else {

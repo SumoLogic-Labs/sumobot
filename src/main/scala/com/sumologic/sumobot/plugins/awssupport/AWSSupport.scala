@@ -19,23 +19,29 @@
 package com.sumologic.sumobot.plugins.awssupport
 
 import akka.actor.ActorLogging
-import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.services.support.AWSSupportClient
+import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
+import com.amazonaws.services.support.AWSSupportClientBuilder
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}
+import com.sumologic.sumobot.core.aws.AWSAccounts
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
+import com.sumologic.sumobot.util.ParExecutor
 
-import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
-class AWSSupport(credentials: Map[String, AWSCredentials])
+class AWSSupport
   extends BotPlugin
-  with ActorLogging {
+    with ActorLogging {
 
   case class CaseInAccount(account: String, caseDetails: CaseDetails)
 
-  private val clients = credentials.map(tpl => tpl._1 -> new AWSSupportClient(tpl._2))
+  private val credentials: Map[String, AWSCredentials] =
+    AWSAccounts.load(context.system.settings.config)
+
+  private val clients = credentials.map{case (id, credentials) =>
+    id ->
+      AWSSupportClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).build()}
 
   override protected def help: String =
     s"""
@@ -51,14 +57,14 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
 
-    case message@IncomingMessage(ListCases(), _, _, _) =>
+    case message@IncomingMessage(ListCases(), _, _, _, _, _, _) =>
       message.respondInFuture {
         msg =>
           val caseList = getAllCases.map(summary(_) + "\n").mkString("\n")
           msg.message(caseList)
       }
 
-    case message@IncomingMessage(CaseDetails(caseId), _, _, _) =>
+    case message@IncomingMessage(CaseDetails(caseId), _, _, _, _, _, _) =>
       message.respondInFuture {
         msg =>
           log.info(s"Looking for case $caseId")
@@ -78,13 +84,13 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
   }
 
   private def getAllCases: Seq[CaseInAccount] = {
-    clients.toSeq.par.flatMap {
+    ParExecutor.runInParallelAndGetFlattenedResults(clients.toSeq) {
       tpl =>
         val client = tpl._2
         val unresolved = client.describeCases(new DescribeCasesRequest()).getCases.asScala.toList
         val resolved = client.describeCases(new DescribeCasesRequest().withIncludeResolvedCases(true)).getCases.asScala.toList
         (unresolved ++ resolved).map(CaseInAccount(tpl._1, _))
-    }.seq
+    }
   }
 
   private def summary(cia: CaseInAccount): String =
@@ -93,9 +99,10 @@ class AWSSupport(credentials: Map[String, AWSCredentials])
 
   private def details(cia: CaseInAccount): String = {
     val latest = cia.caseDetails.getRecentCommunications.getCommunications.asScala.head
-    summary(cia) + "\n\n" + s"""
-                               |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
-                                                                                       |${latest.getBody}
+    summary(cia) + "\n\n" +
+      s"""
+         |_${latest.getSubmittedBy} at ${latest.getTimeCreated}_
+         |${latest.getBody}
     """.stripMargin
   }
 }

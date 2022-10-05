@@ -19,18 +19,15 @@
 package com.sumologic.sumobot.plugins.help
 
 import akka.actor.{ActorSystem, Props}
-import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel}
 import com.sumologic.sumobot.core.PluginRegistry
+import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.plugins.conversations.Conversations
-import com.sumologic.sumobot.test.BotPluginTestKit
-import org.scalatest.{Matchers, WordSpecLike}
+import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 
-class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
+class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
 
-  def this() = this(ActorSystem("HelpTest"))
-
-  val helpRef = system.actorOf(Props[Help], "help")
+  val helpRef = system.actorOf(Props[Help](), "help")
 
   val reg = system.actorOf(Props(classOf[PluginRegistry]))
   val mock = system.actorOf(Props(classOf[Conversations]), "mock")
@@ -44,7 +41,7 @@ class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
 
   "help" should {
     "return list of plugins" in {
-      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), user)
+      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should be("help\nmock")
@@ -52,7 +49,7 @@ class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
     }
 
     "return help for known plugins" in {
-      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), user)
+      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should include("mock help")
@@ -60,11 +57,19 @@ class HelpTest(_system: ActorSystem) extends BotPluginTestKit(_system) {
     }
 
     "return an error for unknown commands" in {
-      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), user)
+      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should include("Sorry, I don't know")
       }
+    }
+
+    "work with ? variants" in {
+      "?" should fullyMatch regex Help.ListPlugins
+      "?" should fullyMatch regex Help.ListPlugins
+      "help  " should fullyMatch regex Help.ListPlugins
+      "? me " should fullyMatch regex Help.HelpForPlugin
+      "help me " should fullyMatch regex Help.HelpForPlugin
     }
   }
 }

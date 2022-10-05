@@ -21,11 +21,17 @@ package com.sumologic.sumobot.plugins.help
 import akka.actor.ActorLogging
 import akka.pattern.ask
 import akka.util.Timeout
-import com.sumologic.sumobot.core.PluginRegistry.{RequestPluginList, PluginList}
+import com.sumologic.sumobot.core.PluginRegistry.{PluginList, RequestPluginList}
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
+
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Success
+
+object Help {
+  private[help] val ListPlugins = BotPlugin.matchText("(help|\\?)\\W*")
+  private[help] val HelpForPlugin = BotPlugin.matchText("(help|\\?) ([\\-\\w]+).*")
+}
 
 class Help extends BotPlugin with ActorLogging {
   override protected def help =
@@ -35,29 +41,36 @@ class Help extends BotPlugin with ActorLogging {
        |help <plugin>. - I'll tell you how <plugin> works.
      """.stripMargin
 
-  private val ListPlugins = matchText("help")
-  private val HelpForPlugin = matchText("help ([\\-\\w]+).*")
+  import Help._
 
   override protected def receiveIncomingMessage = {
-    case message@IncomingMessage(ListPlugins(), true, _, _) =>
+    case message@IncomingMessage(ListPlugins(_), true, _, _, _, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
-      pluginRegistry ? RequestPluginList onSuccess {
-        case PluginList(plugins) =>
-          msg.respond(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
+      pluginRegistry ? RequestPluginList onComplete {
+        case Success(result) => result match {
+          case PluginList(plugins) =>
+            msg.say(plugins.map(_.plugin.path.name).sorted.mkString("\n"))
+        }
+        case _ =>
       }
 
-    case message@IncomingMessage(HelpForPlugin(pluginName), true, _, _) =>
+    case message@IncomingMessage(HelpForPlugin(_, pluginName), addressedToUs, _, _, _, _, _) =>
       val msg = message
       implicit val timeout = Timeout(5.seconds)
-      pluginRegistry ? RequestPluginList onSuccess {
-        case PluginList(plugins) =>
-          plugins.find(_.plugin.path.name.equalsIgnoreCase(pluginName)) match {
-            case Some(plugin) =>
-              msg.say(plugin.help)
-            case None =>
-              msg.respond(s"Sorry, I don't know $pluginName")
-          }
+      pluginRegistry ? RequestPluginList onComplete {
+        case Success(result) => result match {
+          case PluginList(plugins) =>
+            plugins.find(_.plugin.path.name.equalsIgnoreCase(pluginName)) match {
+              case Some(plugin) =>
+                msg.say(plugin.help)
+              case None =>
+                if (addressedToUs) {
+                  msg.respond(s"Sorry, I don't know $pluginName")
+                }
+            }
+        }
+        case _ =>
       }
   }
 }

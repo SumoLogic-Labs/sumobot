@@ -24,4 +24,5 @@ import org.scalatest.{Matchers, WordSpecLike}
 /**
  * @author Chris (chris@sumologic.com)
  */
+@deprecated("use com.sumologic.sumobot.test.annotated.SumoBotSpec", "1.0.2")
 trait SumoBotSpec extends WordSpecLike with Eventually with Matchers

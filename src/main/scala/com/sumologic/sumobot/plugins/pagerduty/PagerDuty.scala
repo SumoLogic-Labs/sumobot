@@ -19,89 +19,117 @@
 package com.sumologic.sumobot.plugins.pagerduty
 
 import akka.actor.ActorLogging
-import com.google.common.annotations.VisibleForTesting
-import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, PublicChannel, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Try
 
 trait EscalationPolicyFilter {
-  def filter(message: IncomingMessage, policies: Seq[PagerDutyEscalationPolicy]): Seq[PagerDutyEscalationPolicy]
+  def filter(message: IncomingMessage, onCalls: Seq[PagerDutyOnCall]): Seq[PagerDutyOnCall]
+}
+
+object PagerDuty {
+  val PageOnCalls = BotPlugin.matchText("page on[\\-]?calls[\\:]? (.*)")
+  val WhosOnCall = BotPlugin.matchText("who'?s on\\s?call(?: for (.+?))?\\??")
 }
 
 /**
  * @author Chris (chris@sumologic.com)
  */
-class PagerDuty(manager: PagerDutySchedulesManager,
-                policyFilter: Option[EscalationPolicyFilter]) extends BotPlugin with ActorLogging {
+class PagerDuty extends BotPlugin with ActorLogging {
 
   override protected def help: String =
     """
       |Communicate with PagerDuty to learn about on-call processes. And stuff.
       |
-      |who's on call? - I'll tell you!
+      |who's on call? - I'll tell you! You can add policy filters as well! Eg. 'whos oncall for infra'
+      |page oncalls: <message> - I'll trigger an alert for the on-calls with the message.
     """.stripMargin
 
   // TODO: Turn these into actual settings
-  val maximumLevel = 2
-  val ignoreTest = true // Ignore policies containing the word test
+  private val maximumLevel = 2
 
-  @VisibleForTesting protected[pagerduty] val WhosOnCall = matchText("who'?s on\\s?call(?: for (.+?))?\\??")
+  private val ignoreTest = true // Ignore policies containing the word test
+
+  private val manager = new PagerDutySchedulesManager(
+    PagerDutySettings(config.getString("token"), config.getString("url")))
+
+  private val eventApi = new PagerDutyEventApi()
+
+  private val policyFilter: Option[EscalationPolicyFilter] =
+    Try(config.getString("policy-filter")).toOption.
+        map {
+          n =>
+            println(s"CLASS NAME: $n")
+            val clazz = Class.forName(n)
+            println(s"INSTANTIATING ${clazz.getName}")
+            clazz.newInstance().asInstanceOf[EscalationPolicyFilter]
+        }
+
+  import PagerDuty._
 
   override protected def receiveIncomingMessage: ReceiveIncomingMessage = {
-    case message@IncomingMessage(WhosOnCall(filter), _, _, _) =>
+    case message@IncomingMessage(WhosOnCall(filter), _, _, _, _, _, _) =>
       message.respondInFuture(whoIsOnCall(_, maximumLevel, Option(filter)))
+
+    case message@IncomingMessage(PageOnCalls(text), _, PublicChannel(_, channel), _, _, _, UserSender(sentByUser)) =>
+      pagerDutyKeyFor(channel) match {
+        case Some(key) =>
+          eventApi.page(channel, key, s"${sentByUser.name} on $channel: $text")
+          message.say("Paged on-calls.")
+        case None =>
+          message.respond("Don't know how to page people in this channel.")
+      }
+  }
+
+  private def pagerDutyKeyFor(channel: String): Option[String] = {
+    Try(context.system.settings.config.getString(s"plugins.pagerduty.service.$channel")).toOption
   }
 
   private[this] def whoIsOnCall(msg: IncomingMessage,
-                                maximumLevel: Int,
-                                filterOpt: Option[String]): OutgoingMessage = {
-    manager.getEscalationPolicies match {
-      case Some(policies) =>
-        val escalationPolicies = policies.escalation_policies
-        val nonTestPolicies = escalationPolicies.filter {
-          policy => !(ignoreTest && policy.name.toLowerCase.contains("test"))
-        }
-
-        // TODO: Teach the filter to be smarter about how it handles stuff since this text matching is stupidly simple
-        val partiallyFilteredPolicies = nonTestPolicies.filter {
-          policy =>
-            (filterOpt.isEmpty ||
-              filterOpt.exists(filter => policy.name.toLowerCase.contains(filter.toLowerCase))) &&
-              policy.on_call.nonEmpty
-        }
-
-        val nonFilteredPolicies = policyFilter match {
-          case Some(filter) => filter.filter(msg, partiallyFilteredPolicies)
-          case None => partiallyFilteredPolicies
-        }
-
-        if (nonFilteredPolicies.isEmpty) {
-          msg.response("No escalation policies matched your filter.")
-        } else {
-          val outputString = nonFilteredPolicies.map {
-            policy =>
-              val onCalls = policy.on_call.filter(_.level <= maximumLevel).groupBy(_.level).toList.sortBy(_._1).map {
-                tpl =>
-                  val level = tpl._1
-                  val oncalls = tpl._2.map(_.user.name).sorted.mkString(", ")
-                  val levelName = level match {
-                    case 1 => "primary"
-                    case 2 => "secondary"
-                    case 3 => "tertiary"
-                    case other => s"level $other"
-                  }
-                  s"- _$levelName:_ $oncalls"
-              }.mkString("\n", "\n", "\n")
-
-              "*" + policy.name + "*" + onCalls
-          }.mkString("\n")
-
-          msg.message(outputString)
-        }
-
-      case None =>
-        msg.response("Unable to login or something.")
+                                  maximumLevel: Int,
+                                  filterOpt: Option[String]): OutgoingMessage = {
+    val oncalls = try {
+      manager.getAllOnCalls
+    } catch {
+      case e: Exception =>
+        log.error(e, "Pagerduty lookup failure")
+        msg.message("Failed to retrieve on-calls from Pagerduty")
+        throw e
     }
+
+    val nonTestOnCalls = oncalls.filter {
+      oncall =>
+        !(ignoreTest && oncall.escalation_policy.summary.toLowerCase.contains("test"))
+    }
+    val partiallyFilteredOnCalls = nonTestOnCalls.filter {
+      oncall =>
+        (oncall.escalation_level <= maximumLevel && (filterOpt.isEmpty ||
+            filterOpt.exists(filter =>
+              oncall.escalation_policy.summary.toLowerCase.contains(filter.toLowerCase))))
+    }
+
+    val filteredOnCalls = policyFilter match {
+      case Some(filter) => filter.filter(msg, partiallyFilteredOnCalls)
+      case None => partiallyFilteredOnCalls
+    }
+
+    val outputString =
+      filteredOnCalls.groupBy(_.escalation_policy.summary).toList.sortBy(_._1).map {
+        tpl =>
+          val oncallString = tpl._2.groupBy(_.escalation_level).toList.sortBy(_._1).map {
+            levelOnCallsTpl =>
+              val oncalls = levelOnCallsTpl._2.map(_.user.summary).sorted.mkString(", ")
+              val levelName = levelOnCallsTpl._1 match {
+                case 1 => "primary"
+                case 2 => "secondary"
+                case 3 => "tertiary"
+                case other => s"level $other"
+              }
+              s"- _$levelName:_ $oncalls"
+          }.mkString("\n", "\n", "\n")
+          "*" + tpl._1 + "*" + oncallString
+      }.mkString("\n")
+    msg.message(outputString)
   }
 }

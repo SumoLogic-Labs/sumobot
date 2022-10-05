@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, we don't use software mentioned in CVE.
+   file name: commons-collections-3.2.1.jar
+   ]]></notes>
+        <gav regex="true">^commons-collections:commons-collections:.*$</gav>
+        <cve>CVE-2015-6420</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, we don't use Apache Synapse
+   file name: commons-collections-3.2.1.jar
+   ]]></notes>
+        <gav regex="true">^commons-collections:commons-collections:.*$</gav>
+        <cve>CVE-2017-15708</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this CVE is for Jenkins Git plugin
+   file name: jenkins-client-0.3.8.jar
+   ]]></notes>
+        <gav regex="true">^com\.offbytwo\.jenkins:jenkins-client:.*$</gav>
+        <cve>CVE-2017-1000242</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this CVE is for Jenkins Git plugin
+   file name: jenkins-client-0.3.8.jar
+   ]]></notes>
+        <sha1>f4a80fa2e5ae7ea22f4bb40d97390943c0dce3c4</sha1>
+        <cve>CVE-2019-10392</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery-ui.js
+   ]]></notes>
+        <sha1>81269986fe3d866d0430312c1dc18a718cc2d728</sha1>
+        <cve>CVE-2010-5312</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery-ui.js
+   ]]></notes>
+        <sha1>81269986fe3d866d0430312c1dc18a718cc2d728</sha1>
+        <cve>CVE-2016-7103</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery.js
+   ]]></notes>
+        <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
+        <cve>CVE-2012-6708</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery.js
+   ]]></notes>
+        <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
+        <cve>CVE-2015-9251</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, this javascript was found in Scala compiler documentation
+   file name: scala-compiler-2.11.12.jar: jquery.js
+   ]]></notes>
+        <sha1>d09d3a99ed25d0f1fbe6856de9e14ffd33557256</sha1>
+        <cve>CVE-2019-11358</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, project uses higher Scala version
+   file name: scala-compiler-2.10.6.jar
+   ]]></notes>
+        <sha1>9b15174852f5b6bb1edbf303d5722286a0a54011</sha1>
+        <cve>CVE-2017-15288</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, project uses higher Scala version
+   file name: scala-reflect-2.10.6.jar
+   ]]></notes>
+        <sha1>3259f3df0f166f017ef5b2d385445808398c316c</sha1>
+        <cve>CVE-2017-15288</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, project uses higher Scala version
+   file name: scala-library-2.10.6.jar
+   ]]></notes>
+        <sha1>421989aa8f95a05a4f894630aad96b8c7b828732</sha1>
+        <cve>CVE-2017-15288</cve>
+    </suppress>
+    <suppress>
+        <notes><![CDATA[
+   Not applicable, we don't deserialize any data from network
+   file name: log4j-1.2.17.jar
+   ]]></notes>
+        <sha1>5af35056b4d257e4b64b9e8069c0746e8b08629f</sha1>
+        <cve>CVE-2019-17571</cve>
+    </suppress>
+</suppressions>
