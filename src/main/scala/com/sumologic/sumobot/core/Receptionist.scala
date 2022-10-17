@@ -128,8 +128,8 @@ class Receptionist(rtmClient: SlackRtmClient,
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
 
-    case ResponseInProgress(channel) =>
-      rtmClient.indicateTyping(channel.id)
+    case ResponseInProgress(channelId) =>
+      rtmClient.indicateTyping(channelId)
 
     case ReactionAdded(reaction, ReactionItemMessage(channel, ts), _, user, _) =>
       context.system.eventStream.publish(Reaction(reaction, channel, ts, user))
