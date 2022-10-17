@@ -28,7 +28,7 @@ import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.mockito.Mockito._
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.mockito.MockitoSugar
-import slack.api.{BlockingSlackApiClient, RtmStartState, SlackApiClient}
+import slack.api.{BlockingSlackApiClient, RtmConnectState, SlackApiClient}
 import slack.models._
 import slack.rtm.{RtmState, SlackRtmClient}
 
@@ -42,10 +42,10 @@ class ReceptionistTest
 
   private val self = User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   private val somebodyElse = User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-  private val team = Team("T123", "testers", "example.com", "example.com", 1, false, null, "no plan")
+  private val team = Team("T123", "testers", "example.com")
   private val channel = Channel("C123", "slack_test", 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
-  private val im = Im("I123", true, somebodyElse.id, 1, None)
-  private val startState = RtmStartState("http://nothing/", self, team, users = List(self, somebodyElse), channels = List(channel), List.empty, ims = List(im), List.empty)
+  private val im = Im("D123", true, somebodyElse.id, 1, None)
+  private val startState = RtmConnectState(ok = true, "http://nothing/", self, team)
 
   val state = new RtmState(startState)
   val rtmClient = mock[SlackRtmClient]

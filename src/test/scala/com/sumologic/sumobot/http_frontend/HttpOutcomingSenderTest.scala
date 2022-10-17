@@ -38,7 +38,7 @@ class HttpOutcomingSenderTest
   "HttpOutcomingSender" should {
     "send TextMessage" when {
       "received OutgoingMessage" in {
-        val outgoingMessage = OutgoingMessage(HttpReceptionist.DefaultSumoBotChannel, "hello!")
+        val outgoingMessage = OutgoingMessage(HttpReceptionist.DefaultSumoBotChannelId, "hello!")
 
         system.eventStream.publish(outgoingMessage)
 

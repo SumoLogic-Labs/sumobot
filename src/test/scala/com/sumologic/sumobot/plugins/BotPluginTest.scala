@@ -18,16 +18,13 @@
  */
 package com.sumologic.sumobot.plugins
 
-import com.sumologic.sumobot.test.annotated.SumoBotSpec
-import slack.models.{Im, User, Group, Team, Channel => SlackChannel}
-import slack.api.RtmStartState
-import slack.rtm.RtmState
-import com.sumologic.sumobot.test.annotated.BotPluginTestKit
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestActorRef
+import akka.actor.ActorSystem
 import com.sumologic.sumobot.core.model.IncomingMessage
+import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 import org.scalatest.BeforeAndAfterEach
-import com.sumologic.sumobot.core.model.InstantMessageChannel
+import slack.api.RtmConnectState
+import slack.models.{Group, Im, Team, User, Channel => SlackChannel}
+import slack.rtm.RtmState
 
 class BotPluginUT extends BotPlugin {
   override protected def help: String = "help msg"
@@ -44,49 +41,10 @@ class BotPluginTest
 
   private val self = User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   private val somebodyElse = User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-  private val team = Team("T123", "testers", "example.com", "example.com", 1, false, null, "no plan")
+  private val team = Team("T123", "testers", "example.com")
   private val channel = SlackChannel("C123", "slack_test", 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
   private val group = Group("G123", "privatestuff", true, 1, self.id, false, Some(List(self.id, somebodyElse.id)), null, null, None, None, None, None)
   private val im = Im("I123", true, somebodyElse.id, 1, None)
-  private val startState = RtmStartState("http://nothing/", self, team, users = List(self, somebodyElse), channels = List(channel), groups = List(group), ims = List(im), List.empty)
+  private val startState = RtmConnectState(true, "http://nothing/", self, team)
   val state = new RtmState(startState)
-
-  "userByName" should {
-    "return valid user" in {
-      val actorRef = TestActorRef[BotPluginUT]
-      val actor = actorRef.underlyingActor
-      actor.setState(state)
-
-      actor.userByName(somebodyElse.name) should be(Some(somebodyElse))
-      actor.userByName(self.name) should be(Some(self))
-    }
-
-    "return None for a non-existent user" in {
-      val actorRef = TestActorRef[BotPluginUT]
-      val actor = actorRef.underlyingActor
-      actor.setState(state)
-
-      actor.userByName("nonexistent") should be(None)
-    }
-  }
-
-  "instantMessageChannel" should {
-    "return IM channel for existing user" in {
-      val actorRef = TestActorRef[BotPluginUT]
-      val actor = actorRef.underlyingActor
-      actor.setState(state)
-
-      actor.instantMessageChannel("dude") should be(Some(InstantMessageChannel("I123", somebodyElse)))
-    }
-
-    "return None for non-existent user" in {
-      val actorRef = TestActorRef[BotPluginUT]
-      val actor = actorRef.underlyingActor
-      actor.setState(state)
-
-      actor.instantMessageChannel("lude") should be(None)
-    }
-
-  }
-
 }

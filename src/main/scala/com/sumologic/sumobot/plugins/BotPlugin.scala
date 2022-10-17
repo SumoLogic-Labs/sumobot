@@ -92,17 +92,17 @@ abstract class BotPlugin
       } else {
         None
       }
-      OutgoingMessage(msg.channel, responsePrefix(inThread) + text, threadTs)
+      OutgoingMessage(msg.channelId, responsePrefix(inThread) + text, threadTs)
     }
 
-    def message(text: String) = OutgoingMessage(msg.channel, text)
+    def message(text: String) = OutgoingMessage(msg.channelId, text)
 
     def say(text: String) = sendMessage(message(text))
 
     def respond(text: String, inThread: Boolean = false) = sendMessage(response(text, inThread))
 
     private def responsePrefix(inThread: Boolean): String =
-      if (msg.channel.isInstanceOf[InstantMessageChannel] || inThread) {
+      if (inThread) {
         ""
       } else {
         s"${msg.sentBy.slackReference}: "
@@ -152,9 +152,6 @@ abstract class BotPlugin
 
   implicit def clientToGroupChannel(group: Group): GroupChannel = GroupChannel(group.id, group.name)
 
-  implicit def clientToInstanceMessageChannel(im: Im): InstantMessageChannel =
-    InstantMessageChannel(im.id, state.users.find(_.id == im.user).get)
-
   protected val UserId = "<@(\\w+)>"
 
   protected val ChannelId = "<#(C\\w+)\\|.*>"
@@ -164,24 +161,6 @@ abstract class BotPlugin
   protected def matchText(regex: String): Regex = BotPlugin.matchText(regex)
 
   protected def blockingBrain: BlockingBrain = new BlockingBrain(brain)
-
-  protected def userById(id: String): Option[User] = state.users.find(_.id == id)
-
-  protected[plugins] def userByName(name: String): Option[User] = state.users.find(_.name == name)
-
-  protected def publicChannel(name: String): Option[PublicChannel] = state.channels.find(_.name == name).map(clientToPublicChannel)
-
-  protected def groupChannel(name: String): Option[GroupChannel] = state.groups.find(_.name == name).map(clientToGroupChannel)
-
-  protected[plugins] def instantMessageChannel(name: String): Option[InstantMessageChannel] = {
-    for (user <- state.users.find(_.name == name);
-         im <- state.ims.find(_.user == user.id))
-      yield clientToInstanceMessageChannel(im)
-  }
-
-  protected def channelForName(name: String): Option[Channel] = {
-    Seq(publicChannel(name), groupChannel(name), instantMessageChannel(name)).flatten.headOption
-  }
 
   protected def urlEncode(string: String): String = URLEncoder.encode(string, "utf-8")
 

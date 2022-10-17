@@ -49,7 +49,7 @@ class HttpIncomingReceiverTest
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be ("hello")
         result.addressedToUs should be (true)
-        result.channel should be (HttpReceptionist.DefaultSumoBotChannel)
+        result.channelId should be (HttpReceptionist.DefaultSumoBotChannelId)
         result.attachments should be (Seq.empty)
         result.sentBy.plainTextReference should be (HttpReceptionist.DefaultClientUser.id)
       }
@@ -62,7 +62,7 @@ class HttpIncomingReceiverTest
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be ("hi!")
         result.addressedToUs should be (true)
-        result.channel should be (HttpReceptionist.DefaultSumoBotChannel)
+        result.channelId should be (HttpReceptionist.DefaultSumoBotChannelId)
         result.attachments should be (Seq.empty)
         result.sentBy.plainTextReference should be (HttpReceptionist.DefaultClientUser.id)
       }

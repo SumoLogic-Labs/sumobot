@@ -88,9 +88,9 @@ class Receptionist(rtmClient: SlackRtmClient,
     case message@PluginRemoved(_) =>
       pluginRegistry ! message
 
-    case OutgoingMessage(channel, text, threadTs) =>
-      log.info(s"sending - ${channel.name}: $text")
-      rtmClient.sendMessage(channel.id, text, threadTs)
+    case OutgoingMessage(channelId, text, threadTs) =>
+      log.info(s"sending - $channelId: $text")
+      rtmClient.sendMessage(channelId, text, threadTs)
 
     case OutgoingMessageWithAttachments(channel, text, threadTs, attachments) =>
       log.info(s"sending - ${channel.name}: $text")
@@ -144,17 +144,16 @@ class Receptionist(rtmClient: SlackRtmClient,
                                  text: String,
                                  attachments: Seq[IncomingMessageAttachment],
                                  from: Sender): IncomingMessage = {
-    val channel = Channel.forChannelId(rtmClient.state, channelId)
-
     text match {
       case atMention(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
+        IncomingMessage(text.trim, true, channelId, idTimestamp, threadTimestamp, attachments, from)
       case atMentionWithoutColon(user, text) if user == selfId =>
-        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
+        IncomingMessage(text.trim, true, channelId, idTimestamp, threadTimestamp, attachments, from)
       case simpleNamePrefix(name, text) if name.equalsIgnoreCase(selfName) =>
-        IncomingMessage(text.trim, true, channel, idTimestamp, threadTimestamp, attachments, from)
+        IncomingMessage(text.trim, true, channelId, idTimestamp, threadTimestamp, attachments, from)
       case _ =>
-        IncomingMessage(text.trim, channel.isInstanceOf[InstantMessageChannel], channel, idTimestamp, threadTimestamp, attachments, from)
+        val isADirectMessageChannel = channelId.startsWith("D")
+        IncomingMessage(text.trim, addressedToUs = isADirectMessageChannel, channelId, idTimestamp, threadTimestamp, attachments, from)
     }
   }
 
@@ -166,8 +165,12 @@ class Receptionist(rtmClient: SlackRtmClient,
                                    attachments: Seq[SAttachment] = Seq(),
                                    fromBot: Boolean = false): Unit = {
     val sentBy: Sender = if (!fromBot) {
-      val slackUser: slack.models.User = rtmClient.state.users.find(_.id == userId).
-        getOrElse(throw new IllegalStateException(s"Message from unknown user: $userId"))
+      val slackUser = try {
+        syncClient.getUserInfo(userId)
+      } catch {
+        case e: Exception =>
+          throw new IllegalStateException(s"Failed to look up user with id: $userId", e)
+      }
       UserSender(slackUser)
     } else {
       BotSender(userId)

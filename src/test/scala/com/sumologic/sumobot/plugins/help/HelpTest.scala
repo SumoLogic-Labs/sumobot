@@ -20,9 +20,9 @@ package com.sumologic.sumobot.plugins.help
 
 import akka.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.core.PluginRegistry
-import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, UserSender}
+import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
-import com.sumologic.sumobot.plugins.conversations.Conversations
+import com.sumologic.sumobot.plugins.tts.TextToSpeech
 import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 
 class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
@@ -30,7 +30,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
   val helpRef = system.actorOf(Props[Help](), "help")
 
   val reg = system.actorOf(Props(classOf[PluginRegistry]))
-  val mock = system.actorOf(Props(classOf[Conversations]), "mock")
+  val mock = system.actorOf(Props(classOf[TextToSpeech]), "mock")
 
   reg ! PluginAdded(mock, "mock help")
   reg ! PluginAdded(helpRef, "help help")
@@ -41,7 +41,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
 
   "help" should {
     "return list of plugins" in {
-      helpRef ! IncomingMessage("help", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
+      helpRef ! IncomingMessage("help", true, "125", "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should be("help\nmock")
@@ -49,7 +49,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
     }
 
     "return help for known plugins" in {
-      helpRef ! IncomingMessage("help mock", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
+      helpRef ! IncomingMessage("help mock", true, "125", "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should include("mock help")
@@ -57,7 +57,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
     }
 
     "return an error for unknown commands" in {
-      helpRef ! IncomingMessage("help test", true, InstantMessageChannel("125", user), "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
+      helpRef ! IncomingMessage("help test", true, "125", "1527239216000090", attachments = Seq(), sentBy = UserSender(user))
       confirmOutgoingMessage {
         msg =>
           msg.text should include("Sorry, I don't know")
