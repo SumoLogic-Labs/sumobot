@@ -93,7 +93,7 @@ case class BotSender(id: String) extends Sender {
   override def plainTextReference: String = slackReference
 }
 
-case class ResponseInProgress(channel: Channel)
+case class ResponseInProgress(channelId: String)
 
 object PublicHttpsReference {
   def forMessage(baseSlackUrl: String, msg: IncomingMessage) = {
