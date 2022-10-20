@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.2] - 2022-10-20
+- Fixing the exported dependencies problem started in 2.0.1
+
 ## [2.0.1] - 2022-10-20
 - Dependency bump, incl. Gradle upgrade
 - Fixing `OutgoingImage` logic
