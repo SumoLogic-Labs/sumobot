@@ -19,9 +19,10 @@
 package com.sumologic.sumobot.plugins.system
 
 import com.sumologic.sumobot.core.Bootstrap
-import com.sumologic.sumobot.core.model.IncomingMessage
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingImage}
 import com.sumologic.sumobot.plugins.{BotPlugin, OperatorLimits}
 
+import java.io.File
 import java.net.InetAddress
 import java.util.Date
 import scala.concurrent.duration._
@@ -35,11 +36,13 @@ class System
       |where are you running? - And I'll tell you which host I'm on.
       |when did you start? - I'll tell you when I was started.
       |die on <hostname> - Will cause me to shut down if you're allowed and I'm on that host.
+      |show me a picture - Sends an image in Slack.
     """.stripMargin
 
   private val WhereAreYou = matchText("where are you running.*")
   private val WhenDidYouStart = matchText("when did you (start|launch|boot).*")
   private val DieOn = matchText("die on ([a-zA-Z0-9\\.\\-]+)") // Per RFC952.
+  private val ShowMeAPicture = matchText("show me a picture")
 
   private val hostname = InetAddress.getLocalHost.getHostName
   private val hostAddress = InetAddress.getLocalHost.getHostAddress
@@ -50,8 +53,12 @@ class System
       message.respond(s"I'm running at $hostname ($hostAddress)")
     case message@IncomingMessage(WhenDidYouStart(_), true, _, _, _, _, _) =>
       message.respond(s"I started at $startTime")
-    case message@IncomingMessage(DieOn(host), true, _, _, _, _, _) =>
+    case message@IncomingMessage(ShowMeAPicture(), true, _, _, _, _, _) =>
+      message.respond("Ha! There you go")
+      val file = new File(ClassLoader.getSystemResource("SumoLogic_SquareSymbol_SumoBlue_RGB@1x.png").toURI)
+      context.system.eventStream.publish(OutgoingImage(message.channelId, file, "image/png", "Sumo"))
 
+    case message@IncomingMessage(DieOn(host), true, _, _, _, _, _) =>
       if (host.trim.equalsIgnoreCase(hostname)) {
         if (!sentByOperator(message)) {
           message.respond(s"Sorry, ${message.sentBy.slackReference}, I can't do that.")

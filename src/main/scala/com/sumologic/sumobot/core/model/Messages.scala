@@ -72,7 +72,7 @@ case class IncomingMessage(canonicalText: String,
 
 case class IncomingMessageAttachment(text: String, title: String)
 
-case class OutgoingImage(channel: Channel, image: File, contentType: String, title: String,
+case class OutgoingImage(channelId: String, image: File, contentType: String, title: String,
                          comment: Option[String] = None, threadTimestamp: Option[String] = None)
 
 case class Reaction(emoji: String, channelId: String, messageTimestamp: String, addedByUser: String)
