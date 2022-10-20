@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.1] - 2022-10-20
+- Dependency bump, incl. Gradle upgrade
+- Fixing `OutgoingImage` logic
+
 ## [2.0.0] - 2022-10-17
 - Dependency bump
 - incl. upgrading to slack-scala-client 0.4.0
