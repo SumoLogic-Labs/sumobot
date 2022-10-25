@@ -19,7 +19,7 @@ buildscript {
     }
 
     ext.akkaVersion = '2.6.19'
-    ext.awsSdkVersion = '1.12.323'
+    ext.awsSdkVersion = '1.12.327'
     ext.comFasterxmlJacksonVersion = '2.13.4'
 }
 
