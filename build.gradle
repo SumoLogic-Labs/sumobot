@@ -20,7 +20,7 @@ buildscript {
 
     ext.akkaVersion = '2.6.19'
     ext.awsSdkVersion = '1.12.372'
-    ext.comFasterxmlJacksonVersion = '2.14.0'
+    ext.comFasterxmlJacksonVersion = '2.14.1'
 }
 
 apply plugin: "java-library"
