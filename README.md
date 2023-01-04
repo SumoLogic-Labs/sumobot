@@ -44,7 +44,7 @@ gradlew build
 
 To build project in any supported Scala version:
 ```
-gradlew build -PscalaVersion=2.12.15
+gradlew build -PscalaVersion=2.12.17
 ```
 
 
@@ -89,8 +89,8 @@ outside this list)
     ```
 4. Perform a release in selected Scala versions:
     ```
-    ./gradlew build publish -PscalaVersion=2.12.15
-    ./gradlew build publish -PscalaVersion=2.13.8
+    ./gradlew build publish -PscalaVersion=2.12.17
+    ./gradlew build publish -PscalaVersion=2.13.10
     ```
 5. Go to https://oss.sonatype.org/index.html#stagingRepositories, search for com.sumologic, close and release your repo. 
 NOTE: If you had to login, reload the URL. It doesn't take you to the right page post-login

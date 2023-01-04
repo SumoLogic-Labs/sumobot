@@ -31,4 +31,4 @@ jobs:
         with:
           arguments: |
               build          
-              -PscalaVersion=2.13.8
+              -PscalaVersion=2.13.10
