@@ -18,7 +18,7 @@ buildscript {
         classpath "com.github.ben-manes:gradle-versions-plugin:0.44.0"
     }
 
-    ext.akkaVersion = '2.6.19'
+    ext.akkaVersion = '2.6.20'
     ext.awsSdkVersion = '1.12.372'
     ext.comFasterxmlJacksonVersion = '2.14.1'
 }
@@ -45,7 +45,7 @@ repositories {
 }
 
 dependencies {
-    api "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.4.0"
+    api "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.4.1"
     api "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     api "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
     implementation "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
@@ -80,7 +80,7 @@ dependencies {
     implementation "commons-beanutils:commons-beanutils:1.9.3"
     api "com.typesafe.play:play-json_${scalaMajorVersion}:2.9.2"
     api "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
-    api "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.9"
+    api "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.10"
     implementation "org.joda:joda-convert:2.2.2"
     implementation "junit:junit:4.13.2"
     testImplementation "org.mockito:mockito-core:4.11.0"
@@ -180,4 +180,12 @@ tasks.withType(JavaCompile) {
 dependencyCheck {
     format = 'ALL'
     suppressionFile = 'project-suppression.xml'
+}
+
+test {
+    testLogging {
+        exceptionFormat 'full'
+        showExceptions true
+        showStackTraces true
+    }
 }
