@@ -81,7 +81,7 @@ dependencies {
     api "com.typesafe.play:play-json_${scalaMajorVersion}:2.9.2"
     api "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
     api "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.10"
-    implementation "org.joda:joda-convert:2.2.2"
+    implementation "org.joda:joda-convert:2.2.3"
     implementation "junit:junit:4.13.2"
     testImplementation "org.mockito:mockito-core:4.11.0"
 }
