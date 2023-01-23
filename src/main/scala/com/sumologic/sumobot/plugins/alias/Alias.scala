@@ -72,7 +72,7 @@ class Alias extends BotPlugin {
           message.respond(s"I don't know anything about $alias")
       }
 
-    case message@IncomingMessage(ShowAliases(alias), _, _, _, _, _, _) =>
+    case message@IncomingMessage(ShowAliases(), _, _, _, _, _, _) =>
       if (knownAliases.nonEmpty) {
         message.respond(knownAliases.toSeq.sortBy(_._1).map(tpl => s"'${tpl._1}' is '${tpl._2}'").mkString("\n"))
       } else {
