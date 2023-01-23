@@ -20,8 +20,9 @@ package com.sumologic.sumobot.test.annotated
 
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-abstract class SumoBotSpec extends WordSpecLike with Eventually with Matchers
+abstract class SumoBotSpec extends AnyWordSpecLike with Eventually with Matchers

@@ -21,6 +21,7 @@ buildscript {
     ext.akkaVersion = '2.6.20'
     ext.awsSdkVersion = '1.12.388'
     ext.comFasterxmlJacksonVersion = '2.14.1'
+    ext.orgScalatestVersion = '3.2.15'
 }
 
 apply plugin: "java-library"
@@ -48,7 +49,7 @@ dependencies {
     api "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.4.2"
     api "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
     api "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
-    implementation "org.scalatest:scalatest_${scalaMajorVersion}:3.0.8"
+
     implementation("com.offbytwo.jenkins:jenkins-client:0.3.8") {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
         exclude group: 'dom4j', module: 'dom4j'
@@ -82,8 +83,14 @@ dependencies {
     api "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
     api "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.10"
     implementation "org.joda:joda-convert:2.2.3"
+
     implementation "junit:junit:4.13.2"
-    testImplementation "org.mockito:mockito-core:4.11.0"
+    implementation "org.scalatest:scalatest_${scalaMajorVersion}:$orgScalatestVersion"
+    implementation "org.scalatest:scalatest-wordspec_${scalaMajorVersion}:$orgScalatestVersion"
+    implementation "org.scalatest:scalatest-shouldmatchers_${scalaMajorVersion}:$orgScalatestVersion"
+    implementation "org.scalatestplus:junit-4-13_${scalaMajorVersion}:3.2.15.0"
+    implementation "org.scalatestplus:mockito-4-6_${scalaMajorVersion}:3.2.15.0"
+    implementation "org.mockito:mockito-core:4.11.0"
 }
 
 compileScala {
