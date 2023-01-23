@@ -4,6 +4,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2023-01-23
+- Dependency dump
+- incl. upgrading to slack-scala-client 0.4.2
+- and scalatest 3.2.15
+- Removing deprecated `package com.sumologic.sumobot.test`
+
 ## [2.0.2] - 2022-10-20
 - Fixing the exported dependencies problem started in 2.0.1
 
