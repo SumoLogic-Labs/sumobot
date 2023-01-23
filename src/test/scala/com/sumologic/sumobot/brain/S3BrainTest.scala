@@ -27,7 +27,8 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.sumologic.sumobot.brain.Brain.ValueRetrieved
 import com.sumologic.sumobot.core.aws.AWSAccounts
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
-import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

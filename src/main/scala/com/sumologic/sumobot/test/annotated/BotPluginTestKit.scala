@@ -20,11 +20,13 @@ package com.sumologic.sumobot.test.annotated
 
 import akka.actor.ActorSystem
 import akka.testkit.{TestKit, TestProbe}
-import com.sumologic.sumobot.core.model.{IncomingMessage, InstantMessageChannel, OutgoingMessage, UserSender}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, UserSender}
 import org.junit.runner.RunWith
+import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatestplus.junit.JUnitRunner
 import slack.models.User
 
 import scala.concurrent.duration.{FiniteDuration, _}
@@ -32,7 +34,7 @@ import scala.concurrent.duration.{FiniteDuration, _}
 @RunWith(classOf[JUnitRunner])
 abstract class BotPluginTestKit(actorSystem: ActorSystem)
   extends TestKit(actorSystem)
-    with WordSpecLike with Eventually with Matchers
+    with AnyWordSpecLike with Eventually with Matchers
     with BeforeAndAfterAll {
 
   protected val outgoingMessageProbe = TestProbe()

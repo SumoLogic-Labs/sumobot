@@ -22,9 +22,10 @@ import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 abstract class SumoBotTestKit(actorSystem: ActorSystem)
-  extends TestKit(actorSystem) with WordSpecLike with Eventually with Matchers
+  extends TestKit(actorSystem) with AnyWordSpecLike with Eventually with Matchers

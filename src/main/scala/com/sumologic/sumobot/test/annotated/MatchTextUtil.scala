@@ -18,14 +18,14 @@
  */
 package com.sumologic.sumobot.test.annotated
 
-import org.scalatest.WordSpecLike
+import org.scalatest.wordspec.AnyWordSpecLike
 
 import scala.util.matching.Regex
 
 /**
  * @author Chris (chris@sumologic.com)
  */
-trait MatchTextUtil extends WordSpecLike {
+trait MatchTextUtil extends AnyWordSpecLike {
 
   def shouldMatch(regex: Regex, text: String): Unit = {
     if (!doesMatch(regex, text)) {
