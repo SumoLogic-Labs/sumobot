@@ -42,7 +42,11 @@ object Bootstrap {
     def readConfig: Config
   }
   case object FileConfigReader extends ConfigReader {
-    override def readConfig: Config = ConfigFactory.parseFile(new File(configFileLocation)).resolve()
+    override def readConfig: Config =
+      ConfigFactory
+        .parseFile(new File(configFileLocation))
+        .resolve()
+        .withFallback(ConfigFactory.systemEnvironmentOverrides())
   }
   case object ClasspathConfigReader extends ConfigReader {
     override def readConfig: Config = ConfigFactory.load(configFileLocation)
