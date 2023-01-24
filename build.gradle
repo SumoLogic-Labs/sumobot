@@ -103,6 +103,7 @@ compileScala {
 
 application {
     mainClassName = 'com.sumologic.sumobot.Main'
+    applicationDefaultJvmArgs = ['-Dconfig.override_with_env_vars=true']
 }
 
 ext.gitCommitIdAbbrev = System.getenv('GIT_COMMIT_ID_ABBREV') ?: 'git rev-parse --verify --short=12 HEAD'.execute().text.trim()
