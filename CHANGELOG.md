@@ -4,6 +4,11 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.1] - 2023-01-24
+- fixing one of the commands in the `alias` plugin
+- upgrading to slack-scala-client 0.4.3
+- allowing the credentials to be specified outside of the `sumobot.conf` file
+
 ## [3.0.0] - 2023-01-23
 - Dependency dump
 - incl. upgrading to slack-scala-client 0.4.2
