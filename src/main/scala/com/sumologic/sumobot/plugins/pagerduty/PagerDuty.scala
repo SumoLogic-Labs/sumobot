@@ -117,6 +117,6 @@ class PagerDuty extends BotPlugin with ActorLogging {
           }.mkString("\n", "\n", "\n")
           "*" + tpl._1 + "*" + oncallString
       }.mkString("\n")
-    msg.message(outputString)
+    msg.response(outputString, inThread = true)
   }
 }
