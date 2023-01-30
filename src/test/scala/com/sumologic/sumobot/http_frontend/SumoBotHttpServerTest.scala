@@ -55,7 +55,7 @@ class SumoBotHttpServerTest
   private val brain = TestActorRef(Props[InMemoryBrain]())
   private val httpReceptionist = TestActorRef(new HttpReceptionist(brain))
 
-  private val pluginCollection = PluginsFromProps(Array(Props(classOf[Help]), Props(classOf[System])))
+  private val pluginCollection: PluginsFromProps = PluginsFromProps(Array(Props(classOf[Help]), Props(classOf[System])))
 
   override def beforeAll: Unit = {
     Bootstrap.receptionist = Some(httpReceptionist)

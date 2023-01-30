@@ -48,7 +48,7 @@ class HttpReceptionist(brain: ActorRef) extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case message@PluginAdded(plugin, _) =>
-      plugin ! InitializePlugin(HttpReceptionist.State, brain, pluginRegistry)
+      plugin ! InitializePlugin(HttpReceptionist.State, brain, pluginRegistry, self)
       pluginRegistry ! message
 
     case message@PluginRemoved(_) =>

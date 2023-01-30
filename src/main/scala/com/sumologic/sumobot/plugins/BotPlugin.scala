@@ -27,7 +27,7 @@ import com.sumologic.sumobot.quartz.QuartzExtension
 import com.typesafe.config.Config
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
-import slack.models.{Group, Im, User, Channel => ClientChannel}
+import slack.models.{Group, User, Channel => ClientChannel}
 import slack.rtm.RtmState
 
 import java.net.URLEncoder
@@ -46,7 +46,7 @@ object BotPlugin {
 
   case class PluginRemoved(plugin: ActorRef)
 
-  case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef)
+  case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef, receptionist: ActorRef)
 
   def matchText(regex: String): Regex = ("(?i)(?s)" + regex).r
 }
@@ -65,6 +65,8 @@ abstract class BotPlugin
 
   protected var pluginRegistry: ActorRef = _
 
+  protected var receptionist: ActorRef = _
+
   // For plugins to implement.
 
   protected def receiveIncomingMessage: ReceiveIncomingMessage
@@ -74,9 +76,9 @@ abstract class BotPlugin
 
   // Helpers for plugins to use.
 
-  protected def sendMessage(msg: OutgoingMessage): Unit = context.system.eventStream.publish(msg)
-  protected def sendMessage(msg: OutgoingMessageWithAttachments): Unit = context.system.eventStream.publish(msg)
-  protected def sendImage(im: OutgoingImage): Unit = context.system.eventStream.publish(im)
+  protected def sendMessage(msg: OutgoingMessage): Unit = receptionist ! msg
+  protected def sendMessage(msg: OutgoingMessageWithAttachments): Unit = receptionist ! msg
+  protected def sendImage(im: OutgoingImage): Unit = receptionist ! im
 
   protected def responseConcurrency = 10
 
@@ -200,10 +202,11 @@ abstract class BotPlugin
   override def receive: Receive = uninitialized orElse pluginReceive
 
   private def uninitialized: Receive = {
-    case InitializePlugin(newState, newBrain, newPluginRegistry) =>
+    case InitializePlugin(newState, newBrain, newPluginRegistry, receptionist) =>
       this.state = newState
       this.brain = newBrain
       this.pluginRegistry = newPluginRegistry
+      this.receptionist = receptionist
       this.initialize()
       context.become(initialized orElse pluginReceive)
   }

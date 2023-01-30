@@ -23,10 +23,11 @@ import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateRespons
 import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, Attachment => SAttachment}
+import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, User, Attachment => SAttachment}
 import slack.rtm.{RtmState, SlackRtmClient}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object Receptionist {
 
@@ -38,7 +39,7 @@ object Receptionist {
             syncClient: BlockingSlackApiClient,
             asyncClient: SlackApiClient,
             brain: ActorRef): Props =
-    Props(classOf[Receptionist], rtmClient, syncClient, asyncClient, brain)
+    Props(new Receptionist(rtmClient, syncClient, asyncClient, brain))
 }
 
 class Receptionist(rtmClient: SlackRtmClient,
@@ -82,7 +83,7 @@ class Receptionist(rtmClient: SlackRtmClient,
   override def receive: Receive = {
 
     case message@PluginAdded(plugin, _) =>
-      plugin ! InitializePlugin(rtmClient.state, brain, pluginRegistry)
+      plugin ! InitializePlugin(rtmClient.state, brain, pluginRegistry, self)
       pluginRegistry ! message
 
     case message@PluginRemoved(_) =>
@@ -106,7 +107,7 @@ class Receptionist(rtmClient: SlackRtmClient,
         f => log.info(s"Sending image ended with $f")
       }
 
-    case ImOpened(user, channel) =>
+    case ImOpened(user, _) =>
       pendingIMSessionsByUserId.get(user).foreach {
         tpl =>
           tpl._1 ! tpl._2
