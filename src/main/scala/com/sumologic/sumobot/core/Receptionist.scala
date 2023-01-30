@@ -20,13 +20,16 @@ package com.sumologic.sumobot.core
 
 import akka.actor._
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
-import com.sumologic.sumobot.core.model.{IncomingMessageAttachment, _}
+import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, Attachment => SAttachment}
+import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, User, Attachment => SAttachment}
 import slack.rtm.{RtmState, SlackRtmClient}
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
 
 object Receptionist {
 
@@ -38,7 +41,7 @@ object Receptionist {
             syncClient: BlockingSlackApiClient,
             asyncClient: SlackApiClient,
             brain: ActorRef): Props =
-    Props(classOf[Receptionist], rtmClient, syncClient, asyncClient, brain)
+    Props(new Receptionist(rtmClient, syncClient, asyncClient, brain))
 }
 
 class Receptionist(rtmClient: SlackRtmClient,
@@ -59,9 +62,11 @@ class Receptionist(rtmClient: SlackRtmClient,
 
   private val messageAgeLimitMillis = 60 * 1000
 
-  private var pendingIMSessionsByUserId = Map[String, (ActorRef, AnyRef)]()
+  private var pendingIMSessionsByUserId = Map[String, OutgoingMessage]()
 
   private val pluginRegistry = context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
+
+  private var slackNameToIdMapping: Map[String, String] = Map()
 
   override def preStart(): Unit = {
     Seq(classOf[OutgoingMessage],
@@ -70,10 +75,19 @@ class Receptionist(rtmClient: SlackRtmClient,
       classOf[OpenIM],
       classOf[RtmStateRequest],
       classOf[ResponseInProgress],
-      classOf[NewChannelTopic]
+      classOf[NewChannelTopic],
+      classOf[SendIMByUserName]
     ).foreach(context.system.eventStream.subscribe(self, _))
+
+    slackNameToIdMapping = fetchUsers().map{u => u.name -> u.id}.toMap
+    log.info(s"Loaded ${slackNameToIdMapping.size} users")
   }
 
+  // VisibleForTesting
+  protected def fetchUsers(): Seq[User] = {
+    // NOTE(mccartney, 2023-01-30): I couldn't get the syncClient to do the same, it failed with timeout(15s)
+    Await.result(asyncClient.listUsers(), atMost = Duration(1, TimeUnit.MINUTES))
+  }
 
   override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self)
@@ -108,14 +122,14 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case ImOpened(user, channel) =>
       pendingIMSessionsByUserId.get(user).foreach {
-        tpl =>
-          tpl._1 ! tpl._2
+        case outgoingMessage: OutgoingMessage =>
+          context.system.eventStream.publish(outgoingMessage.copy(channelId = channel))
           pendingIMSessionsByUserId = pendingIMSessionsByUserId - user
       }
 
-    case OpenIM(userId, doneRecipient, doneMessage) =>
+    case OpenIM(userId, doneMessage) =>
       asyncClient.openIm(userId)
-      pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId -> (doneRecipient, doneMessage))
+      pendingIMSessionsByUserId = pendingIMSessionsByUserId + (userId -> doneMessage)
 
     case message: Message if !tooOld(message.ts, message) && message.user.isDefined =>
       translateAndDispatch(message.channel, message.user.get, message.text, message.ts, threadTimestamp = message.thread_ts,
@@ -136,6 +150,16 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case NewChannelTopic(channel, topic) =>
       asyncClient.setConversationTopic(channel.id, topic)
+
+    case SendIMByUserName(userName: String, msg: OutgoingMessage) =>
+      this.slackNameToIdMapping.get(userName) match {
+        case Some(id) =>
+          self ! OpenIM(id, msg)
+
+        case None =>
+          log.warning(s"Failed to send IM to user name '$userName' as it doesn't seem to exist")
+      }
+
   }
 
   protected def translateMessage(channelId: String,
@@ -200,7 +224,5 @@ class Receptionist(rtmClient: SlackRtmClient,
         false
     }
   }
-
-
 
 }
