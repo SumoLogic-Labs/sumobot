@@ -22,7 +22,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
-import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM}
+import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM, OutgoingMessage}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.mockito.Mockito._
@@ -55,8 +55,11 @@ class ReceptionistTest
 
   private val probe = new TestProbe(system)
   system.eventStream.subscribe(probe.ref, classOf[IncomingMessage])
+  system.eventStream.subscribe(probe.ref, classOf[OutgoingMessage])
   private val brain = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
-  private val sut = system.actorOf(Receptionist.props(rtmClient, syncClient, asyncClient, brain))
+  private val sut = system.actorOf(Props(new Receptionist(rtmClient, syncClient, asyncClient, brain){
+    override def fetchUsers(): Seq[User] = Seq()
+  }))
 
   "Receptionist" should {
     "mark messages as addressed to us" when {
@@ -132,9 +135,9 @@ class ReceptionistTest
 
     "open a new IM channel asynchronously when asked" in {
       case object DoneWithThat
-      sut ! OpenIM(somebodyElse.id, probe.ref, DoneWithThat)
+      sut ! OpenIM(somebodyElse.id, OutgoingMessage(null, text = "Hello from UT"))
       sut ! ImOpened(somebodyElse.id, im.id)
-      probe.expectMsgClass(DoneWithThat.getClass)
+      probe.expectMsg(OutgoingMessage(im.id, text = "Hello from UT"))
     }
 
     "return the RTM state when asked" in {

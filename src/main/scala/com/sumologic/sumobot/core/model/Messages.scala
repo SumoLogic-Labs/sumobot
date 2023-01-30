@@ -18,7 +18,6 @@
  */
 package com.sumologic.sumobot.core.model
 
-import akka.actor.ActorRef
 import slack.models.{ActionField => SActionField, Attachment => SAttachment, AttachmentField => SAttachmentField, ConfirmField => SConfirmField}
 
 import java.io.File
@@ -60,7 +59,9 @@ case class ConfirmField(text: String,
                         okText: Option[String] = None,
                         cancelText: Option[String] = None)
 
-case class OpenIM(userId: String, doneRecipient: ActorRef, doneMessage: AnyRef)
+case class OpenIM(userId: String, doneMessage: OutgoingMessage)
+
+case class SendIMByUserName(userName: String, message: OutgoingMessage)
 
 case class IncomingMessage(canonicalText: String,
                            addressedToUs: Boolean,
