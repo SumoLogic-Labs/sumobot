@@ -94,8 +94,8 @@ class ReceptionistTest
 
     "re-interpret messages that were updated" in {
 
-      val previousMessage = EditMessage(Some(somebodyElse.id), "previous message", currentTimeStamp)
-      val newMessage = EditMessage(Some(somebodyElse.id), "hello dude4", currentTimeStamp)
+      val previousMessage = EditMessage(Some(somebodyElse.id), "previous message", currentTimeStamp, None)
+      val newMessage = EditMessage(Some(somebodyElse.id), "hello dude4", currentTimeStamp, None)
 
       sut ! MessageChanged(newMessage, previousMessage, currentTimeStamp, currentTimeStamp, channel.id)
       val result = probe.expectMsgClass(classOf[IncomingMessage])
