@@ -137,7 +137,8 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case messageChanged: MessageChanged if !tooOld(messageChanged.ts, messageChanged) && messageChanged.message.user.isDefined =>
       val message = messageChanged.message
-      translateAndDispatch(messageChanged.channel, message.user.get, message.text, message.ts)
+      translateAndDispatch(messageChanged.channel, message.user.get, message.text, message.ts,
+        attachments = message.attachments.getOrElse(Seq()))
 
     case RtmStateRequest(sendTo) =>
       sendTo ! RtmStateResponse(rtmClient.state)
