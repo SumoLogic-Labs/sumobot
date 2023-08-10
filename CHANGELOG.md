@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.2] - 2023-08-10
+- upgrading to slack-scala-client 0.4.4
+- support for attachments in MessageChanged
+
 ## [3.0.1] - 2023-01-24
 - fixing one of the commands in the `alias` plugin
 - upgrading to slack-scala-client 0.4.3
