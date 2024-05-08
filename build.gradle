@@ -78,7 +78,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-annotations:${comFasterxmlJacksonVersion}"
     implementation "com.fasterxml.jackson.core:jackson-core:${comFasterxmlJacksonVersion}"
     implementation "org.dom4j:dom4j:2.1.4"
-    implementation "commons-beanutils:commons-beanutils:1.9.3"
+    implementation "commons-beanutils:commons-beanutils:1.9.4"
     api "com.typesafe.play:play-json_${scalaMajorVersion}:2.9.2"
     api "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
     api "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.10"
