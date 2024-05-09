@@ -79,7 +79,7 @@ class S3Brain(credentials: AWSCredentials,
     }
 
     val props = new Properties()
-    props.putAll(contents.asJava)
+    contents.foreach { case (k,v) => props.put(k,v) }
     val out = new ByteArrayOutputStream()
     props.store(out, "")
     out.flush()
