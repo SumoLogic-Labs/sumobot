@@ -70,8 +70,6 @@ dependencies {
         exclude group: "org.specs2", module: "specs2_${scalaMajorVersion}"
     }
     implementation "org.scala-lang:scala-compiler:${scalaMajorVersion}.${scalaMinorVersion}"
-    implementation "org.scala-lang:scalap:${scalaMajorVersion}.${scalaMinorVersion}"
-    implementation "org.scala-lang:scala-reflect:${scalaMajorVersion}.${scalaMinorVersion}"
     implementation "org.scala-lang.modules:scala-collection-compat_${scalaMajorVersion}:2.6.0"
 
     implementation "com.fasterxml.jackson.core:jackson-databind:${comFasterxmlJacksonVersion}"
