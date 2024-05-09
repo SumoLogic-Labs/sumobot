@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
-import akka.http.scaladsl.model.ws.TextMessage
+import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef}
+import org.apache.pekko.http.scaladsl.model.ws.TextMessage
 import com.sumologic.sumobot.core.model.OutgoingMessage
 
 class HttpOutcomingSender(publisherRef: ActorRef) extends Actor with ActorLogging {

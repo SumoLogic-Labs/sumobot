@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor.{ActorRef, ActorSystem, Props}
+import org.apache.pekko.actor.{ActorRef, ActorSystem, Props}
 import com.sumologic.sumobot.http_frontend.{SumoBotHttpServer, SumoBotHttpServerOptions}
 import com.sumologic.sumobot.plugins.PluginCollection
 import com.sumologic.sumobot.util.ParExecutor

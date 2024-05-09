@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.quartz
 
-import akka.actor.ActorSystem
-import akka.testkit.TestProbe
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.testkit.TestProbe
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.quartz.CronExpression
 

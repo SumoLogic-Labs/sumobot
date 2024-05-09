@@ -18,9 +18,9 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.ws.TextMessage
-import akka.testkit.{TestActorRef, TestActors, TestKit, TestProbe}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model.ws.TextMessage
+import org.apache.pekko.testkit.{TestActorRef, TestActors, TestKit, TestProbe}
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.OutgoingMessage
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit

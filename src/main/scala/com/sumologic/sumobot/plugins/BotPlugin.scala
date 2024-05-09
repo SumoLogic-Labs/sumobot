@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.brain.BlockingBrain
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.model._
@@ -123,7 +123,7 @@ abstract class BotPlugin
     }
 
     def respondAsync(body: IncomingMessage => Future[OutgoingMessage]): Unit = {
-      val timeout = akka.pattern.after(responseTimeout, using = context.system.scheduler)(
+      val timeout = org.apache.pekko.pattern.after(responseTimeout, using = context.system.scheduler)(
         Future.failed[OutgoingMessage](new TimeoutException("Response timed out")))
       val response: Future[OutgoingMessage] = Future.firstCompletedOf[OutgoingMessage](Seq(timeout, body(msg)))
       response.onComplete{
@@ -148,7 +148,7 @@ abstract class BotPlugin
 
   implicit def enrichIncomingMessage(msg: IncomingMessage): RichIncomingMessage = new RichIncomingMessage(msg)
 
-  implicit def clientToPublicChannel(channel: ClientChannel): PublicChannel = PublicChannel(channel.id, channel.name)
+  implicit def clientToPublicChannel(channel: ClientChannel): PublicChannel = PublicChannel(channel.id, channel.name.get)
 
   implicit def clientToGroupChannel(group: Group): GroupChannel = GroupChannel(group.id, group.name)
 

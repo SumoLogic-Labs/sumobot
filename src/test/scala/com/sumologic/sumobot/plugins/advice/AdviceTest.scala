@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.advice
 
-import akka.actor.{ActorSystem, Props}
+import org.apache.pekko.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin
 import com.sumologic.sumobot.test.annotated.BotPluginTestKit
 

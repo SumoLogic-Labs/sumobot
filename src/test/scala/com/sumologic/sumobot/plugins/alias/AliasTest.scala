@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.plugins.alias
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestProbe
+import org.apache.pekko.actor.{ActorSystem, Props}
+import org.apache.pekko.testkit.TestProbe
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin.InitializePlugin

@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.http.scaladsl.model.{ContentType, ContentTypes, HttpCharsets, MediaTypes}
+import org.apache.pekko.http.scaladsl.model.{ContentType, ContentTypes, HttpCharsets, MediaTypes}
 import org.apache.commons.io.IOUtils
 
 object StaticResource {

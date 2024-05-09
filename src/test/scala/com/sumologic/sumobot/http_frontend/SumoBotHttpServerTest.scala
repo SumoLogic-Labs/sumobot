@@ -18,17 +18,17 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ContentTypes._
-import akka.http.scaladsl.model.HttpMethods.{GET, HEAD, OPTIONS}
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.testkit.{TestActorRef, TestKit, TestProbe}
+import org.apache.pekko.actor.{ActorRef, ActorSystem, Props}
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.ContentTypes._
+import org.apache.pekko.http.scaladsl.model.HttpMethods.{GET, HEAD, OPTIONS}
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
+import org.apache.pekko.stream.ActorMaterializer
+import org.apache.pekko.stream.scaladsl.{Flow, Keep, Sink, Source}
+import org.apache.pekko.testkit.{TestActorRef, TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.{Bootstrap, HttpReceptionist}
 import com.sumologic.sumobot.http_frontend.authentication.NoAuthentication

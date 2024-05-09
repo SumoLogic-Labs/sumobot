@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor.{Actor, ActorLogging, ActorRef}
+import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef}
 import com.sumologic.sumobot.core.PluginRegistry.{Plugin, PluginList, RequestPluginList}
 import com.sumologic.sumobot.plugins.BotPlugin.{PluginAdded, PluginRemoved}
 

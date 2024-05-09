@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.brain
 
-import akka.actor.Actor
+import org.apache.pekko.actor.Actor
 
 class InMemoryBrain extends Actor {
 

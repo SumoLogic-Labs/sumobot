@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.http_frontend.authentication
 
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import org.apache.pekko.http.scaladsl.model.{HttpRequest, HttpResponse}
 
 case class Link(name: String, href: String)
 

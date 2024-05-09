@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.http_frontend.authentication
 
-import akka.http.scaladsl.model.HttpMethods.{GET, POST}
-import akka.http.scaladsl.model.{HttpRequest, Uri}
+import org.apache.pekko.http.scaladsl.model.HttpMethods.{GET, POST}
+import org.apache.pekko.http.scaladsl.model.{HttpRequest, Uri}
 import com.sumologic.sumobot.test.annotated.SumoBotSpec
 import com.typesafe.config.ConfigFactory
 

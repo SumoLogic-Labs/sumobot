@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.test.annotated
 
-import akka.actor.ActorSystem
-import akka.testkit.TestKit
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.testkit.TestKit
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
 import org.scalatest.matchers.should.Matchers

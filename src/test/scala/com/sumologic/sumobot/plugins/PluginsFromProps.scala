@@ -17,7 +17,7 @@
  * under the License.
  */
 package com.sumologic.sumobot.plugins
-import akka.actor.{ActorSystem, Props}
+import org.apache.pekko.actor.{ActorSystem, Props}
 
 case class PluginsFromProps(props: Seq[Props]) extends PluginCollection {
   override def setup(implicit system: ActorSystem): Unit = {

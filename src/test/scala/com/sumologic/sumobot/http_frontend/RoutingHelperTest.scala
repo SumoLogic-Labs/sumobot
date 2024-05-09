@@ -18,13 +18,13 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.HttpMethods.{GET, HEAD}
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.ActorMaterializer
-import akka.testkit.TestKit
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model.HttpMethods.{GET, HEAD}
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
+import org.apache.pekko.stream.ActorMaterializer
+import org.apache.pekko.testkit.TestKit
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
 

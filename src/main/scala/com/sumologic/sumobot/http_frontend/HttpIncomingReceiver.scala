@@ -18,9 +18,9 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem}
-import akka.http.scaladsl.model.ws.TextMessage
-import akka.pattern.pipe
+import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef, ActorSystem}
+import org.apache.pekko.http.scaladsl.model.ws.TextMessage
+import org.apache.pekko.pattern.pipe
 import com.sumologic.sumobot.core.HttpReceptionist
 import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
 

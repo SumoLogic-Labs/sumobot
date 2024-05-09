@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.test.annotated
 
-import akka.actor.ActorSystem
-import akka.testkit.{TestKit, TestProbe}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, UserSender}
 import org.junit.runner.RunWith
 import org.scalatest.BeforeAndAfterAll

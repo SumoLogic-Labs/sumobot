@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.pagerduty
 
-import akka.actor.ActorLogging
+import org.apache.pekko.actor.ActorLogging
 import com.sumologic.sumobot.core.model.{IncomingMessage, OutgoingMessage, PublicChannel, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin
 

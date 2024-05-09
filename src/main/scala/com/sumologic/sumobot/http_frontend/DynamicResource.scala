@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.http.scaladsl.model.{ContentType, ContentTypes}
+import org.apache.pekko.http.scaladsl.model.{ContentType, ContentTypes}
 import org.apache.commons.io.IOUtils
 import org.fusesource.scalate.TemplateEngine
 import org.fusesource.scalate.util.{FileResourceLoader, Resource}
