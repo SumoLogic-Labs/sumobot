@@ -18,7 +18,7 @@ buildscript {
     }
 
     ext.akkaVersion = '2.6.20'
-    ext.awsSdkVersion = '1.12.717'
+    ext.awsSdkVersion = '1.12.718'
     ext.comFasterxmlJacksonVersion = '2.17.1'
     ext.orgScalatestVersion = '3.2.15'
 }
@@ -59,7 +59,7 @@ dependencies {
       }
     }
     implementation "org.scalatra.scalate:scalate-core_${scalaMajorVersion}:1.9.7"
-    implementation "org.slf4j:slf4j-log4j12:2.0.6"
+    implementation "org.slf4j:slf4j-log4j12:2.0.13"
     implementation "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
     implementation "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
     implementation("org.quartz-scheduler:quartz:2.3.2") {
