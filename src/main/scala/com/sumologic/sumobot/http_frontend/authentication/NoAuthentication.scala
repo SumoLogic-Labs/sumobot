@@ -17,7 +17,7 @@
  * under the License.
  */
 package com.sumologic.sumobot.http_frontend.authentication
-import akka.http.scaladsl.model.HttpRequest
+import org.apache.pekko.http.scaladsl.model.HttpRequest
 import com.typesafe.config.Config
 
 class NoAuthentication(config: Config) extends HttpAuthentication {

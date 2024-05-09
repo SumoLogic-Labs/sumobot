@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import org.apache.pekko.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.sumologic.sumobot.core.model.PublicChannel
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.RtmConnectState
@@ -28,10 +28,10 @@ import slack.rtm.RtmState
 import java.time.Instant
 
 object HttpReceptionist {
-  private[core] val DefaultChannel = Channel("C0001SUMO", "sumobot", Instant.now().getEpochSecond(),
+  private[core] val DefaultChannel = Channel("C0001SUMO", Some("sumobot"), Instant.now().getEpochSecond(),
     Some("U0001SUMO"), Some(false), Some(true), Some(false), Some(false), Some(true), None, Some(false), Some(false), None, None, None, None, None, None, None, None)
   val DefaultSumoBotChannelId = DefaultChannel.id
-  val DefaultSumoBotChannel = PublicChannel(DefaultChannel.id, DefaultChannel.name)
+  val DefaultSumoBotChannel = PublicChannel(DefaultChannel.id, DefaultChannel.name.get)
 
   val DefaultBotUser = User("U0001SUMO", "sumobot-bot", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   val DefaultClientUser = User("U0002SUMO", "sumobot-client", None, None, None, None, None, None, None, None, None, None, None, None, None, None)

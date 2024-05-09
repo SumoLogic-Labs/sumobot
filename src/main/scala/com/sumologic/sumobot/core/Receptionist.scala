@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor._
+import org.apache.pekko.actor._
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}

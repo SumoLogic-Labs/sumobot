@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.quartz
 
-import akka.actor._
+import org.apache.pekko.actor._
 import org.quartz.CronScheduleBuilder._
 import org.quartz.JobBuilder._
 import org.quartz.TriggerBuilder._

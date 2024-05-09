@@ -18,10 +18,10 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.http.scaladsl.model.HttpMethods.{GET, HEAD}
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
-import akka.stream.Materializer
+import org.apache.pekko.http.scaladsl.model.HttpMethods.{GET, HEAD}
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.model.{HttpEntity, HttpRequest, HttpResponse}
+import org.apache.pekko.stream.Materializer
 
 case class RoutingHelper(origin: String)(implicit materializer: Materializer) {
   def withAllowOriginHeader(routing: PartialFunction[HttpRequest, HttpResponse]): PartialFunction[HttpRequest, HttpResponse] = {

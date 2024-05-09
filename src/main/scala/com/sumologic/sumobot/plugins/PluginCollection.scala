@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.plugins
 
-import akka.actor.{ActorSystem, Props}
-import akka.event.Logging
+import org.apache.pekko.actor.{ActorSystem, Props}
+import org.apache.pekko.event.Logging
 import com.typesafe.config.ConfigException
 
 import scala.util.{Failure, Success, Try}

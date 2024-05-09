@@ -18,10 +18,10 @@
  */
 package com.sumologic.sumobot.brain
 
-import akka.actor.ActorSystem
-import akka.pattern.ask
-import akka.testkit.TestKit
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.testkit.TestKit
+import org.apache.pekko.util.Timeout
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.sumologic.sumobot.brain.Brain.ValueRetrieved

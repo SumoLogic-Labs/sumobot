@@ -18,14 +18,14 @@
  */
 package com.sumologic.sumobot.http_frontend
 
-import akka.actor.{ActorRef, ActorSystem, Props}
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.HttpMethods.{GET, OPTIONS}
-import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.model.ws.{Message, WebSocketUpgrade}
-import akka.http.scaladsl.model._
-import akka.stream.OverflowStrategy
-import akka.stream.scaladsl.{Keep, Sink, Source}
+import org.apache.pekko.actor.{ActorRef, ActorSystem, Props}
+import org.apache.pekko.http.scaladsl.Http
+import org.apache.pekko.http.scaladsl.model.HttpMethods.{GET, OPTIONS}
+import org.apache.pekko.http.scaladsl.model.headers._
+import org.apache.pekko.http.scaladsl.model.ws.{Message, WebSocketUpgrade}
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.stream.OverflowStrategy
+import org.apache.pekko.stream.scaladsl.{Keep, Sink, Source}
 import com.sumologic.sumobot.http_frontend.SumoBotHttpServer._
 import com.sumologic.sumobot.http_frontend.authentication.{AuthenticationForbidden, AuthenticationInfo, AuthenticationSucceeded}
 import org.reactivestreams.Publisher

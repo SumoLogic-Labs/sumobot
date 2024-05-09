@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot
 
-import akka.actor.Props
+import org.apache.pekko.actor.Props
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.Bootstrap
 import com.sumologic.sumobot.core.Bootstrap.{ClasspathConfigReader, FileConfigReader}

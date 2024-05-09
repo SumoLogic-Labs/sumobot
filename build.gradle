@@ -17,7 +17,7 @@ buildscript {
         classpath "org.owasp:dependency-check-gradle:9.1.0"
     }
 
-    ext.akkaVersion = '2.6.20'
+    ext.pekkoVersion = '1.0.2'
     ext.awsSdkVersion = '1.12.718'
     ext.comFasterxmlJacksonVersion = '2.14.1'
     ext.orgScalatestVersion = '3.2.15'
@@ -44,9 +44,9 @@ repositories {
 }
 
 dependencies {
-    api "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:0.4.4"
-    api "com.typesafe.akka:akka-testkit_${scalaMajorVersion}:${akkaVersion}"
-    api "com.typesafe.akka:akka-stream_${scalaMajorVersion}:${akkaVersion}"
+    api "com.github.slack-scala-client:slack-scala-client_${scalaMajorVersion}:1.0.0"
+    api "org.apache.pekko:pekko-testkit_${scalaMajorVersion}:${pekkoVersion}"
+    api "org.apache.pekko:pekko-stream_${scalaMajorVersion}:${pekkoVersion}"
 
     implementation("com.offbytwo.jenkins:jenkins-client:0.3.8") {
         exclude group: 'commons-beanutils', module: 'commons-beanutils'
@@ -79,7 +79,7 @@ dependencies {
     implementation "commons-beanutils:commons-beanutils:1.9.4"
     api "com.typesafe.play:play-json_${scalaMajorVersion}:2.9.2"
     api "com.pauldijou:jwt-play-json_${scalaMajorVersion}:3.1.0"
-    api "com.typesafe.akka:akka-http_${scalaMajorVersion}:10.2.10"
+    api "org.apache.pekko:pekko-http_${scalaMajorVersion}:1.0.1"
     implementation "org.joda:joda-convert:2.2.3"
 
     implementation "junit:junit:4.13.2"

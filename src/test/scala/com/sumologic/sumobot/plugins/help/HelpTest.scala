@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.help
 
-import akka.actor.{ActorSystem, Props}
+import org.apache.pekko.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.core.PluginRegistry
 import com.sumologic.sumobot.core.model.{IncomingMessage, UserSender}
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded}

@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins
 
-import akka.actor.{ActorSystem, Props}
+import org.apache.pekko.actor.{ActorSystem, Props}
 import com.sumologic.sumobot.core.config.ListOfConfigs
 
 import scala.util.Try

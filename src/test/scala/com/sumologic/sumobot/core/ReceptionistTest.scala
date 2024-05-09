@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.{TestKit, TestProbe}
+import org.apache.pekko.actor.{ActorSystem, Props}
+import org.apache.pekko.testkit.{TestKit, TestProbe}
 import com.sumologic.sumobot.brain.InMemoryBrain
 import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model.{IncomingMessage, OpenIM, OutgoingMessage}
@@ -43,7 +43,7 @@ class ReceptionistTest
   private val self = User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   private val somebodyElse = User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   private val team = Team("T123", "testers", "example.com")
-  private val channel = Channel("C123", "slack_test", 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
+  private val channel = Channel("C123", Some("slack_test"), 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
   private val im = Im("D123", true, somebodyElse.id, 1, None)
   private val startState = RtmConnectState(ok = true, "http://nothing/", self, team)
 

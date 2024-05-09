@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.brain
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.TestKit
+import org.apache.pekko.actor.{ActorSystem, Props}
+import org.apache.pekko.testkit.TestKit
 import com.sumologic.sumobot.test.annotated.SumoBotTestKit
 import org.scalatest.BeforeAndAfterAll
 

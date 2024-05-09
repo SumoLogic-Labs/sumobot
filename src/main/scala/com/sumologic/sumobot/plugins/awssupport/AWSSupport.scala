@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.plugins.awssupport
 
-import akka.actor.ActorLogging
+import org.apache.pekko.actor.ActorLogging
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
 import com.amazonaws.services.support.AWSSupportClientBuilder
 import com.amazonaws.services.support.model.{CaseDetails, DescribeCasesRequest}

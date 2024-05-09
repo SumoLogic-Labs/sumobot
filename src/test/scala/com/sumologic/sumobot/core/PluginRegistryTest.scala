@@ -18,10 +18,10 @@
  */
 package com.sumologic.sumobot.core
 
-import akka.actor.{ActorSystem, Props}
-import akka.pattern.ask
-import akka.testkit.TestKit
-import akka.util.Timeout
+import org.apache.pekko.actor.{ActorSystem, Props}
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.testkit.TestKit
+import org.apache.pekko.util.Timeout
 import com.sumologic.sumobot.core.PluginRegistry.{Plugin, PluginList, RequestPluginList}
 import com.sumologic.sumobot.plugins.BotPlugin.{PluginAdded, PluginRemoved}
 import com.sumologic.sumobot.plugins.help.Help

@@ -18,7 +18,7 @@
  */
 package com.sumologic.sumobot.brain
 
-import akka.actor.{Actor, Props}
+import org.apache.pekko.actor.{Actor, Props}
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider}
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model.ObjectMetadata

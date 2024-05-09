@@ -18,8 +18,8 @@
  */
 package com.sumologic.sumobot.plugins.pagerduty
 
-import akka.actor.ActorSystem
-import akka.testkit.TestKit
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.testkit.TestKit
 import com.sumologic.sumobot.test.annotated.{MatchTextUtil, SumoBotTestKit}
 import org.scalatest.BeforeAndAfterAll
 

@@ -18,9 +18,9 @@
  */
 package com.sumologic.sumobot.plugins.help
 
-import akka.actor.ActorLogging
-import akka.pattern.ask
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorLogging
+import org.apache.pekko.pattern.ask
+import org.apache.pekko.util.Timeout
 import com.sumologic.sumobot.core.PluginRegistry.{PluginList, RequestPluginList}
 import com.sumologic.sumobot.core.model.IncomingMessage
 import com.sumologic.sumobot.plugins.BotPlugin
