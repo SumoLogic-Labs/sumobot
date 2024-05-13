@@ -58,7 +58,7 @@ dependencies {
         strictly("4.5.14")
       }
     }
-    implementation "org.scalatra.scalate:scalate-core_${scalaMajorVersion}:1.9.7"
+    implementation "org.scalatra.scalate:scalate-core_${scalaMajorVersion}:1.10.1"
     implementation "org.slf4j:slf4j-log4j12:2.0.13"
     implementation "com.amazonaws:aws-java-sdk-support:${awsSdkVersion}"
     implementation "com.amazonaws:aws-java-sdk-s3:${awsSdkVersion}"
