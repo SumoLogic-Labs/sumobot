@@ -138,13 +138,6 @@ publishing {
                         url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
-                developers {
-                    developer {
-                        id = 'goledzki'
-                        name = 'Greg Oledzki'
-                        organization = 'Sumo Logic'
-                    }
-                }
                 scm {
                     connection = 'scm:git:git@github.com:SumoLogic/sumobot.git'
                     developerConnection = 'scm:git:git@github.com:SumoLogic/sumobot.git'
