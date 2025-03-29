@@ -35,7 +35,7 @@ class HelpTest extends BotPluginTestKit(ActorSystem("HelpTest")) {
   reg ! PluginAdded(mock, "mock help")
   reg ! PluginAdded(helpRef, "help help")
 
-  helpRef ! InitializePlugin(null, null, reg)
+  helpRef ! InitializePlugin(null, reg)
 
   val user = mockUser("123", "jshmoe")
 

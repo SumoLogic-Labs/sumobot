@@ -24,7 +24,6 @@ import com.sumologic.sumobot.plugins.PluginCollection
 import com.sumologic.sumobot.util.ParExecutor
 import com.typesafe.config.{Config, ConfigFactory}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.rtm.SlackRtmClient
 
 import java.io.File
 import scala.concurrent.Await
@@ -79,9 +78,9 @@ object Bootstrap {
   private def bootstrapSlack(brainProps: Props,
                              pluginCollections: Seq[PluginCollection]): Unit = {
     val slackConfig = system.settings.config.getConfig("slack")
-    val rtmClient = SlackRtmClient(
-      token = slackConfig.getString("api.token"),
-      duration = slackConfig.getInt("connect.timeout.seconds").seconds)
+    val eventsClient = EventsClient(
+      appToken = slackConfig.getString("app.token"),
+      botToken = slackConfig.getString("api.token"))
 
     val syncClient = BlockingSlackApiClient(
       token = slackConfig.getString("api.token"),
@@ -90,7 +89,7 @@ object Bootstrap {
       token = slackConfig.getString("api.token")
     )
     val brain = system.actorOf(brainProps, "brain")
-    receptionist = Some(system.actorOf(Receptionist.props(rtmClient, syncClient, asyncClient, brain), "receptionist"))
+    receptionist = Some(system.actorOf(Receptionist.props(eventsClient, syncClient, asyncClient, brain), "receptionist"))
 
     ParExecutor.runInParallel(pluginCollections)(_.setup)
 

@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 class AdviceTest extends BotPluginTestKit(ActorSystem("AdviceTest"))  {
 
   val adviceRef = system.actorOf(Props[Advice](), "advice")
-  adviceRef ! InitializePlugin(null, null, null)
+  adviceRef ! InitializePlugin(null, null)
 
   "advice" should {
 

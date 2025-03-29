@@ -89,6 +89,10 @@ dependencies {
     implementation "org.scalatestplus:junit-4-13_${scalaMajorVersion}:3.2.15.0"
     implementation "org.scalatestplus:mockito-4-6_${scalaMajorVersion}:3.2.15.0"
     implementation "org.mockito:mockito-core:4.11.0"
+
+    implementation 'com.slack.api:bolt-socket-mode:1.45.3'
+    implementation 'javax.websocket:javax.websocket-api:1.1'
+    implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.20'
 }
 
 compileScala {

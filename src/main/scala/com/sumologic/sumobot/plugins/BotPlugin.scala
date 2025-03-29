@@ -28,7 +28,6 @@ import com.typesafe.config.Config
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.{HttpGet, HttpUriRequest}
 import slack.models.{Group, Im, User, Channel => ClientChannel}
-import slack.rtm.RtmState
 
 import java.net.URLEncoder
 import java.util.concurrent.{Executors, TimeoutException}
@@ -46,7 +45,7 @@ object BotPlugin {
 
   case class PluginRemoved(plugin: ActorRef)
 
-  case class InitializePlugin(state: RtmState, brain: ActorRef, pluginRegistry: ActorRef)
+  case class InitializePlugin(brain: ActorRef, pluginRegistry: ActorRef)
 
   def matchText(regex: String): Regex = ("(?i)(?s)" + regex).r
 }
@@ -58,8 +57,6 @@ abstract class BotPlugin
 
   type ReceiveIncomingMessage = PartialFunction[IncomingMessage, Unit]
   type ReceiveReaction = PartialFunction[Reaction, Unit]
-
-  protected var state: RtmState = _
 
   protected var brain: ActorRef = _
 
@@ -200,8 +197,7 @@ abstract class BotPlugin
   override def receive: Receive = uninitialized orElse pluginReceive
 
   private def uninitialized: Receive = {
-    case InitializePlugin(newState, newBrain, newPluginRegistry) =>
-      this.state = newState
+    case InitializePlugin(newBrain, newPluginRegistry) =>
       this.brain = newBrain
       this.pluginRegistry = newPluginRegistry
       this.initialize()
