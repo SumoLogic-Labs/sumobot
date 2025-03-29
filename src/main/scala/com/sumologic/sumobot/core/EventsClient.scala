@@ -29,15 +29,15 @@ class EventsClient private (appToken: String, appConfig: AppConfig) {
         val incoming = Message(
           event.getTs,
           event.getChannel,
-          Some(event.getUser),
+          Option(event.getUser),
           event.getText,
-          Some(event.getBotId),
+          Option(event.getBotId),
           None,
-          Some(event.getThreadTs),
-          Some(Option(event.getAttachments)
+          Option(event.getThreadTs),
+          Option(Option(event.getAttachments)
             .map(_.asScala.toSeq).getOrElse(Seq.empty)
             .asInstanceOf[Seq[slack.models.Attachment]]),
-          Some(event.getSubtype)
+          Option(event.getSubtype)
         )
         messageRouter ! incoming
       }

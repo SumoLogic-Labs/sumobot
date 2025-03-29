@@ -80,7 +80,7 @@ class Receptionist(eventsClient: EventsClient,
   // VisibleForTesting
   protected def fetchUsers(): Seq[User] = {
     // NOTE(mccartney, 2023-01-30): I couldn't get the syncClient to do the same, it failed with timeout(15s)
-    Await.result(asyncClient.listUsers(), atMost = Duration(1, TimeUnit.MINUTES))
+    Await.result(asyncClient.listUsers(), atMost = Duration(2, TimeUnit.MINUTES))
   }
 
   protected def getAuthInfo: AuthIdentity = {
