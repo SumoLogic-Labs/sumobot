@@ -22,7 +22,7 @@ import akka.actor._
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, User, Attachment => SAttachment}
+import slack.models.{AuthIdentity, ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, User, Attachment => SAttachment}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Await
@@ -45,7 +45,7 @@ class Receptionist(eventsClient: EventsClient,
 
   implicit val system = ActorSystem("slack")
 
-  private val authResponse = syncClient.testAuth
+  private val authResponse = getAuthInfo
   private val selfId = authResponse.user_id
   private val selfName = authResponse.user
   eventsClient.addEventListener(self)
@@ -81,6 +81,10 @@ class Receptionist(eventsClient: EventsClient,
   protected def fetchUsers(): Seq[User] = {
     // NOTE(mccartney, 2023-01-30): I couldn't get the syncClient to do the same, it failed with timeout(15s)
     Await.result(asyncClient.listUsers(), atMost = Duration(1, TimeUnit.MINUTES))
+  }
+
+  protected def getAuthInfo: AuthIdentity = {
+    syncClient.testAuth
   }
 
   override def postStop(): Unit = {

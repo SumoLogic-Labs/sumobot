@@ -38,10 +38,10 @@ class ReceptionistTest
   with BeforeAndAfterEach
   with BeforeAndAfterAll {
 
-  private val self = User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+  private val selfUser = User("U123", "bender", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   private val somebodyElse = User("U124", "dude", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   private val team = Team("T123", "testers", "example.com")
-  private val channel = Channel("C123", "slack_test", 1, Some(self.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
+  private val channel = Channel("C123", "slack_test", 1, Some(selfUser.id), Some(false), Some(true), Some(false), Some(false), None, None, None, None, None, None, None, None, None, None, None, None)
   private val im = Im("D123", true, somebodyElse.id, 1, None)
 
   val eventsClient = mock[EventsClient]
@@ -54,19 +54,20 @@ class ReceptionistTest
   private val brain = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
   private val sut = system.actorOf(Props(new Receptionist(eventsClient, syncClient, asyncClient, brain){
     override def fetchUsers(): Seq[User] = Seq()
+    override def getAuthInfo: AuthIdentity = AuthIdentity("", "", selfUser.name , "", selfUser.id)
   }))
 
   "Receptionist" should {
     "mark messages as addressed to us" when {
       "message starts with @mention" in {
-        sut ! Message(currentTimeStamp, channel.id, Some(somebodyElse.id), s"<@${self.id}> hello dude1", None, None, None, None, None)
+        sut ! Message(currentTimeStamp, channel.id, Some(somebodyElse.id), s"<@${selfUser.id}> hello dude1", None, None, None, None, None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude1")
         result.addressedToUs should be(true)
       }
 
       "message starts with our name" in {
-        sut ! Message(currentTimeStamp, channel.id, Some(somebodyElse.id), s"${self.name} hello dude2", None, None, None, None, None)
+        sut ! Message(currentTimeStamp, channel.id, Some(somebodyElse.id), s"${selfUser.name} hello dude2", None, None, None, None, None)
         val result = probe.expectMsgClass(classOf[IncomingMessage])
         result.canonicalText should be("hello dude2")
         result.addressedToUs should be(true)
@@ -115,7 +116,7 @@ class ReceptionistTest
       }
 
       "it originated from our user" in {
-        sut ! Message(currentTimeStamp, channel.id, Some(self.id), s"This is me!", None, None, None, None, None)
+        sut ! Message(currentTimeStamp, channel.id, Some(selfUser.id), s"This is me!", None, None, None, None, None)
         probe.expectNoMessage(1.second)
       }
     }
