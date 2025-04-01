@@ -157,10 +157,10 @@ publishing {
     }
     repositories {
         maven {
-            url = uri("${artifactory_contextUrl}/libs-snapshot-local")
+            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
             credentials {
-                username = project.findProperty("artifactory_user") ?: ""
-                password = project.findProperty("artifactory_password") ?: ""
+                username project.findProperty("nexus_username") ?: ""
+                password project.findProperty("nexus_password") ?: ""
             }
         }
     }
