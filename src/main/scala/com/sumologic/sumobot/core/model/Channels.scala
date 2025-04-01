@@ -19,7 +19,6 @@
 package com.sumologic.sumobot.core.model
 
 import slack.models.{Message, User}
-import slack.rtm.RtmState
 
 trait Channel {
   def id: String

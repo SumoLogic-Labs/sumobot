@@ -19,12 +19,10 @@
 package com.sumologic.sumobot.core
 
 import akka.actor._
-import com.sumologic.sumobot.core.Receptionist.{RtmStateRequest, RtmStateResponse}
 import com.sumologic.sumobot.core.model._
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
 import slack.api.{BlockingSlackApiClient, SlackApiClient}
-import slack.models.{ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, User, Attachment => SAttachment}
-import slack.rtm.{RtmState, SlackRtmClient}
+import slack.models.{AuthIdentity, ImOpened, Message, MessageChanged, ReactionAdded, ReactionItemMessage, User, Attachment => SAttachment}
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.Await
@@ -33,27 +31,24 @@ import scala.concurrent.duration.Duration
 
 object Receptionist {
 
-  case class RtmStateRequest(sendTo: ActorRef)
-
-  case class RtmStateResponse(rtmState: RtmState)
-
-  def props(rtmClient: SlackRtmClient,
+  def props(eventsClient: EventsClient,
             syncClient: BlockingSlackApiClient,
             asyncClient: SlackApiClient,
             brain: ActorRef): Props =
-    Props(new Receptionist(rtmClient, syncClient, asyncClient, brain))
+    Props(new Receptionist(eventsClient, syncClient, asyncClient, brain))
 }
 
-class Receptionist(rtmClient: SlackRtmClient,
+class Receptionist(eventsClient: EventsClient,
                    syncClient: BlockingSlackApiClient,
                    asyncClient: SlackApiClient,
                    brain: ActorRef) extends Actor with ActorLogging {
 
   implicit val system = ActorSystem("slack")
 
-  private val selfId = rtmClient.state.self.id
-  private val selfName = rtmClient.state.self.name
-  rtmClient.addEventListener(self)
+  private val authResponse = getAuthInfo
+  private val selfId = authResponse.user_id
+  private val selfName = authResponse.user
+  eventsClient.addEventListener(self)
 
   private val atMention = """<@(\w+)>:(.*)""".r
   private val atMentionWithoutColon = """<@(\w+)>\s(.*)""".r
@@ -73,7 +68,6 @@ class Receptionist(rtmClient: SlackRtmClient,
       classOf[OutgoingMessageWithAttachments],
       classOf[OutgoingImage],
       classOf[OpenIM],
-      classOf[RtmStateRequest],
       classOf[ResponseInProgress],
       classOf[NewChannelTopic],
       classOf[SendIMByUserName]
@@ -86,17 +80,22 @@ class Receptionist(rtmClient: SlackRtmClient,
   // VisibleForTesting
   protected def fetchUsers(): Seq[User] = {
     // NOTE(mccartney, 2023-01-30): I couldn't get the syncClient to do the same, it failed with timeout(15s)
-    Await.result(asyncClient.listUsers(), atMost = Duration(1, TimeUnit.MINUTES))
+    Await.result(asyncClient.listUsers(), atMost = Duration(2, TimeUnit.MINUTES))
+  }
+
+  protected def getAuthInfo: AuthIdentity = {
+    syncClient.testAuth
   }
 
   override def postStop(): Unit = {
     context.system.eventStream.unsubscribe(self)
+    eventsClient.destroy()
   }
 
   override def receive: Receive = {
 
     case message@PluginAdded(plugin, _) =>
-      plugin ! InitializePlugin(rtmClient.state, brain, pluginRegistry)
+      plugin ! InitializePlugin(brain, pluginRegistry)
       pluginRegistry ! message
 
     case message@PluginRemoved(_) =>
@@ -104,7 +103,7 @@ class Receptionist(rtmClient: SlackRtmClient,
 
     case OutgoingMessage(channelId, text, threadTs) =>
       log.info(s"sending - $channelId: $text")
-      rtmClient.sendMessage(channelId, text, threadTs)
+      asyncClient.postChatMessage(channelId, text, threadTs = threadTs)
 
     case OutgoingMessageWithAttachments(channel, text, threadTs, attachments) =>
       log.info(s"sending - ${channel.name}: $text")
@@ -139,12 +138,6 @@ class Receptionist(rtmClient: SlackRtmClient,
       val message = messageChanged.message
       translateAndDispatch(messageChanged.channel, message.user.get, message.text, message.ts,
         attachments = message.attachments.getOrElse(Seq()))
-
-    case RtmStateRequest(sendTo) =>
-      sendTo ! RtmStateResponse(rtmClient.state)
-
-    case ResponseInProgress(channelId) =>
-      rtmClient.indicateTyping(channelId)
 
     case ReactionAdded(reaction, ReactionItemMessage(channel, ts), _, user, _) =>
       context.system.eventStream.publish(Reaction(reaction, channel, ts, user))

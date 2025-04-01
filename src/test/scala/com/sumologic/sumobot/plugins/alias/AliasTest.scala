@@ -33,7 +33,7 @@ class AliasTest
 
   val aliasRef = system.actorOf(Props(classOf[Alias]), "alias")
   val brainRef = system.actorOf(Props(classOf[InMemoryBrain]), "brain")
-  aliasRef ! InitializePlugin(null, brainRef, null)
+  aliasRef ! InitializePlugin(brainRef, null)
 
   "alias" should {
     "allow aliasing messages to the bot" in {

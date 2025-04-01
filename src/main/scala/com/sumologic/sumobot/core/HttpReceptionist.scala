@@ -21,9 +21,7 @@ package com.sumologic.sumobot.core
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.sumologic.sumobot.core.model.PublicChannel
 import com.sumologic.sumobot.plugins.BotPlugin.{InitializePlugin, PluginAdded, PluginRemoved}
-import slack.api.RtmConnectState
-import slack.models.{Channel, Team, User}
-import slack.rtm.RtmState
+import slack.models.{Channel, User}
 
 import java.time.Instant
 
@@ -33,14 +31,7 @@ object HttpReceptionist {
   val DefaultSumoBotChannelId = DefaultChannel.id
   val DefaultSumoBotChannel = PublicChannel(DefaultChannel.id, DefaultChannel.name)
 
-  val DefaultBotUser = User("U0001SUMO", "sumobot-bot", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
   val DefaultClientUser = User("U0002SUMO", "sumobot-client", None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-
-  private[core] val StateUrl = ""
-  private[core] val StateTeam = Team("T0001SUMO", "Sumo Bot", "sumobot")
-
-  private[core] val StartState = RtmConnectState(true, StateUrl, DefaultBotUser, StateTeam)
-  private[core] val State = new RtmState(StartState)
 }
 
 class HttpReceptionist(brain: ActorRef) extends Actor with ActorLogging {
@@ -48,7 +39,7 @@ class HttpReceptionist(brain: ActorRef) extends Actor with ActorLogging {
 
   override def receive: Receive = {
     case message@PluginAdded(plugin, _) =>
-      plugin ! InitializePlugin(HttpReceptionist.State, brain, pluginRegistry)
+      plugin ! InitializePlugin(brain, pluginRegistry)
       pluginRegistry ! message
 
     case message@PluginRemoved(_) =>
