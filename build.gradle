@@ -37,7 +37,7 @@ description = "A Slack bot implemented in Akka"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = '3.0.3-SNAPSHOT'
+version = '4.0.1-SNAPSHOT'
 
 repositories {
     mavenCentral()
