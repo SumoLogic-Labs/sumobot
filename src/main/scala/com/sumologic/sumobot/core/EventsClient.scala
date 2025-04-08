@@ -26,7 +26,6 @@ import com.slack.api.bolt.AppConfig
 import com.slack.api.bolt.socket_mode.SocketModeApp
 import com.slack.api.model.event.MessageEvent
 import com.slack.api.socket_mode.SocketModeClient
-import org.slf4j.LoggerFactory
 import scala.jdk.CollectionConverters._
 
 object EventsClient {
@@ -37,7 +36,6 @@ object EventsClient {
 }
 
 class EventsClient private (appToken: String, appConfig: AppConfig) {
-  private val log = LoggerFactory.getLogger(getClass)
   private val app = new App(appConfig)
   private val socketModeApp = new SocketModeApp(appToken, app)
 
