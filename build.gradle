@@ -91,6 +91,8 @@ dependencies {
     implementation "org.mockito:mockito-core:4.11.0"
 
     implementation 'com.slack.api:bolt-socket-mode:1.45.3'
+    implementation 'com.slack.api:bolt:1.45.3'
+    implementation 'com.slack.api:slack-api-client:1.45.3'
     implementation 'javax.websocket:javax.websocket-api:1.1'
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.20'
 }

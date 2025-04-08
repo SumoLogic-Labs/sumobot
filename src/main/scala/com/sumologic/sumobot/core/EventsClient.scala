@@ -16,17 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package com.sumologic.sumobot.core
 
 import akka.actor.ActorRef
 import com.slack.api.bolt.handler.BoltEventHandler
-import slack.models.Message
-import com.slack.api.bolt.App
-import com.slack.api.bolt.AppConfig
+import com.slack.api.bolt.{App, AppConfig}
 import com.slack.api.bolt.socket_mode.SocketModeApp
 import com.slack.api.model.event.MessageEvent
+import com.slack.api.socket_mode.SocketModeClient
+import org.slf4j.LoggerFactory
+import slack.models.Message
 import scala.jdk.CollectionConverters._
-
 
 object EventsClient {
   def apply(appToken: String, botToken: String): EventsClient = {
@@ -36,12 +37,13 @@ object EventsClient {
 }
 
 class EventsClient private (appToken: String, appConfig: AppConfig) {
+  private val log = LoggerFactory.getLogger(getClass)
   private val app = new App(appConfig)
   private val socketModeApp = new SocketModeApp(appToken, app)
+  @volatile private var clientOpt: Option[SocketModeClient] = None
 
   def addEventListener(messageRouter: ActorRef): Unit = {
-
-    val messageEventHandler : BoltEventHandler[MessageEvent] = (payload, context) => {
+    val messageEventHandler: BoltEventHandler[MessageEvent] = (payload, context) => {
       val event = payload.getEvent
       if (event.getText != null && event.getUser != null) {
         val incoming = Message(
@@ -63,7 +65,38 @@ class EventsClient private (appToken: String, appConfig: AppConfig) {
     }
 
     app.event(classOf[MessageEvent], messageEventHandler)
+
     socketModeApp.startAsync()
+    val client = socketModeApp.getClient
+    clientOpt = Some(client)
+
+    client.addWebSocketMessageListener((message: String) => {
+      if (message.contains("disconnect")) {
+        log.warn("Slack SocketMode disconnected — reconnecting...")
+        tryReconnect()
+      }
+    })
+  }
+
+  private def tryReconnect(): Unit = {
+    clientOpt.foreach { client =>
+      try {
+        client.disconnect()
+        socketModeApp.startAsync()
+        log.info("Slack SocketMode reconnected.")
+        val newClient = socketModeApp.getClient
+        clientOpt = Some(newClient)
+        newClient.addWebSocketMessageListener((message: String) => {
+          if (message.contains("disconnect")) {
+            log.warn("Slack SocketMode disconnected — reconnecting...")
+            tryReconnect()
+          }
+        })
+      } catch {
+        case e: Exception =>
+          log.error("Failed to reconnect SocketMode", e)
+      }
+    }
   }
 
   def destroy(): Unit = {
