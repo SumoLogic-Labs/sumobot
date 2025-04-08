@@ -25,8 +25,8 @@ import com.slack.api.bolt.App
 import com.slack.api.bolt.AppConfig
 import com.slack.api.bolt.socket_mode.SocketModeApp
 import com.slack.api.model.event.MessageEvent
+import com.slack.api.socket_mode.SocketModeClient
 import scala.jdk.CollectionConverters._
-
 
 object EventsClient {
   def apply(appToken: String, botToken: String): EventsClient = {
@@ -40,7 +40,6 @@ class EventsClient private (appToken: String, appConfig: AppConfig) {
   private val socketModeApp = new SocketModeApp(appToken, app)
 
   def addEventListener(messageRouter: ActorRef): Unit = {
-
     val messageEventHandler : BoltEventHandler[MessageEvent] = (payload, context) => {
       val event = payload.getEvent
       if (event.getText != null && event.getUser != null) {
@@ -63,8 +62,14 @@ class EventsClient private (appToken: String, appConfig: AppConfig) {
     }
 
     app.event(classOf[MessageEvent], messageEventHandler)
+
     socketModeApp.startAsync()
-  }
+
+    val client: SocketModeClient = socketModeApp.getClient
+    client.setAutoReconnectEnabled(true)
+    client.setAutoReconnectOnCloseEnabled(true)
+    client.setSessionMonitorEnabled(true)
+    }
 
   def destroy(): Unit = {
     if(app != null) {
