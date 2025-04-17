@@ -37,9 +37,10 @@ description = "A Slack bot implemented in Akka"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = '4.0.1-SNAPSHOT'
+version = '4.0.5-SNAPSHOT'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -91,6 +92,8 @@ dependencies {
     implementation "org.mockito:mockito-core:4.11.0"
 
     implementation 'com.slack.api:bolt-socket-mode:1.45.3'
+    implementation 'com.slack.api:bolt:1.45.3'
+    implementation 'com.slack.api:slack-api-client:1.45.3'
     implementation 'javax.websocket:javax.websocket-api:1.1'
     implementation 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.20'
 }
@@ -157,19 +160,16 @@ publishing {
     }
     repositories {
         maven {
-            url 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            url = uri("https://sumologicusw1.jfrog.io/artifactory/libs-snapshot-local")
             credentials {
-                username project.findProperty("nexus_username") ?: ""
-                password project.findProperty("nexus_password") ?: ""
+                username = project.findProperty("artifactory_user")
+                password = project.findProperty("artifactory_password")
             }
         }
     }
 }
 
-signing {
-    useGpgCmd()
-    sign publishing.publications.maven
-}
+
 
 license {
     header rootProject.file('src/etc/header.txt')
