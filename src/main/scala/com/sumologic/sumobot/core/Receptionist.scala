@@ -59,7 +59,9 @@ class Receptionist(eventsClient: EventsClient,
 
   private var pendingIMSessionsByUserId = Map[String, OutgoingMessage]()
 
-  private val pluginRegistry = context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
+  private val pluginRegistry = context.child("plugin-registry").getOrElse {
+    context.system.actorOf(Props(classOf[PluginRegistry]), "plugin-registry")
+  }
 
   private var slackNameToIdMapping: Map[String, String] = Map()
 

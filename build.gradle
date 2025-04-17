@@ -37,9 +37,10 @@ description = "A Slack bot implemented in Akka"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-version = '4.0.3-SNAPSHOT'
+version = '4.0.5-SNAPSHOT'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -168,10 +169,7 @@ publishing {
     }
 }
 
-signing {
-    useGpgCmd()
-    sign publishing.publications.maven
-}
+
 
 license {
     header rootProject.file('src/etc/header.txt')
